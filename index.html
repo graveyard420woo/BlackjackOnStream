@@ -32,6 +32,7 @@
         .bg-plaid {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-image: 
+				url('felt.png'),
                 repeating-linear-gradient(45deg, rgba(255, 50, 50, 0.03) 0, rgba(255, 50, 50, 0.03) 1px, transparent 1px, transparent 50px),
                 repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 50px);
             z-index: 0;
@@ -968,7 +969,7 @@ input[type="button"], button {
                 this.vy = (Math.random() - 1) * 35;   
                 this.gravity = 0.6; this.drag = 1.0; 
                 this.rotation = Math.random() * 360; this.rotSpeed = (Math.random() - 0.5) * 8;
-                this.color = ['#ed0c6e', '#851f83', '#ed1b2f', '#008d6a', '#ff3f1e', '#e21745', '#eee80a', '#009fda', '#ff6057', '#32bcad', '#fff'][Math.floor(Math.random()*4)];
+                this.color = ['#ed0c6e', '#851f83', '#ed1b2f', '#008d6a', '#ff3f1e', '#e21745', '#eee80a', '#009fda', '#ff6057', '#32bcad', '#fff'][Math.floor(Math.random()*11)];
                 this.life = 100;
             }
             update() {
