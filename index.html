@@ -204,12 +204,13 @@
         .chip-display {
             color: var(--gold); font-weight: 700; font-size: 0.9rem;
             text-shadow: 0 2px 4px black;
+			text-align: center;
             background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;
         }
 
         .score-display { 
-            position: absolute; top: 35px; left: 50%; transform: translateX(-50%);
-            font-size: 2.2rem; font-weight: 900; line-height: 1;
+            position: absolute; top: 45px; left: 50%; transform: translateX(-50%);
+            font-size: 2.5rem; font-weight: 900; line-height: 1;
             text-shadow: 0 4px 10px black; z-index: 40;
             transition: color 0.3s;
         }
@@ -274,6 +275,7 @@
             font-family: var(--font-display);
             font-size: 2.5rem; font-weight: 400; font-style: italic; z-index: 600;
             animation: floatText 1.5s ease-out forwards;
+			white-space: nowrap;
         }
         .pop-hit { color: var(--neon-green); text-shadow: 0 0 20px var(--neon-green); }
         .pop-stand { color: var(--neon-pink); text-shadow: 0 0 20px var(--neon-pink); }
@@ -897,7 +899,7 @@ input[type="button"], button {
         const PRODUCTION_MODE = true; 
 
         const CONFIG = {
-            START_CHIPS: 100, TURN_TIME: 10, LOBBY_TIME: 30, MAX_PLAYERS: 12,
+            START_CHIPS: 100, TURN_TIME: 14, LOBBY_TIME: 24, MAX_PLAYERS: 14,
             SPEED: 0.04, MAX_SPEED: 0.6, 
             MARGIN: 20, 
             UNIT_W: 200, UNIT_H: 220
@@ -1063,7 +1065,7 @@ input[type="button"], button {
                     <div class="player-name">${name}</div>
                     <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
                         <div class="chip-display"></div>
-                        <div class="bet-display" style="font-size:0.7rem; color:var(--gold); font-weight:800; text-shadow:0 2px 4px black; height:10px;"></div>
+                        <div class="bet-display" style="font-size:0.7rem; color:var(--gold); font-weight:800; text-shadow:0 2px 4px black; height:10px; white-space: nowrap;"></div>
                     </div>
                 </div>
                 <div class="score-display"></div>
