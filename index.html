@@ -1250,7 +1250,7 @@ input[type="button"], button {
             payouts();
         }
 		*/
-		
+		/* another dealer
 		async function runDealer() {
             State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
             while(State.dealer.score <= 17) {
@@ -1261,6 +1261,22 @@ input[type="button"], button {
                 State.dealer.hand.push(State.deck.pop()); State.dealer.score = calculateScore(State.dealer.hand);
                 updateUI(); await new Promise(r => setTimeout(r, 1000));
                 if (State.dealer.score > 21) break;
+            }
+            payouts();
+        }
+		*/
+		
+		async function runDealer() {
+            State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
+            while(State.dealer.score < 21) {
+                const topScore = Math.max(...State.players.filter(p => p.status !== 'bust').map(p => p.score), 0);
+                
+                if (State.dealer.score > topScore) break; // Stop immediately if winning
+                if (State.dealer.score >= 17 && (State.dealer.score === topScore && Math.random() > 0.2)) break; // Usually stop on a tie
+                if (State.dealer.score >= 19) break; // Stop at high safe numbers
+
+                State.dealer.hand.push(State.deck.pop()); State.dealer.score = calculateScore(State.dealer.hand);
+                updateUI(); await new Promise(r => setTimeout(r, 1000));
             }
             payouts();
         }
