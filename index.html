@@ -1278,24 +1278,48 @@ input[type="button"], button {
         function animate() { State.players.forEach(p => p.floater.update(State.players)); requestAnimationFrame(animate); }
         animate();
 		
-			// --- TWITCH CHAT INTEGRATION ---
-		window.twitchCommand = (username, command) => {
-			// 1. Get the currently active player
-			if (State.activeIdx === -1 || State.activeIdx >= State.players.length) return;
-			const activePlayer = State.players[State.activeIdx];
-		
-			// 2. Security Check: Ensure the person typing is the active player
-			// (Case-insensitive comparison)
-			if (username.toLowerCase() === activePlayer.name.toLowerCase()) {
-				
-				if (command.toLowerCase() === '!hit') {
-					hit();
-				}
-				else if (command.toLowerCase() === '!stand') {
-					stand();
-				}
-			}
-		};
+		function removePlayer(name) {
+            // Only allow leaving during LOBBY to prevent breaking turn order
+            if (State.phase !== 'LOBBY') return;
+            
+            const idx = State.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+            if (idx !== -1) {
+                const p = State.players[idx];
+                if(p.dom) p.dom.remove(); // Remove from screen
+                State.players.splice(idx, 1); // Remove from logic
+                updateUI();
+            }
+        }
+
+        // --- GLOBAL TWITCH HOOK ---
+        window.twitchCommand = (username, command) => {
+            const cmd = command.trim().toLowerCase();
+            const safeUser = username.trim();
+
+            // 1. LOBBY COMMANDS
+            if (State.phase === 'LOBBY') {
+                if (cmd === '!join') {
+                    addPlayer(safeUser);
+                }
+                else if (cmd === '!leave') {
+                    removePlayer(safeUser);
+                }
+            }
+
+            // 2. GAME COMMANDS
+            else if (State.phase === 'PLAYING') {
+                // Ensure there is a valid active player
+                if (State.activeIdx > -1 && State.activeIdx < State.players.length) {
+                    const activePlayer = State.players[State.activeIdx];
+                    
+                    // Security Check: Is this the active player?
+                    if (activePlayer.name.toLowerCase() === safeUser.toLowerCase()) {
+                        if (cmd === '!hit') hit();
+                        if (cmd === '!stand') stand();
+                    }
+                }
+            }
+        };
 		
         window.twitchAddPlayer = addPlayer;
         startLobby();
