@@ -292,7 +292,7 @@
         /* PROGRESS BAR */
         .timer-container {
             width: 100%; height: 4px; background: rgba(255,255,255,0.1);
-            margin-top: 45px;
+            margin-top: 39px;
             border-radius: 2px; overflow: hidden; opacity: 0; position: relative;
         }
         .timer-fill { height: 100%; background: var(--neon-blue); width: 0%; box-shadow: 0 0 10px var(--neon-blue); }
@@ -1250,7 +1250,8 @@ input[type="button"], button {
             payouts();
         }
 		*/
-		/* another dealer
+		
+		/* another dealer who is bad
 		async function runDealer() {
             State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
             while(State.dealer.score <= 17) {
