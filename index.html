@@ -964,7 +964,7 @@ input[type="button"], button {
                 const bEdge = window.innerHeight - CONFIG.MARGIN - CONFIG.UNIT_H;
                 if (this.x < CONFIG.MARGIN) { this.x = CONFIG.MARGIN; this.vx = Math.abs(this.vx); }
                 if (this.x > rEdge) { this.x = rEdge; this.vx = -Math.abs(this.vx); }
-                if (this.y < 75) { this.y = 75; this.vy = Math.abs(this.vy); }
+                if (this.y < 85) { this.y = 85; this.vy = Math.abs(this.vy); }
                 if (this.y > bEdge) { this.y = bEdge; this.vy = -Math.abs(this.vy); }
 
                 this.el.style.left = `${this.x}px`;
@@ -1057,11 +1057,6 @@ input[type="button"], button {
 
         // --- PLAYER ---
         function addPlayer(name) {
-			const history = chipHistory.get(name.toLowerCase());
-            const savedChips = (history && (Date.now() - history.time) < 180000) ? history.chips : CONFIG.START_CHIPS;
-            
-            const pObj = { name: name, chips: savedChips, currentBet: 0, hand: [], score: 0, status: 'waiting', dom: div, timerPct: 0 };
-			
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
@@ -1088,8 +1083,13 @@ input[type="button"], button {
                 <div class="timer-container"><div class="timer-fill"></div></div>
             `;
             document.getElementById('arena').appendChild(div);
+			
+			const history = chipHistory.get(name.toLowerCase());
+            const savedChips = (history && (Date.now() - history.time) < 180000) ? history.chips : CONFIG.START_CHIPS;
+            
+            const pObj = { name: name, chips: savedChips, currentBet: 0, hand: [], score: 0, status: 'waiting', dom: div, timerPct: 0 };
 
-            const pObj = { name: name, chips: CONFIG.START_CHIPS, currentBet: 0, hand: [], score: 0, status: 'waiting', dom: div, timerPct: 0 };
+            //const pObj = { name: name, chips: CONFIG.START_CHIPS, currentBet: 0, hand: [], score: 0, status: 'waiting', dom: div, timerPct: 0 };
             pObj.floater = new Floater(div, pObj);
             State.players.push(pObj);
             updateUI();
