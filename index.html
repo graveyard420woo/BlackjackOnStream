@@ -965,7 +965,7 @@ input[type="button"], button {
             activeIdx: -1, timers: { lobby: null, turn: null, lobbyVal: CONFIG.LOBBY_TIME }, house: 100
         };
 
-        // --- CONFETTI (EXPLOSIVE, NO DRAG) ---
+        // --- CONFETTI ---
         const ctx = document.getElementById('fx-canvas').getContext('2d');
         let particles = [];
         window.onresize = () => { ctx.canvas.width = window.innerWidth; ctx.canvas.height = window.innerHeight; };
@@ -979,8 +979,8 @@ input[type="button"], button {
                 this.vy = (Math.random() - 1) * 35;   
                 this.gravity = 0.6; this.drag = 1.0; 
                 this.rotation = Math.random() * 360; this.rotSpeed = (Math.random() - 0.5) * 8;
-                this.color = ['#ed0c6e', '#851f83', '#ed1b2f', '#008d6a', '#ff3f1e', '#e21745', '#eee80a', '#009fda', '#ff6057', '#32bcad', '#fff'][Math.floor(Math.random()*11)];
-                this.life = 100;
+                this.color = ['#fff200', '#0db24b', '#ffde00', '#72bf44', '#ffe700', '#a6cf39', '#52c317', '#ffde00', '#8dc73f', '#ffe700', '#72bf44'][Math.floor(Math.random()*11)];
+                this.life = 200;
             }
             update() {
                 this.vx *= this.drag; this.vy *= this.drag; this.vy += this.gravity;
