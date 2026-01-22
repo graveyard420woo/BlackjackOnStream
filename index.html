@@ -587,6 +587,7 @@ input[type="button"], button {
 		let previousChatters = [];
 		
 		const cooldowns = new Map();
+		const chipHistory = new Map();
 		
 		const myBigAssDiv = document.getElementById('bigcontainer1');
 		  setTimeout(() => {
@@ -1056,6 +1057,11 @@ input[type="button"], button {
 
         // --- PLAYER ---
         function addPlayer(name) {
+			const history = chipHistory.get(name.toLowerCase());
+            const savedChips = (history && (Date.now() - history.time) < 180000) ? history.chips : CONFIG.START_CHIPS;
+            
+            const pObj = { name: name, chips: savedChips, currentBet: 0, hand: [], score: 0, status: 'waiting', dom: div, timerPct: 0 };
+			
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
@@ -1063,7 +1069,6 @@ input[type="button"], button {
 					return;
 				}
 			}
-			//if (cooldowns.has(name.toLowerCase()) && Date.now() < cooldowns.get(name.toLowerCase())) return;
             if(State.phase !== 'LOBBY') return;
             if(State.players.some(p => p.name === name)) return;
             if(State.players.length >= CONFIG.MAX_PLAYERS) return;
@@ -1340,6 +1345,7 @@ input[type="button"], button {
             const idx = State.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
             if (idx !== -1) {
                 const p = State.players[idx];
+				chipHistory.set(p.name.toLowerCase(), { chips: p.chips, time: Date.now() });
                 if(p.dom) p.dom.remove(); 
                 State.players.splice(idx, 1); 
                 updateUI();
