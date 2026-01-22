@@ -664,13 +664,13 @@ input[type="button"], button {
 							console.log(`${chatter_user_name}: ${message.text}`);
 							//startEvent('golf', `${chatter_user_name}`)
 							
-							if(`${message.text}` == '!join'){makeChattersTree(chatter_user_id, chatter_user_name);}
+							if(`${message.text}` == '!join'){window.twitchCommand(chatter_user_name, "!join");}
 							
 							if(`${message.text}` == '!hit'){window.twitchCommand(chatter_user_name, "!hit");}
 							
-							if(`${message.text}` == '!stand'){makeChattersTree(chatter_user_id, chatter_user_name);}
+							if(`${message.text}` == '!stand'){window.twitchCommand(chatter_user_name, "!stand");}
 							
-							if(`${message.text}` == '!leave'){makeChattersTree(chatter_user_id, chatter_user_name);}
+							if(`${message.text}` == '!leave'){window.twitchCommand(chatter_user_name, "!leave");}
 							
 					});				
 				})	
@@ -879,7 +879,7 @@ input[type="button"], button {
 		  
 		  // game stuff below here twitch app api stuff abover here in js
 	
-        const PRODUCTION_MODE = false; 
+        const PRODUCTION_MODE = true; 
 
         const CONFIG = {
             START_CHIPS: 100, TURN_TIME: 10, LOBBY_TIME: 30, MAX_PLAYERS: 12,
