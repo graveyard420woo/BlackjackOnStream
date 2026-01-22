@@ -586,6 +586,8 @@ input[type="button"], button {
 		var chattersColor = '';
 		let previousChatters = [];
 		
+		const cooldowns = new Map();
+		
 		const myBigAssDiv = document.getElementById('bigcontainer1');
 		  setTimeout(() => {
 			myBigAssDiv.classList.remove('initial-fade');
@@ -1054,6 +1056,7 @@ input[type="button"], button {
 
         // --- PLAYER ---
         function addPlayer(name) {
+			if (cooldowns.has(name.toLowerCase()) && Date.now() < cooldowns.get(name.toLowerCase())) return;
             if(State.phase !== 'LOBBY') return;
             if(State.players.some(p => p.name === name)) return;
             if(State.players.length >= CONFIG.MAX_PLAYERS) return;
@@ -1248,7 +1251,15 @@ input[type="button"], button {
                 }
             });
 
-            State.players = State.players.filter(p => { if(p.chips<=0){p.dom.remove(); return false;} return true; });
+            State.players = State.players.filter(p => { 
+				if(p.chips <= 0) {
+					cooldowns.set(p.name.toLowerCase(), Date.now() + 180000); 
+					p.dom.remove(); 
+					return false;
+				} 
+				return true; 
+			});
+			
             updateUI();
 
             if(winners.length === 0) {
