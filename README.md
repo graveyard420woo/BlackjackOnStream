@@ -14,8 +14,8 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
 <ul>
  <li>!join</li>
  <li>!leave</li>
- <li>!hit</li>
- <li>!stand</li>
+ <li>!hit (!hitme !h)</li>
+ <li>!stand (!stay !s)</li>
 </ul>
 
 I am a humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (;
