@@ -1061,7 +1061,10 @@ input[type="button"], button {
             div.innerHTML = `
                 <div class="player-header">
                     <div class="player-name">${name}</div>
-                    <div class="chip-display"></div>
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                        <div class="chip-display"></div>
+                        <div class="bet-display" style="font-size:0.7rem; color:var(--gold); font-weight:800; text-shadow:0 2px 4px black; height:10px;"></div>
+                    </div>
                 </div>
                 <div class="score-display"></div>
                 <div class="hand-wrapper"></div>
@@ -1207,7 +1210,7 @@ input[type="button"], button {
             State.house += additional;
             player.currentBet = val;
 
-            spawnAction(player, `BET ${val}`);
+            spawnAction(player, `🪙 BET ${val}`);
             updateUI();
 
             // Reset turn timer
@@ -1294,7 +1297,8 @@ input[type="button"], button {
                 const isActive = (idx === State.activeIdx && State.phase === 'PLAYING');
                 p.dom.classList.toggle('active', isActive);
                 p.dom.classList.toggle('bust', p.status === 'bust');
-                p.dom.querySelector('.chip-display').innerText = `🪙${p.chips} (BET: ${p.currentBet})`;
+                p.dom.querySelector('.chip-display').innerText = `🪙${p.chips}`;
+                p.dom.querySelector('.bet-display').innerText = p.currentBet > 0 ? `BET ${p.currentBet}` : '';
                 p.dom.querySelector('.score-display').innerText = p.score > 0 ? p.score : '';
                 
                 const hw = p.dom.querySelector('.hand-wrapper');
