@@ -137,13 +137,6 @@
 
         .hidden { opacity: 0 !important; }
 
-        /* CONTROLS */
-        #controls-container {
-            position: absolute; bottom: 40px; width: 100%;
-            pointer-events: auto;
-            display: flex; justify-content: center; gap: 30px;
-        }
-
         button {
             background: rgba(15, 10, 10, 0.9);
             border: 2px solid rgba(255,255,255,0.1);
@@ -540,13 +533,6 @@ input[type="button"], button {
                 <div id="sub-message">USE !JOIN TO ENTER</div>
             </div>
         </header>
-
-        <div id="controls-container">
-            <button id="btn-hit" class="btn-hit debugable-btns hidden">HIT</button>
-            <button id="btn-stand" class="btn-stand debugable-btns hidden">STAND</button>
-            <button id="btn-pause" class="btn-pause debugable-btns">PAUSE START</button>
-            <button id="btn-add-bot" class="debug-btn debugable-btns">Add Bot</button>
-        </div>
     </div>
     <div id="bigcontainer1" class="initial-fade"><div id="bigcontainer"><div id="centercontentbox">
     				<h1 style="font-size:28px;">Blackjack <span>On Stream</span></h1>
@@ -870,6 +856,12 @@ input[type="button"], button {
 						document.getElementById("bigcontainer1").style.display = "none";
 						document.getElementById("arena").style.display = "block";
 						document.getElementById("ui-layer").style.display = "block";
+						  setTimeout(() => {
+							document.getElementById("bigcontainer").style.display = "none";
+							document.getElementById("bigcontainer1").style.display = "none";
+							document.getElementById("arena").style.display = "block";
+							document.getElementById("ui-layer").style.display = "block";
+						  }, 3000);
                     }
                 })
                 .catch(err => {
@@ -1229,8 +1221,8 @@ input[type="button"], button {
         function updateUI() {
             document.getElementById('house-bank').innerText = `🪙${State.house}`;
             const myTurn = (State.phase === 'PLAYING' && State.activeIdx > -1);
-            document.getElementById('btn-hit').classList.toggle('hidden', !myTurn);
-            document.getElementById('btn-stand').classList.toggle('hidden', !myTurn);
+            //document.getElementById('btn-hit').classList.toggle('hidden', !myTurn);
+            //document.getElementById('btn-stand').classList.toggle('hidden', !myTurn);
             
             const btnP = document.getElementById('btn-pause');
             const inLobby = State.phase === 'LOBBY';
@@ -1267,7 +1259,8 @@ input[type="button"], button {
             });
         }
 
-        document.getElementById('btn-hit').onclick = hit;
+        /*
+		document.getElementById('btn-hit').onclick = hit;
         document.getElementById('btn-stand').onclick = stand;
         document.getElementById('btn-pause').onclick = () => { State.paused = !State.paused; updateUI(); };
         document.getElementById('btn-add-bot').onclick = () => {
@@ -1275,6 +1268,7 @@ input[type="button"], button {
             addPlayer(names[Math.floor(Math.random()*names.length)] + Math.floor(Math.random()*99));
         };
         if(PRODUCTION_MODE) document.querySelectorAll('.debugable-btns').forEach(b => b.classList.add('hidden'));
+		*/
 
         function animate() { State.players.forEach(p => p.floater.update(State.players)); requestAnimationFrame(animate); }
         animate();
