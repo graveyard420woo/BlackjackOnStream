@@ -964,7 +964,7 @@ input[type="button"], button {
                 const bEdge = window.innerHeight - CONFIG.MARGIN - CONFIG.UNIT_H;
                 if (this.x < CONFIG.MARGIN) { this.x = CONFIG.MARGIN; this.vx = Math.abs(this.vx); }
                 if (this.x > rEdge) { this.x = rEdge; this.vx = -Math.abs(this.vx); }
-                if (this.y < 85) { this.y = 85; this.vy = Math.abs(this.vy); }
+                if (this.y < 85) { this.y = 65; this.vy = Math.abs(this.vy); }
                 if (this.y > bEdge) { this.y = bEdge; this.vy = -Math.abs(this.vy); }
 
                 this.el.style.left = `${this.x}px`;
