@@ -202,7 +202,7 @@
             font-weight: 800; font-size: 1.1rem; color: #aaa;
             text-shadow: 0 2px 4px black; 
             transition: all 0.5s;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;
+            /* white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; */
         }
         
         .chip-display {
@@ -542,10 +542,10 @@ input[type="button"], button {
         </header>
 
         <div id="controls-container">
-            <button id="btn-hit" class="btn-hit hidden">HIT</button>
-            <button id="btn-stand" class="btn-stand hidden">STAND</button>
-            <button id="btn-pause" class="btn-pause">PAUSE START</button>
-            <button id="btn-add-bot" class="debug-btn">Add Bot</button>
+            <button id="btn-hit" class="btn-hit debugable-btns hidden">HIT</button>
+            <button id="btn-stand" class="btn-stand debugable-btns hidden">STAND</button>
+            <button id="btn-pause" class="btn-pause debugable-btns">PAUSE START</button>
+            <button id="btn-add-bot" class="debug-btn debugable-btns">Add Bot</button>
         </div>
     </div>
     <div id="bigcontainer1" class="initial-fade"><div id="bigcontainer"><div id="centercontentbox">
@@ -711,7 +711,8 @@ input[type="button"], button {
 					});
 					missingChatters.forEach(chatter => {
 						console.log("Missing chatter:", chatter.user_name);
-						removeChattersTree(chatter.user_name);
+						//removeChattersTree(chatter.user_name);
+						window.twitchCommand(chatter.user_name, "!leave");
 					});
 					previousChatters = currentChatters;
 						})
@@ -944,7 +945,7 @@ input[type="button"], button {
                 const bEdge = window.innerHeight - CONFIG.MARGIN - CONFIG.UNIT_H;
                 if (this.x < CONFIG.MARGIN) { this.x = CONFIG.MARGIN; this.vx = Math.abs(this.vx); }
                 if (this.x > rEdge) { this.x = rEdge; this.vx = -Math.abs(this.vx); }
-                if (this.y < 200) { this.y = 200; this.vy = Math.abs(this.vy); }
+                if (this.y < 75) { this.y = 75; this.vy = Math.abs(this.vy); }
                 if (this.y > bEdge) { this.y = bEdge; this.vy = -Math.abs(this.vy); }
 
                 this.el.style.left = `${this.x}px`;
@@ -1273,7 +1274,7 @@ input[type="button"], button {
             const names = ['Neon', 'Viper', 'Echo', 'Drift', 'Ghost', 'Pixel', 'Wave', 'Glitch'];
             addPlayer(names[Math.floor(Math.random()*names.length)] + Math.floor(Math.random()*99));
         };
-        if(PRODUCTION_MODE) document.querySelectorAll('.debug-btn').forEach(b => b.classList.add('hidden'));
+        if(PRODUCTION_MODE) document.querySelectorAll('.debugable-btns').forEach(b => b.classList.add('hidden'));
 
         function animate() { State.players.forEach(p => p.floater.update(State.players)); requestAnimationFrame(animate); }
         animate();
