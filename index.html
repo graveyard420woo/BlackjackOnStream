@@ -1224,10 +1224,10 @@ input[type="button"], button {
             //document.getElementById('btn-hit').classList.toggle('hidden', !myTurn);
             //document.getElementById('btn-stand').classList.toggle('hidden', !myTurn);
             
-            const btnP = document.getElementById('btn-pause');
+            //const btnP = document.getElementById('btn-pause');
             const inLobby = State.phase === 'LOBBY';
-            btnP.classList.toggle('hidden', !inLobby);
-            if(inLobby) { btnP.innerText = State.paused ? "RESUME" : "PAUSE"; btnP.classList.toggle('paused', State.paused); }
+            //btnP.classList.toggle('hidden', !inLobby);
+            //if(inLobby) { btnP.innerText = State.paused ? "RESUME" : "PAUSE"; btnP.classList.toggle('paused', State.paused); }
 
             const hD = (State.phase === 'PLAYING');
             const dContainer = document.getElementById('dealer-hand');
