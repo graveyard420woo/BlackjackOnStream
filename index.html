@@ -1142,9 +1142,9 @@ input[type="button"], button {
         }
 
         function startGame() {
-			stopSubMessage();
+			//stopSubMessage();
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
-            updateTopMsg(` `);
+            updateTopMsg(" ");
             State.players.forEach(p => {
                 p.hand = []; p.score = 0; p.status = 'playing'; p.timerPct = 0;
                 p.currentBet = 10; // Initial mandatory bet
