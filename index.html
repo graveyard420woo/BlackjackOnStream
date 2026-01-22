@@ -1056,7 +1056,14 @@ input[type="button"], button {
 
         // --- PLAYER ---
         function addPlayer(name) {
-			if (cooldowns.has(name.toLowerCase()) && Date.now() < cooldowns.get(name.toLowerCase())) return;
+			if (cooldowns.has(name.toLowerCase())) {
+				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
+				if (remaining > 0) {
+					sendTwitchChatMessage(my_user_id, `${name} is paying off their debts for ${remaining} more seconds.`);
+					return;
+				}
+			}
+			//if (cooldowns.has(name.toLowerCase()) && Date.now() < cooldowns.get(name.toLowerCase())) return;
             if(State.phase !== 'LOBBY') return;
             if(State.players.some(p => p.name === name)) return;
             if(State.players.length >= CONFIG.MAX_PLAYERS) return;
