@@ -653,8 +653,12 @@ input[type="button"], button {
 							if(`${message.text}` == '!join'){window.twitchCommand(chatter_user_name, "!join");}
 							
 							if(`${message.text}` == '!hit'){window.twitchCommand(chatter_user_name, "!hit");}
+							if(`${message.text}` == '!hitme'){window.twitchCommand(chatter_user_name, "!hit");}
+							if(`${message.text}` == '!h'){window.twitchCommand(chatter_user_name, "!hit");}
 							
 							if(`${message.text}` == '!stand'){window.twitchCommand(chatter_user_name, "!stand");}
+							if(`${message.text}` == '!stay'){window.twitchCommand(chatter_user_name, "!stand");}
+							if(`${message.text}` == '!s'){window.twitchCommand(chatter_user_name, "!stand");}
 							
 							if(`${message.text}` == '!leave'){window.twitchCommand(chatter_user_name, "!leave");}
 							
@@ -962,9 +966,9 @@ input[type="button"], button {
                 this.w = Math.random() * 8 + 4; this.h = Math.random() * 8 + 4;
                 this.vx = (Math.random() - 0.5) * 35; 
                 this.vy = (Math.random() - 1) * 35;   
-                this.gravity = 0.5; this.drag = 1.0; 
+                this.gravity = 0.5; this.drag = 0.9; 
                 this.rotation = Math.random() * 360; this.rotSpeed = (Math.random() - 0.5) * 10;
-                this.color = ['#ed0c6e', '#851f83', '#ed1b2f', '#008d6a', '#fff'][Math.floor(Math.random()*4)];
+                this.color = ['#ed0c6e', '#851f83', '#ed1b2f', '#008d6a', '#ff3f1e', '#e21745', '#eee80a', '#009fda', '#ff6057', '#32bcad', '#fff'][Math.floor(Math.random()*4)];
                 this.life = 100;
             }
             update() {
@@ -1206,7 +1210,7 @@ input[type="button"], button {
                     const win = winners[i];
                     updateTopMsg(`PAYING ${win.amt} TO ${win.name}`);
                     const r = win.dom.getBoundingClientRect();
-                    for(let k=0; k<60; k++) particles.push(new Particle(r.left + 100, r.top + 50));
+                    for(let k=0; k<190; k++) particles.push(new Particle(r.left + 100, r.top + 50));
                     i++;
                 }, 1500);
             }
@@ -1316,7 +1320,7 @@ input[type="button"], button {
             }
         };
 		
-        window.twitchAddPlayer = addPlayer;
+        //window.twitchAddPlayer = addPlayer;
         startLobby();
     </script>
 </body>
