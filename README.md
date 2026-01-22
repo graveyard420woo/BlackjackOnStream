@@ -1,15 +1,7 @@
-  <h1 style="margin: 0; font-family: Montserrat;
-            font-size: 2.8rem; text-transform: uppercase; letter-spacing: 2px;
-            background: linear-gradient(to bottom, #fff 40%, #ccc 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(255, 100, 50, 0.3));">Blackjack <span style=" @keyframes hotRainbow {
-            0% { color: #ff0055; }
-			16% { color: #851f83; }
-            33% { color: #ed1b2f; }
-			48% { color: #92278f; }
-			61% { color: #00a99d; }
-            76% { color: #faa61a; }
-			88% { color: #ed0c6e; }
-            100% { color: #ff0055; } animation: hotRainbow 160s linear infinite; 
-            background: none;
-            -webkit-text-fill-color: initial; ">On Stream</span></h1>
+
+<img width="622" height="115" alt="logotag" src="https://github.com/user-attachments/assets/ef2804c5-9815-4413-8c9c-f23fe727267b" />
+<h2>Blackjack On Stream</h2><h3> by graveyard420woo</h3>
+ 
+This is an interactive Blackjack overlay for Twitch that can be played by everyone in chat on your stream! ;)
+
+Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!
