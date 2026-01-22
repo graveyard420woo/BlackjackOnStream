@@ -1001,8 +1001,7 @@ input[type="button"], button {
             draw() {
                 ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation * Math.PI / 180);
                 ctx.fillStyle = this.color; ctx.globalAlpha = Math.max(0, this.life/30);
-                ctx.arc(0, 0, this.w/2, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h); ctx.restore();
             }
         }
         function loopFX() {
