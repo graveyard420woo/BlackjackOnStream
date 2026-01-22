@@ -19,5 +19,4 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
 </ul>
 
 I am a humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (;
-
-
+-graveyard
