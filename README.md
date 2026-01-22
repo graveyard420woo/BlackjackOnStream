@@ -20,3 +20,5 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
 
 I am a humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (;
 <br>-graveyard
+
+<img width="1912" height="943" alt="Screenshot 2026-01-21 203400" src="https://github.com/user-attachments/assets/5258913d-21d8-4253-9eac-baceaa655b9c" />
