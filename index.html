@@ -1059,7 +1059,7 @@ input[type="button"], button {
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
-					sendTwitchChatMessage(my_user_id, `${name} is paying off their debts for ${remaining} more seconds.`);
+					sendTwitchChatMessage(my_user_id, `${name} is out paying off their debts for ${remaining} more seconds.`);
 					return;
 				}
 			}
@@ -1142,6 +1142,7 @@ input[type="button"], button {
         }
 
         function startGame() {
+			stopSubMessage();
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
             updateTopMsg(null);
             State.players.forEach(p => {
