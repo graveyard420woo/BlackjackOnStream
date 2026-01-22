@@ -8,6 +8,8 @@ This is an interactive Blackjack overlay for Twitch that can be played by everyo
 
 Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!
 
+A 1920x1080 browser source works great! For smoother operation - Enable hardware acceleration for your browser sources in OBS! (Settings>Advanced>Sources)
+
 <h3>Commands</h3>
 <ul>
  <li>!join</li>
