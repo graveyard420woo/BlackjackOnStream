@@ -1201,7 +1201,19 @@ input[type="button"], button {
             fetchUserProfile(userId, div);
 			
 			const history = chipHistory.get(name.toLowerCase());
-            const savedChips = (history && (Date.now() - history.time) < 180000000000) ? history.chips : CONFIG.START_CHIPS;
+			
+            //const savedChips = (history && (Date.now() - history.time) < 180000000000) ? history.chips : CONFIG.START_CHIPS;
+			
+			let savedChips = CONFIG.START_CHIPS; // Default: 100
+            if (history && (Date.now() - history.time) < 180000000000) {
+                if (history.chips <= 0) {
+                    // UPDATED: If they busted out previously, they restart with PITY AMOUNT (30)
+                    savedChips = 30;
+                } else {
+                    // Otherwise, restore their previous fortune
+                    savedChips = history.chips;
+                }
+            }
             
             const pObj = { name: name, chips: savedChips, currentBet: 0, hand: [], score: 0, status: 'waiting', dom: div, timerPct: 0 };
 
@@ -1421,7 +1433,8 @@ input[type="button"], button {
 
             State.players = State.players.filter(p => { 
 				if(p.chips <= 0) {
-					cooldowns.set(p.name.toLowerCase(), Date.now() + 180000); 
+					cooldowns.set(p.name.toLowerCase(), Date.now() + 180000);
+					chipHistory.set(safeName, { chips: 0, time: Date.now() }); 
 					p.dom.remove(); 
 					return false;
 				} 
