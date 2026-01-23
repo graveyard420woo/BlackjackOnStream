@@ -1387,34 +1387,7 @@ input[type="button"], button {
             State.activeIdx--; 
             nextTurn();
         }
-		
-		/* old normal dealer function booo
-        async function runDealer() {
-            State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
-            while(State.dealer.score < 17) {
-                State.dealer.hand.push(State.deck.pop()); State.dealer.score = calculateScore(State.dealer.hand);
-                updateUI(); await new Promise(r => setTimeout(r, 1000));
-            }
-            payouts();
-        }
-		*/
-		
-		/* another dealer who is bad
-		async function runDealer() {
-            State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
-            while(State.dealer.score <= 17) {
-                if (State.dealer.score === 17) {
-                    const losing = State.players.some(p => p.status !== 'bust' && p.score > 17);
-                    if (!losing && Math.random() > 0.2) break; // Stand on 17 if winning and 80% "safety" check passes
-                }
-                State.dealer.hand.push(State.deck.pop()); State.dealer.score = calculateScore(State.dealer.hand);
-                updateUI(); await new Promise(r => setTimeout(r, 1000));
-                if (State.dealer.score > 21) break;
-            }
-            payouts();
-        }
-		*/
-		
+
 		async function runDealer() {
             State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
             while(State.dealer.score < 21) {
