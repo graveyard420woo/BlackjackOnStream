@@ -170,6 +170,14 @@
             width: 250px;
         }
         
+		#house-bank {
+            cursor: grab; /* Indicates draggable */
+            user-select: none; /* Prevents text selection while dragging */
+        }
+        #house-bank:active {
+            cursor: grabbing;
+        }
+		
         .house-bank { 
             font-family: var(--font-display); font-size: 2rem; color: var(--gold); 
             text-shadow: 0 0 20px rgba(255, 200, 0, 0.5); 
@@ -583,7 +591,7 @@ input[type="button"], button {
         body.transparent-mode .bg-vignette { display: none !important; }
         body.transparent-mode, html { background-color: transparent !important; }
 
-        /* 3. High Contrast / Heavy Shadow Mode */
+        /* 3. High Contrast / Heavy Shadow Mode 
         body.high-contrast .card { box-shadow: -5px 5px 15px rgba(0,0,0,1) !important; }
         body.high-contrast h1 { text-shadow: 0 0 10px black, 0 0 20px black !important; filter: drop-shadow(0 0 5px black); }
         body.high-contrast .house-bank, 
@@ -594,7 +602,31 @@ input[type="button"], button {
             text-shadow: 2px 2px 0px black, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 5px 15px black !important; 
         }
         body.high-contrast .player-unit .chip-display { background: rgba(0,0,0,0.9); border: 1px solid white; }
+*/
+		/* 3. High Contrast Mode - REVISED */
+        body.high-contrast .card { box-shadow: -5px 5px 15px rgba(0,0,0,1) !important; }
+        
+        /* Fixed: Shadows are now strictly behind the text */
+        body.high-contrast h1 { 
+            text-shadow: 
+                0 0 0 rgba(0,0,0,1), /* layer hack */
+                3px 3px 0 #000, 
+                -1px -1px 0 #000, 
+                1px -1px 0 #000, 
+                -1px 1px 0 #000, 
+                1px 1px 0 #000,
+                0 10px 20px black !important;
+            filter: none !important; /* Removed drop-shadow that was obscuring text */
+        }
 
+        body.high-contrast .house-bank, 
+        body.high-contrast .player-name, 
+        body.high-contrast .score-display,
+        body.high-contrast #top-message,
+        body.high-contrast #sub-message { 
+            text-shadow: 2px 2px 0px black, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 5px 15px black !important; 
+        }
+        body.high-contrast .player-unit .chip-display { background: rgba(0,0,0,0.9); border: 1px solid white; }
     </style>
 </head>
 <body>
@@ -999,10 +1031,7 @@ input[type="button"], button {
                 this.y = 80 + Math.random() * (window.innerHeight - 350 - CONFIG.UNIT_H);
                 this.vx = (Math.random()-0.5) * 0.5;
                 this.vy = (Math.random()-0.5) * 0.5;
-                
-                this.dealerX = window.innerWidth / 2;
-                this.dealerY = 190; 
-                this.dealerRad = 200; 
+                // REMOVED: this.dealerX/Y (Now uses Global State)
             }
 
             update(others) {
@@ -1021,10 +1050,12 @@ input[type="button"], button {
                     }
                 });
 
-                const ddx = (this.x + CONFIG.UNIT_W/2) - this.dealerX;
-                const ddy = (this.y + 100) - this.dealerY;
+                // UPDATED: Use dynamic Dealer Position
+                const ddx = (this.x + CONFIG.UNIT_W/2) - State.dealerPos.x;
+                const ddy = (this.y + 100) - State.dealerPos.y; // Center of player card area roughly
                 const dDist = Math.sqrt(ddx*ddx + ddy*ddy);
-                if(dDist < this.dealerRad) {
+                
+                if(dDist < State.dealerPos.radius) {
                      const angle = Math.atan2(ddy, ddx);
                      const force = 0.05;
                      this.vx += Math.cos(angle) * force;
@@ -1051,7 +1082,9 @@ input[type="button"], button {
 
         const State = {
             phase: 'BOOT', paused: false, deck: [], players: [], dealer: { hand: [], score: 0 },
-            activeIdx: -1, timers: { lobby: null, turn: null, lobbyVal: CONFIG.LOBBY_TIME }, house: 100
+            activeIdx: -1, timers: { lobby: null, turn: null, lobbyVal: CONFIG.LOBBY_TIME }, house: 100,
+            // ADDED: Track dealer position for physics
+            dealerPos: { x: window.innerWidth / 2, y: 190, radius: 200 } 
         };
 
         // --- CONFETTI ---
@@ -1513,23 +1546,73 @@ input[type="button"], button {
             document.getElementById('disp-max-bet').innerText = n;
         }
 
-        function adjTimers(delta) {
-            // Adjust base config so next rounds pick it up
-            let t = CONFIG.TURN_TIME + delta;
-            let l = CONFIG.LOBBY_TIME + delta;
-            
-            if(t < 5) t = 5; 
-            if(l < 5) l = 5;
+        // --- DRAGGABLE DEALER LOGIC ---
+        const dragger = document.getElementById('house-bank');
+        const dealerSpot = document.getElementById('dealer-spot');
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
 
-            CONFIG.TURN_TIME = t;
-            CONFIG.LOBBY_TIME = l;
+        dragger.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            // Calculate offset of mouse relative to dealer spot
+            const rect = dealerSpot.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            dragger.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
             
-            document.getElementById('disp-timers').innerText = `${t}s`;
+            let newX = e.clientX - dragOffset.x;
+            let newY = e.clientY - dragOffset.y;
+
+            // Optional: Keep inside screen bounds
+            // if(newX < 0) newX = 0;
+            // if(newY < 0) newY = 0;
+
+            // Apply new CSS position
+            // Note: dealer-spot uses transform: translateX(-50%) in CSS.
+            // We need to account for that or remove it. 
+            // EASIEST FIX: Set left/top and remove the transform logic via JS override
+            dealerSpot.style.transform = 'none'; 
+            dealerSpot.style.left = `${newX}px`;
+            dealerSpot.style.top = `${newY}px`;
+
+            // Update Physics State (Center of dealer spot)
+            // Dealer spot width is 250px (defined in CSS)
+            State.dealerPos.x = newX + 125; 
+            State.dealerPos.y = newY + 70; // Approximation of center
+        });
+
+        window.addEventListener('mouseup', () => {
+            if(isDragging) {
+                isDragging = false;
+                dragger.style.cursor = 'grab';
+            }
+        });
+
+
+        // --- SPLIT TIMER SETTINGS ---
+        
+        function adjLobbyTime(delta) {
+            let n = CONFIG.LOBBY_TIME + delta;
+            if(n < 5) n = 5;
+            CONFIG.LOBBY_TIME = n;
+            document.getElementById('disp-lobby-time').innerText = `${n}s`;
             
-            // If currently in lobby, update the active timer value to reflect change immediately
+            // Immediate update if in lobby
             if(State.phase === 'LOBBY') {
                 State.timers.lobbyVal = (State.timers.lobbyVal + delta < 5) ? 5 : State.timers.lobbyVal + delta;
             }
+        }
+
+        function adjTurnTime(delta) {
+            let n = CONFIG.TURN_TIME + delta;
+            if(n < 5) n = 5;
+            CONFIG.TURN_TIME = n;
+            document.getElementById('disp-turn-time').innerText = `${n}s`;
         }
         startLobby();
     </script>
@@ -1567,11 +1650,20 @@ input[type="button"], button {
         </div>
 
         <div class="setting-row">
-            <span>TIMERS (LOBBY/TURN)</span>
+            <span>LOBBY TIME</span>
             <div class="stepper">
-                <button class="step-btn" onclick="adjTimers(-1)">-</button>
-                <span id="disp-timers">14s</span>
-                <button class="step-btn" onclick="adjTimers(1)">+</button>
+                <button class="step-btn" onclick="adjLobbyTime(-1)">-</button>
+                <span id="disp-lobby-time">24s</span>
+                <button class="step-btn" onclick="adjLobbyTime(1)">+</button>
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <span>TURN TIME</span>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjTurnTime(-1)">-</button>
+                <span id="disp-turn-time">14s</span>
+                <button class="step-btn" onclick="adjTurnTime(1)">+</button>
             </div>
         </div>
     </div>
