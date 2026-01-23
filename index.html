@@ -263,7 +263,10 @@
         }
         @keyframes deal { from { transform: translateY(50px) scale(0); opacity: 0; } to { opacity: 1; } }
 
-        .player-unit.active .card { box-shadow: 0 0 25px var(--neon-pink); border: 1px solid rgba(255,0,85,0.4); }
+        .player-unit.active .card { 
+            box-shadow: 0 0 25px var(--player-glow); 
+            border: 1px solid var(--player-glow); 
+        }
         .card.red { color: var(--neon-pink); }
         .card-corner { line-height: 0.9; font-size: 0.9rem; text-align: left; }
         .card-corner.bottom { transform: rotate(180deg); }
@@ -769,32 +772,59 @@ input[type="button"], button {
 					socket_space.on('channel.cheer', ({ metadata, payload }) => {
     					let { event } = payload;
     					let { is_anonymous , user_name , bits } = event;		
-							console.log(`${user_name} cheered: ${bits} bits`);
-							
+						console.log(`${user_name} cheered: ${bits} bits`);
+                        
+                        if(!is_anonymous && user_name) {
+                            const safeName = user_name.toLowerCase();
+                            const bitAmt = parseInt(bits);
+                            
+                            if(!isNaN(bitAmt) && bitAmt > 0) {
+                                // If player is currently in the game, add chips immediately
+                                const activeP = State.players.find(p => p.name.toLowerCase() === safeName);
+                                if(activeP) {
+                                    activeP.chips += bitAmt;
+                                    // Visual Pop-up using existing action system
+                                    spawnAction(activeP, `💎 +${bitAmt}`); 
+                                    updateUI();
+                                }
+
+                                // Update Chip History (Persistence)
+                                // This ensures if they aren't logged in, or if they leave, they keep the bits.
+                                const hist = chipHistory.get(safeName);
+                                if(hist) {
+                                    hist.chips += bitAmt;
+                                    hist.time = Date.now(); // Reset expiry timer
+                                } else {
+                                    // If no history, create new record. 
+                                    // If they are active, use current chips; if not, Start Chips + Bits
+                                    const currentChips = activeP ? activeP.chips : (CONFIG.START_CHIPS + bitAmt);
+                                    chipHistory.set(safeName, { chips: currentChips, time: Date.now() });
+                                }
+                            }
+                        }
 					});
 					socket_space.on('channel.chat.message', ({ metadata, payload }) => {
     					let { event } = payload;
-    					let { chatter_user_name , chatter_user_id , message } = event;		
+                        // EXTRACT COLOR HERE
+    					let { chatter_user_name , chatter_user_id , message, color } = event;		
 							console.log(`${chatter_user_name}: ${message.text}`);
-							//startEvent('golf', `${chatter_user_name}`)
 							
                             const fullMsg = message.text.trim();
-							if(fullMsg.toLowerCase() == '!join'){window.twitchCommand(chatter_user_name, "!join");}
+                            // PASS COLOR TO TWITCHCOMMAND
+							if(fullMsg.toLowerCase() == '!join'){window.twitchCommand(chatter_user_name, "!join", color);}
 							
-							if(fullMsg.toLowerCase() == '!hit'){window.twitchCommand(chatter_user_name, "!hit");}
-							if(fullMsg.toLowerCase() == '!hitme'){window.twitchCommand(chatter_user_name, "!hit");}
-							if(fullMsg.toLowerCase() == '!h'){window.twitchCommand(chatter_user_name, "!hit");}
+							if(fullMsg.toLowerCase() == '!hit'){window.twitchCommand(chatter_user_name, "!hit", color);}
+							if(fullMsg.toLowerCase() == '!hitme'){window.twitchCommand(chatter_user_name, "!hit", color);}
+							if(fullMsg.toLowerCase() == '!h'){window.twitchCommand(chatter_user_name, "!hit", color);}
 							
-							if(fullMsg.toLowerCase() == '!stand'){window.twitchCommand(chatter_user_name, "!stand");}
-							if(fullMsg.toLowerCase() == '!stay'){window.twitchCommand(chatter_user_name, "!stand");}
-							if(fullMsg.toLowerCase() == '!s'){window.twitchCommand(chatter_user_name, "!stand");}
+							if(fullMsg.toLowerCase() == '!stand'){window.twitchCommand(chatter_user_name, "!stand", color);}
+							if(fullMsg.toLowerCase() == '!stay'){window.twitchCommand(chatter_user_name, "!stand", color);}
+							if(fullMsg.toLowerCase() == '!s'){window.twitchCommand(chatter_user_name, "!stand", color);}
 							
-							if(fullMsg.toLowerCase() == '!leave'){window.twitchCommand(chatter_user_name, "!leave");}
+							if(fullMsg.toLowerCase() == '!leave'){window.twitchCommand(chatter_user_name, "!leave", color);}
 
-                            // Handling !bet [amount]
-                            if(fullMsg.toLowerCase().startsWith('!bet')){window.twitchCommand(chatter_user_name, fullMsg);}
-							
-					});				
+                            if(fullMsg.toLowerCase().startsWith('!bet')){window.twitchCommand(chatter_user_name, fullMsg, color);}
+					});			
 				})	
                 .catch(err => {
                     console.log(err);
@@ -1178,7 +1208,7 @@ input[type="button"], button {
         }
 
         // --- PLAYER ---
-        function addPlayer(name) {
+        function addPlayer(name, color) {
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
@@ -1190,8 +1220,14 @@ input[type="button"], button {
             if(State.players.some(p => p.name === name)) return;
             if(State.players.length >= CONFIG.MAX_PLAYERS) return;
 
+            // Default to Neon Pink if color is null/empty
+            const glowColor = color || '#ff0055';
+
             const div = document.createElement('div');
             div.className = 'player-unit';
+            // APPLY DYNAMIC COLOR VARIABLE HERE
+            div.style.setProperty('--player-glow', glowColor);
+            
             div.innerHTML = `
                 <div class="player-header">
                     <div class="player-name">${name}</div>
@@ -1211,12 +1247,10 @@ input[type="button"], button {
             
             const pObj = { name: name, chips: savedChips, currentBet: 0, hand: [], score: 0, status: 'waiting', dom: div, timerPct: 0 };
 
-            //const pObj = { name: name, chips: CONFIG.START_CHIPS, currentBet: 0, hand: [], score: 0, status: 'waiting', dom: div, timerPct: 0 };
             pObj.floater = new Floater(div, pObj);
             State.players.push(pObj);
             updateUI();
 
-            // RESTART LOBBY IF STUCK WAITING (First player join)
             if(State.players.length === 1 && State.phase === 'LOBBY') {
                 startLobby();
             }
@@ -1225,7 +1259,7 @@ input[type="button"], button {
         // --- SUB MESSAGE CYCLE ---
         const subMsgs = [
             "USE !JOIN TO ENTER", 
-            "USE !BET [AMT] TO BET<br>AT START OF TURN", 
+            "USE !BET [AMT] TO BET<br>AT START OF A TURN", 
             "USE !HIT TO HIT", 
             "USE !STAND TO STAND"
         ];
@@ -1515,13 +1549,14 @@ input[type="button"], button {
         }
 
         // --- GLOBAL TWITCH HOOK ---
-        window.twitchCommand = (username, command) => {
+        window.twitchCommand = (username, command, color) => {
             const cmdParts = command.trim().split(' ');
             const cmd = cmdParts[0].toLowerCase();
             const safeUser = username.trim();
 
             if (State.phase === 'LOBBY') {
-                if (cmd === '!join') addPlayer(safeUser);
+                // Pass color to addPlayer
+                if (cmd === '!join') addPlayer(safeUser, color);
                 else if (cmd === '!leave') removePlayer(safeUser);
             }
             else if (State.phase === 'PLAYING') {
@@ -1531,7 +1566,6 @@ input[type="button"], button {
                         if (cmd === '!hit') hit();
                         else if (cmd === '!stand') stand();
                         else if (cmd === '!bet') {
-                            // Usage: !bet 50
                             if (cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                         }
                     }
