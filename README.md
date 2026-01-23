@@ -4,9 +4,11 @@
 
 https://graveyard420woo.github.io/BlackjackOnStream/
  
-This is an interactive Blackjack overlay for Twitch that can be played by everyone in chat on your stream! ;)
+This is an interactive Blackjack overlay for Twitch that can be played by everyone in chat on your stream!
 
-Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!
+Simply add it as a browser source by copying the URL from the address bar after you connect your Twitch!
+
+Check the top left corner for your stream config menu ;)
 
 A 1920x1080 browser source works great! For smoother operation - Enable hardware acceleration for your browser sources in OBS! (Settings>Advanced>Sources)
 
