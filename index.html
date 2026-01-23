@@ -381,7 +381,7 @@ input[type="button"], button {
     border-radius: 7px 7px 17px 7px;
     transition: all .1s ease-in-out ;
     background-color: #9147ff;
-	margin-top: 10px;
+	margin-top: 17px;
     margin-bottom: 10px;
 	height: 36px;
 }   
@@ -453,7 +453,7 @@ input[type="button"], button {
     margin-left: 17px;
     margin-right: 11px;
     font-size: 14px;
-    font-weight: 300;
+    font-weight: 600;
 }
 
 
@@ -462,15 +462,16 @@ input[type="button"], button {
     margin-left: 3px;
     margin-right: 1px;
     font-size: 18px;
-    font-weight: 300;
+    font-weight: 700;
+	letter-spacing: 0.6px;
 }
 
 #gy-text{
     color: #fff;
     margin-left: 1px;
     margin-right: 1px;
-    font-size: 16px;
-    font-weight: 300;
+    font-size: 15.6px;
+    font-weight: 600;
 }
 
 
@@ -478,7 +479,7 @@ input[type="button"], button {
     color: #fff;
 	padding-bottom: 13px;
     font-size: 18px;
-    font-weight: 300;
+    font-weight: 600;
     display: block;
 	text-shadow: 0 0 8px rgba(255, 0, 127, 0.7);
 	letter-spacing: 1.2px;
@@ -487,7 +488,7 @@ input[type="button"], button {
 .description{
     color: #E0E0E0;
     font-size: 12px;
-    font-weight: 300;
+    font-weight: 600;
     white-space: pre-line;
     line-height: 19px;
 }
@@ -502,7 +503,7 @@ input[type="button"], button {
 
 #gy-logo{
     position: relative;
-	margin-top: 5px;
+	margin-top: 15px;
 	margin-left: -10px;
 	margin-right: 10px;
     height: 50px;
@@ -606,8 +607,15 @@ input[type="button"], button {
         body.high-contrast .card { box-shadow: -5px 5px 15px rgba(0,0,0,1) !important; }
         
         /* Fixed: Shadows are now strictly behind the text */
-        body.high-contrast h1 { 
+        body.high-contrast h1 span { 
             text-shadow: 2px 2px 0px black, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 5px 15px black !important; 
+        }
+		body.high-contrast h1 { 
+			margin: 0; font-family: var(--font-display);
+            font-size: 2.8rem; text-transform: uppercase; letter-spacing: 2px;
+            background: linear-gradient(to bottom, #fff 40%, #ccc 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(9px 10px 15px rgba(10, 10, 10, 0.9));
         }
 
         body.high-contrast .house-bank, 
@@ -651,9 +659,11 @@ input[type="button"], button {
     </div>
     <div id="bigcontainer1" class="initial-fade"><div id="bigcontainer"><div id="centercontentbox">
     				<h1 style="font-size:28px;">Blackjack <span>On Stream</span></h1>
-                    <span class="description-name desctext"><a class="logofollow-box" href="https://www.twitch.tv/graveyard420woo" target="_blank"><img id="gy-logo" src="gy.png"></a>by graveyard420woo</span>
+                    <span class="description-name desctext"><a class="logofollow-box" href="https://www.twitch.tv/graveyard420woo" target="_blank"><img id="gy-logo" src="gy.png"></a><span style="font-weight:300;">by</span> graveyard420woo</span>
                     <span class="description-main description">This is an interactive Blackjack overlay for Twitch that can be played by everyone in chat on your stream! ;)<br>
-                    Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!</span>
+                    Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!<br></span>
+                    <br>
+                    <span class="description-main description">Commands: !join !leave !hit !stand !bet[amt]</span>
                     <br>
                     <a id="authorize" class="login-box" target="">
                      <img id="twitch-logo" src="tlogo.png">
@@ -669,7 +679,7 @@ input[type="button"], button {
                         <span id="paypal-text">Donate/Tip with Paypal!</span>
                     </a>
                     <span class="description"><br>(: Always appreciated but never necessary or solicited.</span>
-                <div><div id="log"><div>Click "Connect Your Twitch" above to start!</div></div> 
+                <div><div id="log"><div>Click <span style="font-weight:800;">Connect Your Twitch</span>above to start!</div></div> 
 <span id="keepalive"></span></div></div>
 		</div>
     </div>
@@ -1116,7 +1126,12 @@ input[type="button"], button {
         // --- HELPERS ---
         function createDeck() {
             let d = [];
-            for(let i=0; i<4; i++) { 
+            // DYNAMIC DECK COUNT
+            // Base of 4 decks, scaling up to ensure roughly 1 deck per 2 players.
+            // With 99 players, this creates ~50 decks (2600 cards), ensuring play never stops.
+            const numDecks = Math.max(4, Math.ceil(State.players.length / 2));
+
+            for(let i=0; i<numDecks; i++) { 
                 for(let s of SUITS) {
                     for(let k of Object.keys(VALUE_MAP)) {
                         d.push({
@@ -1126,7 +1141,13 @@ input[type="button"], button {
                     }
                 }
             }
-            return d.sort(() => Math.random() - 0.5);
+            
+            // Fisher-Yates Shuffle (Better randomness for large shoes than sort)
+            for (let i = d.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [d[i], d[j]] = [d[j], d[i]];
+            }
+            return d;
         }
 
         function calculateScore(hand) {
@@ -1605,6 +1626,14 @@ input[type="button"], button {
             CONFIG.TURN_TIME = n;
             document.getElementById('disp-turn-time').innerText = `${n}s`;
         }
+		
+		function adjMaxPlayers(delta) {
+            let n = CONFIG.MAX_PLAYERS + delta;
+            if(n < 2) n = 2;
+            if(n > 99) n = 99;
+            CONFIG.MAX_PLAYERS = n;
+            document.getElementById('disp-max-players').innerText = n;
+        }
         startLobby();
     </script>
     <!-- HIDDEN SETTINGS TRIGGER & PANEL -->
@@ -1637,6 +1666,15 @@ input[type="button"], button {
                 <button class="step-btn" onclick="adjMaxBet(-100)">-</button>
                 <span id="disp-max-bet">200</span>
                 <button class="step-btn" onclick="adjMaxBet(100)">+</button>
+            </div>
+        </div>
+        
+        <div class="setting-row">
+            <span>MAX PLAYERS</span>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjMaxPlayers(-1)">-</button>
+                <span id="disp-max-players">14</span>
+                <button class="step-btn" onclick="adjMaxPlayers(1)">+</button>
             </div>
         </div>
 
