@@ -1207,8 +1207,8 @@ input[type="button"], button {
 			let savedChips = CONFIG.START_CHIPS; // Default: 100
             if (history && (Date.now() - history.time) < 180000000000) {
                 if (history.chips <= 0) {
-                    // UPDATED: If they busted out previously, they restart with PITY AMOUNT (30)
-                    savedChips = 30;
+                    // UPDATED: If they busted out previously, they restart with PITY AMOUNT (69)
+                    savedChips = 69;
                 } else {
                     // Otherwise, restore their previous fortune
                     savedChips = history.chips;
@@ -1286,8 +1286,14 @@ input[type="button"], button {
             
             State.players.forEach(p => {
                 p.hand = []; p.score = 0; p.status = 'playing'; p.timerPct = 0;
-                p.currentBet = 10; // Initial mandatory bet
-                p.chips -= p.currentBet; State.house += p.currentBet;
+                
+                let ante = 10;
+                if(p.chips < 10) ante = p.chips; // If they have 9, they bet 9.
+                
+                p.currentBet = ante; 
+                p.chips -= ante; 
+                State.house += ante;
+                
                 const hw = p.dom.querySelector('.hand-wrapper');
                 if(hw) hw.innerHTML = ''; 
             });
