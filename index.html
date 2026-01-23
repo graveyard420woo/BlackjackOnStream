@@ -842,19 +842,25 @@ input[type="button"], button {
 							if(fullMsg.toLowerCase() == '!join'){window.twitchCommand(chatter_user_id, chatter_user_name, "!join", color);}
 							
 							if(fullMsg.toLowerCase() == '!hit'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
+							if(fullMsg.toLowerCase() == 'hit'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
 							if(fullMsg.toLowerCase() == '!hitme'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
 							if(fullMsg.toLowerCase() == '!h'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
+							if(fullMsg.toLowerCase() == 'h'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
 							
 							if(fullMsg.toLowerCase() == '!stand'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
+							if(fullMsg.toLowerCase() == 'stand'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
 							if(fullMsg.toLowerCase() == '!stay'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
+							if(fullMsg.toLowerCase() == 'stay'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
 							if(fullMsg.toLowerCase() == '!s'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
+							if(fullMsg.toLowerCase() == 's'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
 							
 							if(fullMsg.toLowerCase() == '!leave'){window.twitchCommand(chatter_user_id, chatter_user_name, "!leave", color);}
 
                             if(fullMsg.toLowerCase().startsWith('!bet')){window.twitchCommand(chatter_user_id, chatter_user_name, fullMsg, color);}
+							if(fullMsg.toLowerCase().startsWith('bet')){window.twitchCommand(chatter_user_id, chatter_user_name, fullMsg, color);}
 
-                            // ADDED: !buy command hook
                             if(fullMsg.toLowerCase() == '!buy'){window.twitchCommand(chatter_user_id, chatter_user_name, "!buy", color);}
+							if(fullMsg.toLowerCase() == 'buy'){window.twitchCommand(chatter_user_id, chatter_user_name, "!buy", color);}
 					});		
 				})	
                 .catch(err => {
@@ -1598,6 +1604,9 @@ input[type="button"], button {
                         if (cmd === '!hit') hit();
                         else if (cmd === '!stand') stand();
                         else if (cmd === '!bet') {
+                            if (cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
+                        }
+						else if (cmd === 'bet') {
                             if (cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                         }
                     }
