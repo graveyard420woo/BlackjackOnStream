@@ -519,6 +519,82 @@ input[type="button"], button {
 
 */
 
+	/* --- SETTINGS & MODES --- */
+        #settings-trigger {
+            position: fixed; top: 0; left: 0; width: 20px; height: 20px;
+            z-index: 10000; cursor: pointer; opacity: 0;
+        }
+        #settings-trigger:hover { opacity: 0.3; background: white; }
+
+        #settings-panel {
+            display: none; position: fixed; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); width: 400px;
+            background: rgba(10, 5, 10, 0.95); border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 206, 243, 0.3);
+            border-radius: 10px; padding: 20px; z-index: 10001;
+            font-family: var(--font-body); color: white;
+            backdrop-filter: blur(10px);
+        }
+        #settings-panel.open { display: block; }
+        
+        .settings-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;
+        }
+        .settings-header h2 { margin: 0; font-family: var(--font-display); color: var(--neon-blue); }
+        .close-settings { cursor: pointer; font-weight: bold; font-size: 1.2rem; color: var(--neon-pink); }
+        
+        .setting-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 15px; font-size: 0.9rem; font-weight: 600;
+        }
+        
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--neon-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Stepper Controls */
+        .stepper { display: flex; align-items: center; gap: 10px; background: #222; padding: 2px 5px; border-radius: 4px; }
+        .stepper span { min-width: 40px; text-align: center; color: var(--gold); }
+        .step-btn { 
+            background: none; border: none; color: white; font-weight: 900; 
+            cursor: pointer; padding: 0 5px; box-shadow: none; clip-path: none;
+        }
+        .step-btn:hover { color: var(--neon-blue); transform: none; background: none; }
+
+        /* --- MODES --- */
+        /* 1. Logo Toggle */
+        body.hide-logo h1 { display: none !important; }
+
+        /* 2. Transparent Background Mode (OBS) */
+        body.transparent-mode .bg-plaid, 
+        body.transparent-mode .bg-light, 
+        body.transparent-mode .bg-smoke, 
+        body.transparent-mode .bg-vignette { display: none !important; }
+        body.transparent-mode, html { background-color: transparent !important; }
+
+        /* 3. High Contrast / Heavy Shadow Mode */
+        body.high-contrast .card { box-shadow: -5px 5px 15px rgba(0,0,0,1) !important; }
+        body.high-contrast h1 { text-shadow: 0 0 10px black, 0 0 20px black !important; filter: drop-shadow(0 0 5px black); }
+        body.high-contrast .house-bank, 
+        body.high-contrast .player-name, 
+        body.high-contrast .score-display,
+        body.high-contrast #top-message,
+        body.high-contrast #sub-message { 
+            text-shadow: 2px 2px 0px black, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 5px 15px black !important; 
+        }
+        body.high-contrast .player-unit .chip-display { background: rgba(0,0,0,0.9); border: 1px solid white; }
+
     </style>
 </head>
 <body>
@@ -901,11 +977,12 @@ input[type="button"], button {
 	
         const PRODUCTION_MODE = true; 
 
-        const CONFIG = {
+        let CONFIG = {
             START_CHIPS: 100, TURN_TIME: 14, LOBBY_TIME: 24, MAX_PLAYERS: 14,
             SPEED: 0.04, MAX_SPEED: 0.6, 
             MARGIN: 20, 
-            UNIT_W: 200, UNIT_H: 220
+            UNIT_W: 200, UNIT_H: 220,
+            MAX_BET: 200
         };
 
         const SUITS = ['♠', '♥', '♦', '♣'];
@@ -989,9 +1066,9 @@ input[type="button"], button {
                 this.w = Math.random() * 8 + 4; this.h = Math.random() * 8 + 4;
                 this.vx = (Math.random() - 0.5) * 35; 
                 this.vy = (Math.random() - 1) * 35;   
-                this.gravity = 0.6; this.drag = 1.0; 
-                this.rotation = Math.random() * 360; this.rotSpeed = (Math.random() - 0.5) * 8;
-                this.color = ['#fff200', '#0db24b', '#ffde00', '#72bf44', '#ffe700', '#a6cf39', '#52c317', '#ffde00', '#8dc73f', '#ffe700', '#72bf44'][Math.floor(Math.random()*11)];
+                this.gravity = 0.7; this.drag = 1.0; 
+                this.rotation = Math.random() * 360; this.rotSpeed = (Math.random() - 0.5) * 7;
+                this.color = ['#ff0055', '#ff007f', '#ff1493', '#e0004d', '#ff66b2', '#0db24b', '#72bf44', '#52c317'][Math.floor(Math.random()*8)];
                 this.life = 140;
             }
             update() {
@@ -1217,7 +1294,7 @@ input[type="button"], button {
             if (isNaN(val) || val < 1) return;
 
             // Cap bet at 200
-            if (val > 200) val = 200;
+            if (val > CONFIG.MAX_BET) val = CONFIG.MAX_BET;
 
             // Calculate how much MORE we need to take from their wallet
             // (They already paid 10 at startGame)
@@ -1325,7 +1402,9 @@ input[type="button"], button {
                     const win = winners[i];
                     updateTopMsg(`PAYING ${win.amt} TO ${win.name}`);
                     const r = win.dom.getBoundingClientRect();
-                    for(let k=0; k<190; k++) particles.push(new Particle(r.left + 100, r.top + 50));
+                     // Dynamic particle count based on win amount (Capped at 350 for performance)
+                    const pCount = Math.min(win.amt, 350); 
+                    for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
                     i++;
                 }, 1500);
             }
@@ -1409,8 +1488,92 @@ input[type="button"], button {
                 }
             }
         };
-		
+		// --- SETTINGS LOGIC ---
+        function toggleSettings() {
+            document.getElementById('settings-panel').classList.toggle('open');
+        }
+
+        function toggleLogo(el) {
+            document.body.classList.toggle('hide-logo', !el.checked);
+        }
+
+        function toggleTransparent(el) {
+            document.body.classList.toggle('transparent-mode', el.checked);
+        }
+
+        function toggleShadows(el) {
+            document.body.classList.toggle('high-contrast', el.checked);
+        }
+
+        function adjMaxBet(delta) {
+            let n = CONFIG.MAX_BET + delta;
+            if(n < 100) n = 100;
+            if(n > 10000) n = 10000;
+            CONFIG.MAX_BET = n;
+            document.getElementById('disp-max-bet').innerText = n;
+        }
+
+        function adjTimers(delta) {
+            // Adjust base config so next rounds pick it up
+            let t = CONFIG.TURN_TIME + delta;
+            let l = CONFIG.LOBBY_TIME + delta;
+            
+            if(t < 5) t = 5; 
+            if(l < 5) l = 5;
+
+            CONFIG.TURN_TIME = t;
+            CONFIG.LOBBY_TIME = l;
+            
+            document.getElementById('disp-timers').innerText = `${t}s`;
+            
+            // If currently in lobby, update the active timer value to reflect change immediately
+            if(State.phase === 'LOBBY') {
+                State.timers.lobbyVal = (State.timers.lobbyVal + delta < 5) ? 5 : State.timers.lobbyVal + delta;
+            }
+        }
         startLobby();
     </script>
+    <!-- HIDDEN SETTINGS TRIGGER & PANEL -->
+    <div id="settings-trigger" onclick="toggleSettings()"></div>
+
+    <div id="settings-panel">
+        <div class="settings-header">
+            <h2>STREAM CONFIG</h2>
+            <div class="close-settings" onclick="toggleSettings()">✖</div>
+        </div>
+
+        <div class="setting-row">
+            <span>SHOW LOGO</span>
+            <label class="switch"><input type="checkbox" checked onchange="toggleLogo(this)"><span class="slider"></span></label>
+        </div>
+
+        <div class="setting-row">
+            <span>TRANSPARENT BG (OBS)</span>
+            <label class="switch"><input type="checkbox" onchange="toggleTransparent(this)"><span class="slider"></span></label>
+        </div>
+
+        <div class="setting-row">
+            <span>HIGH CONTRAST SHADOWS</span>
+            <label class="switch"><input type="checkbox" onchange="toggleShadows(this)"><span class="slider"></span></label>
+        </div>
+
+        <div class="setting-row">
+            <span>MAX BET LIMIT</span>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjMaxBet(-100)">-</button>
+                <span id="disp-max-bet">200</span>
+                <button class="step-btn" onclick="adjMaxBet(100)">+</button>
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <span>TIMERS (LOBBY/TURN)</span>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjTimers(-1)">-</button>
+                <span id="disp-timers">14s</span>
+                <button class="step-btn" onclick="adjTimers(1)">+</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
