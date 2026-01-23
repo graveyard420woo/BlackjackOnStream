@@ -1435,7 +1435,7 @@ input[type="button"], button {
         function spawnStoreEmoji() {
             if(State.activeStoreItem) return;
             const emoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
-            const price = 200 + (Math.floor(Math.random()*9) * 100);
+            const price = 50 + (Math.floor(Math.random()*3) * 10);
             
             const div = document.createElement('div');
             div.className = 'store-item';
