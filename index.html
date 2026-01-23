@@ -183,22 +183,23 @@
             z-index: 2;
         }
 
-        /* FLAIR STYLING */
+/* --- STICKER FLAIR STYLING --- */
         .flair-container {
-            position: absolute;
-            top: -10px;
-            left: 50%;
+            position: absolute; 
+            top: -20px; left: 50%; 
             transform: translateX(-50%);
-            display: flex;
-            gap: 2px;
-            z-index: 1;
-            opacity: 0.6;
-            pointer-events: none;
-            white-space: nowrap;
+            width: 180px; height: 80px; /* Area for stickers to live */
+            z-index: 1; pointer-events: none;
         }
+
         .flair-item {
-            font-size: 1.2rem;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
+            position: absolute;
+            font-size: 2rem;
+            /* Sticker effect: white border around the emoji */
+            filter: drop-shadow(2px 0 0 white) drop-shadow(-2px 0 0 white) 
+                    drop-shadow(0 2px 0 white) drop-shadow(0 -2px 0 white)
+                    drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            user-select: none;
         }
         
         .chip-display {
@@ -640,7 +641,19 @@ input[type="button"], button {
         body.high-contrast #sub-message { 
             text-shadow: 2px 2px 0px black, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 5px 15px black !important; 
         }
-        body.high-contrast .player-unit .chip-display { background: rgba(0,0,0,0.9); border: 1px solid white; }
+        body.high-contrast .player-unit .chip-display { background: rgba(0,0,0,0.9); border: 1px solid black; }
+		
+		 body.high-contrast .player-unit.active .card { 
+            /* Ensure the neon glow remains visible even in high contrast */
+            box-shadow: 0 0 30px var(--player-glow), -5px 5px 15px rgba(0,0,0,1) !important; 
+            border: 2px solid white !important; 
+        }
+        
+        /* Ensure emojis in the store are visible */
+        .store-emoji {
+            font-size: 4.5rem;
+            filter: drop-shadow(0 0 15px white);
+        }
 		
 		@keyframes slideOutDrop {
             0% { transform: translateY(0) rotate(0deg); opacity: 1; }
@@ -995,7 +1008,7 @@ input[type="button"], button {
         };
 
         // --- NEW: EMOJI ARRAY ---
-        const EMOJIS = ['🔥','💎','👑','🍀','💸','🌶️','🍕','🦄','👽','🚀','🌈','🎸','🍄','🎲','🧿','🦁','🐲','🧊','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','🎈','🎀','🧿','✨','💀','👻','🤖','🧸','🪐','🌞','🌊','🍭'];
+        const EMOJIS = ['🔥','💎','👑','🍀','💸','🌶️','🍕','🦄','👽','🚀','🌈','🎸','🍄','🎲','🧿','🦁','🐲','🧊','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','🎈','🎀','🧿','✨','💀','👻','🤖','🧸','🪐','🌞','🌊','🍭','🌭','🍟','🍺','💾','☠','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','⛳'];
 
         // --- PHYSICS ENGINE ---
         class Floater {
@@ -1417,10 +1430,19 @@ input[type="button"], button {
                 p.dom.querySelector('.chip-display').innerText = `🪙${p.chips}`;
                 p.dom.querySelector('.bet-display').innerText = p.currentBet > 0 ? `BET ${p.currentBet}` : '';
                 p.dom.querySelector('.score-display').innerText = p.score > 0 ? p.score : '';
-                
-                // UPDATE FLAIR UI
+				
+				// UPDATE FLAIR UI (STICKER MODE)
                 const fc = p.dom.querySelector('.flair-container');
-                fc.innerHTML = p.flair.map(f => `<span class="flair-item">${f}</span>`).join('');
+                fc.innerHTML = p.flair.map(f => {
+                    // Check if f is an object (new sticker) or string (old legacy flair)
+                    const isObj = typeof f === 'object';
+                    const emoji = isObj ? f.emoji : f;
+                    const top = isObj ? f.top : 0;
+                    const left = isObj ? f.left : 50;
+                    const rot = isObj ? f.rot : 0;
+                    
+                    return `<span class="flair-item" style="top:${top}px; left:${left}px; transform:rotate(${rot}deg);">${emoji}</span>`;
+                }).join('');
 
                 const hw = p.dom.querySelector('.hand-wrapper');
                 if(hw.childElementCount !== p.hand.length) {
@@ -1453,7 +1475,7 @@ input[type="button"], button {
             };
             State.activeStoreItem = item;
 
-            const duration = 15000;
+            const duration = 25000;
             const move = () => {
                 if(!State.activeStoreItem) return;
                 const elapsed = Date.now() - item.startTime;
@@ -1475,7 +1497,7 @@ input[type="button"], button {
             if(!State.paused && Math.random() > 0.5) spawnStoreEmoji();
         }, 170000);
 
-        function handleBuy(playerName) {
+		function handleBuy(playerName) {
             if(!State.activeStoreItem) return;
             const p = State.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
             if(!p) return;
@@ -1483,30 +1505,56 @@ input[type="button"], button {
             if(p.chips >= State.activeStoreItem.price) {
                 p.chips -= State.activeStoreItem.price;
                 State.house += State.activeStoreItem.price;
-                p.flair.push(State.activeStoreItem.emoji);
+                
+                // Save flair with "sticker" coordinates
+                p.flair.push({
+                    emoji: State.activeStoreItem.emoji,
+                    top: (Math.random() * 40 - 10), // Random haphazard Y
+                    left: (Math.random() * 120 + 10), // Random haphazard X
+                    rot: (Math.random() * 40 - 20) // Random rotation
+                });
+                
                 spawnAction(p, 'BOUGHT');
                 
-                // Animating the purchase: cloned emoji flies to player
+                // CREATE FLOATING CLONE FOR SINE-WAVE TRAVEL
                 const clone = document.createElement('div');
+                clone.className = 'flair-item';
                 clone.innerText = State.activeStoreItem.emoji;
-                clone.style.position = 'fixed';
-                clone.style.fontSize = '3rem';
                 clone.style.zIndex = '5000';
-                clone.style.left = State.activeStoreItem.x + 'px';
-                clone.style.top = State.activeStoreItem.y + 'px';
-                clone.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                clone.style.position = 'fixed';
                 document.body.appendChild(clone);
-                
-                setTimeout(() => {
-                    const rect = p.dom.getBoundingClientRect();
-                    clone.style.left = (rect.left + 80) + 'px';
-                    clone.style.top = (rect.top) + 'px';
-                    clone.style.transform = 'scale(0.2)';
-                    clone.style.opacity = '0';
-                }, 50);
-                setTimeout(() => clone.remove(), 900);
 
-                updateUI();
+                const startX = State.activeStoreItem.x;
+                const startY = State.activeStoreItem.y;
+                const rect = p.dom.getBoundingClientRect();
+                const targetX = rect.left + 100;
+                const targetY = rect.top + 20;
+                
+                const travelDuration = 1500; // SLOWER TRAVEL (1.5s)
+                const animStart = Date.now();
+
+                const fly = () => {
+                    const now = Date.now();
+                    const progress = Math.min(1, (now - animStart) / travelDuration);
+                    
+                    // Linear progress for X
+                    const curX = startX + (targetX - startX) * progress;
+                    // Sine wave for Y (creates a high arc)
+                    const arc = Math.sin(progress * Math.PI) * -150; 
+                    const curY = startY + (targetY - startY) * progress + arc;
+
+                    clone.style.left = `${curX}px`;
+                    clone.style.top = `${curY}px`;
+                    clone.style.transform = `scale(${1 + Math.sin(progress * Math.PI)}) rotate(${progress * 360}deg)`;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(fly);
+                    } else {
+                        clone.remove();
+                        updateUI();
+                    }
+                };
+                fly();
             } else {
                 spawnAction(p, '❌');
             }
