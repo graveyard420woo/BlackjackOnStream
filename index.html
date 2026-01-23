@@ -624,6 +624,17 @@ input[type="button"], button {
             text-shadow: 2px 2px 0px black, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 5px 15px black !important; 
         }
         body.high-contrast .player-unit .chip-display { background: rgba(0,0,0,0.9); border: 1px solid white; }
+		
+		@keyframes slideOutDrop {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(150vh) rotate(20deg); opacity: 0; }
+        }
+
+        .player-unit.eliminated {
+            animation: slideOutDrop 1.5s ease-in forwards;
+            pointer-events: none !important; /* Prevent interaction while falling */
+            z-index: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -1421,56 +1432,80 @@ input[type="button"], button {
 
         function payouts() {
             const ds = State.dealer.score; const db = ds > 21;
-            const winners = [];
+            const notificationQueue = []; // Queue for Top Right Display
 
+            // 1. CALCULATE WINNERS
             State.players.forEach(p => {
                 if(p.status === 'bust') return;
+                
                 let w = 0;
-                // Calculations based on currentBet
                 if(p.status === 'blackjack') w = Math.floor(p.currentBet * 2.5);
                 else if(db || p.score > ds) w = p.currentBet * 2;
                 else if(p.score === ds) w = p.currentBet;
                 
                 if(w > 0) {
                     p.chips += w; State.house -= w;
-                    winners.push({name: p.name, amt: w, dom: p.dom});
+                    // Add Winner to Queue
+                    notificationQueue.push({
+                        type: 'win',
+                        text: `PAYING ${w} TO ${p.name}`,
+                        amt: w,
+                        dom: p.dom
+                    });
                 }
             });
 
+            // 2. HANDLE BUSTED PLAYERS (Removal & Animation)
             State.players = State.players.filter(p => { 
-				if(p.chips <= 0) {
-					const safeName = p.name.toLowerCase();
-					cooldowns.set(safeName, Date.now() + 180000); 
-                    // UPDATED: Record that they reached 0 chips so addPlayer knows to give them 30 later
+                if(p.chips <= 0) {
+                    const safeName = p.name.toLowerCase();
+                    
+                    // Add "GOES BUST" to Queue
+                    notificationQueue.push({
+                        type: 'bust',
+                        text: `${p.name} GOES BUST!`
+                    });
+
+                    // Logic: Record loss and set cooldown
+                    cooldowns.set(safeName, Date.now() + 180000); 
                     chipHistory.set(safeName, { chips: 0, time: Date.now() });
-					p.dom.remove(); 
-					return false;
-				} 
-				return true; 
-			});
-			
+                    
+                    // Animation: Slide down and remove DOM after delay
+                    p.dom.classList.add('eliminated');
+                    setTimeout(() => p.dom.remove(), 2000);
+
+                    return false; // Remove from Game State immediately
+                } 
+                return true; 
+            });
+            
             updateUI();
 
-            if(winners.length === 0) {
+            // 3. PLAY NOTIFICATION LOOP
+            if(notificationQueue.length === 0) {
                 updateTopMsg("HOUSE WINS ALL");
                 setTimeout(startLobby, 4000);
             } else {
                 let i = 0;
                 const payCycle = setInterval(() => {
-                    if(i >= winners.length) {
+                    if(i >= notificationQueue.length) {
                         clearInterval(payCycle);
                         startLobby();
                         return;
                     }
-                    const win = winners[i];
-                    updateTopMsg(`PAYING ${win.amt} TO ${win.name}`);
-                    const r = win.dom.getBoundingClientRect();
-                    
-                    const pCount = Math.min(win.amt, 350); 
-                    for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
+
+                    const item = notificationQueue[i];
+                    updateTopMsg(item.text);
+
+                    // If it's a WIN, trigger confetti
+                    if(item.type === 'win') {
+                        const r = item.dom.getBoundingClientRect();
+                        const pCount = Math.min(item.amt, 350); 
+                        for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
+                    }
                     
                     i++;
-                }, 1500);
+                }, 2000); // 2 seconds per message to allow time to read
             }
         }
 
