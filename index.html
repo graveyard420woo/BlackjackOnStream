@@ -1433,8 +1433,10 @@ input[type="button"], button {
 
             State.players = State.players.filter(p => { 
 				if(p.chips <= 0) {
-					cooldowns.set(p.name.toLowerCase(), Date.now() + 180000);
-					chipHistory.set(safeName, { chips: 0, time: Date.now() }); 
+					const safeName = p.name.toLowerCase();
+					cooldowns.set(safeName, Date.now() + 180000); 
+                    // UPDATED: Record that they reached 0 chips so addPlayer knows to give them 30 later
+                    chipHistory.set(safeName, { chips: 0, time: Date.now() });
 					p.dom.remove(); 
 					return false;
 				} 
@@ -1457,9 +1459,10 @@ input[type="button"], button {
                     const win = winners[i];
                     updateTopMsg(`PAYING ${win.amt} TO ${win.name}`);
                     const r = win.dom.getBoundingClientRect();
-                     // Dynamic particle count based on win amount (Capped at 350 for performance)
+                    
                     const pCount = Math.min(win.amt, 350); 
                     for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
+                    
                     i++;
                 }, 1500);
             }
