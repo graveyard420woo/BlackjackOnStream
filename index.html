@@ -1018,7 +1018,7 @@ input[type="button"], button {
         // --- EMOJI ARRAY ---
         const EMOJIS = ['🔥','💎','👑','🍀','💸','🌶️','🍕','🦄','👽','🚀','🌈','🎸','🍄','🎲','🧿','🦁','🐲','🧊','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','🎈','🎀','🧿','✨','💀','👻','🤖','🧸','🪐','🌞','🌊','🍭','🌭','🍟','🍺','💾','☠','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳'];
 
-		const EMOTE_SOURCES = ['738259432', '589929957', '835308705']; // graveyard420woo, neverbeenhappiertv, morjanga (Fallbacks)
+		const EMOTE_SOURCES = ['738259432', '589929957', '835308705', '75073508']; // 1-graveyard420woo, 2-neverbeenhappiertv, 3-morjanga (og crew) + 4-attica
 		let EMOTES_POOL = []; // This will hold our fetched emote URLs
 		
 		async function fetchEmotes(broadcasterId) {
@@ -1042,6 +1042,7 @@ input[type="button"], button {
 					console.error("Failed to fetch emotes for channel " + id, e);
 				}
 			}
+			EMOTES_POOL.sort(() => Math.random() - 0.5);
 		}
 
         // --- PHYSICS ENGINE ---
@@ -1511,7 +1512,7 @@ input[type="button"], button {
 			let isImage = false;
 			
 			// 60% chance for Twitch Emote if pool isn't empty, otherwise Emoji
-			if (EMOTES_POOL.length > 0 && Math.random() > 0.4) {
+			if (EMOTES_POOL.length > 0 && Math.random() > 0.2) {
 				visualContent = EMOTES_POOL[Math.floor(Math.random() * EMOTES_POOL.length)];
 				isImage = true;
 			} else {
