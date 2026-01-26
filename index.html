@@ -1309,7 +1309,7 @@
             State.firstTurnAnnounced = false; 
 			
 			State.players.forEach(p => {
-			p.afkCount = (p.afkCount || 0) + 1;
+			p.afkCount = p.afkCount + 1;
 			console.log(`[AFK Check] ${p.name} is now at ${p.afkCount}`);
 		});
 			
@@ -1671,14 +1671,6 @@
                     if(hw.innerHTML !== handsHTML) hw.innerHTML = handsHTML;
 				}
 			});
-		}
-		
-		function markPlayerActive(username) {
-			const p = State.players.find(player => player.name.toLowerCase() === username.toLowerCase());
-			if (p) {
-				console.log(`AFK Reset: ${p.name} is active.`);
-				p.afkCount = 0;
-			}
 		}
 		
 		function resetPlayerAFK(username) {
