@@ -1084,19 +1084,7 @@
         }
 
 		function addPlayer(userId, name, color, badgeData = []) {
-			const pObj = { 
-			userId: userId, // Store this for tracking
-			name: name, 
-			chips: savedChips, 
-			currentBet: defaultBet,
-			hands: [{ cards: [], bet: defaultBet, score: 0, status: 'waiting' }], 
-			activeHandIndex: 0,
-			dom: div, 
-			timerPct: 0, 
-			flair: savedFlair,
-			afkCount: 0  // Start at 0
-		};
-			
+					
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
@@ -1175,14 +1163,18 @@
             if (savedChips < 10) defaultBet = savedChips;
             savedChips -= defaultBet;
             
-            /*const pObj = { 
-                name: name, chips: savedChips, 
-                currentBet: defaultBet,
-                hands: [{ cards: [], bet: defaultBet, score: 0, status: 'waiting' }], 
-                activeHandIndex: 0,
-                dom: div, timerPct: 0, flair: savedFlair,
-                afkCount: 0 // Initialize AFK Counter
-            };*/
+            const pObj = { 
+				userId: userId, // Store this for tracking
+				name: name, 
+				chips: savedChips, 
+				currentBet: defaultBet,
+				hands: [{ cards: [], bet: defaultBet, score: 0, status: 'waiting' }], 
+				activeHandIndex: 0,
+				dom: div, 
+				timerPct: 0, 
+				flair: savedFlair,
+				afkCount: 0  // Start at 0
+			};
 
             pObj.floater = new Floater(div, pObj);
             State.players.push(pObj);
