@@ -16,11 +16,8 @@
             --warm-light: rgba(255, 200, 150, 0.15);
             --font-display: 'Righteous', cursive;
             --font-body: 'Montserrat', sans-serif;
-            
-            /* REVISION 1: Base Scale Variable & Increased Default Size */
-            --scale: 1.0; 
-            --card-w: calc(90px * var(--scale)); 
-            --card-h: calc(126px * var(--scale));
+            --card-w: 70px;
+            --card-h: 98px;
         }
 
         body, html {
@@ -92,9 +89,14 @@
         }
 
         @keyframes hotRainbow {
-            0% { color: #ff0055; } 16% { color: #851f83; } 33% { color: #ed1b2f; }
-			48% { color: #92278f; } 61% { color: #00a99d; } 76% { color: #faa61a; }
-			88% { color: #ed0c6e; } 100% { color: #ff0055; }
+            0% { color: #ff0055; }
+			16% { color: #851f83; }
+            33% { color: #ed1b2f; }
+			48% { color: #92278f; }
+			61% { color: #00a99d; }
+            76% { color: #faa61a; }
+			88% { color: #ed0c6e; }
+            100% { color: #ff0055; }
         }
         h1 span { 
             animation: hotRainbow 160s linear infinite; 
@@ -136,10 +138,9 @@
         #arena { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
 
         #dealer-spot {
-            position: absolute; top: 120px; left: 50%; transform: translateX(-50%) scale(var(--scale));
+            position: absolute; top: 120px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; z-index: 20;
-            width: 350px;
-            transform-origin: top center;
+            width: 250px;
         }
         
 		#house-bank {
@@ -151,7 +152,7 @@
         }
 		
         .house-bank { 
-            font-family: var(--font-display); font-size: 2.5rem; color: var(--gold); 
+            font-family: var(--font-display); font-size: 2rem; color: var(--gold); 
             text-shadow: 0 0 20px rgba(255, 200, 0, 0.5); 
             margin-bottom: 5px; 
         }
@@ -165,22 +166,8 @@
         .player-unit {
             position: absolute; 
             display: flex; flex-direction: column; align-items: center;
-            width: 300px; will-change: left, top; /* Increased width for Rev 1 */
-            transform: scale(var(--scale)); /* Rev 1: Scale applied here */
-            transform-origin: top center;
+            width: 200px; will-change: left, top;
         }
-
-        /* REVISION 7: Slide Animations */
-        @keyframes slideInDown {
-            from { transform: translateY(-100vh) scale(var(--scale)); opacity: 0; }
-            to { transform: translateY(0) scale(var(--scale)); opacity: 1; }
-        }
-        @keyframes slideOutUp {
-            from { transform: translateY(0) scale(var(--scale)); opacity: 1; }
-            to { transform: translateY(-100vh) scale(var(--scale)); opacity: 0; }
-        }
-        .player-unit.joining { animation: slideInDown 0.8s ease-out forwards; }
-        .player-unit.leaving { animation: slideOutUp 0.8s ease-in forwards !important; }
 
         .player-header {
             display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -189,62 +176,53 @@
         }
 
         .player-name { 
-            font-weight: 800; font-size: 1.4rem; color: #aaa; /* Larger Font */
+            font-weight: 800; font-size: 1.1rem; color: #aaa;
             text-shadow: 0 2px 4px black; 
             transition: all 0.5s;
             position: relative;
             z-index: 2;
         }
 
-        /* REVISION 13: Chat Badges */
-        .badges { display: flex; gap: 2px; margin-right: 5px; }
-        .badge-img { height: 18px; width: 18px; }
-
 /* --- STICKER FLAIR STYLING --- */
         .flair-container {
             position: absolute; 
-            top: -50px; left: 50%; 
+            top: -20px; left: 50%; 
             transform: translateX(-50%);
-            width: 250px; height: 100px; /* Area for stickers to live */
+            width: 180px; height: 80px; /* Area for stickers to live */
             z-index: 1; pointer-events: none;
         }
 
         .flair-item {
             position: absolute;
-            font-size: 3rem; /* Rev 1: Bigger stickers */
+            font-size: 2rem;
             filter: drop-shadow(2px 0 0 rgba(255, 255, 255, 0.6)) 
+                    drop-shadow(-2px 0 0 rgba(255, 255, 255, 0.6)) 
+                    drop-shadow(0 2px 0 rgba(255, 255, 255, 0.6)) 
+                    drop-shadow(0 -2px 0 rgba(255, 255, 255, 0.6))
                     drop-shadow(0 4px 8px rgba(0,0,0,0.5));
             user-select: none;
         }
         
         .chip-display {
-            color: var(--gold); font-weight: 800; font-size: 1.2rem;
+            color: var(--gold); font-weight: 700; font-size: 0.9rem;
             text-shadow: 0 2px 4px black;
 			text-align: center;
-            background: rgba(0,0,0,0.8); padding: 4px 12px; border-radius: 6px;
-            border: 1px solid #444;
+            background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;
         }
 
         .score-display { 
-            position: absolute; top: 65px; left: 50%; transform: translateX(-50%);
-            font-size: 3rem; font-weight: 900; line-height: 1;
+            position: absolute; top: 45px; left: 50%; transform: translateX(-50%);
+            font-size: 2.5rem; font-weight: 900; line-height: 1;
             text-shadow: 0 4px 10px black; z-index: 40;
             transition: color 0.3s;
         }
 
-        /* REVISION 4: Split Hands Container */
-        .hands-container {
-            display: flex; justify-content: center; width: 150%; gap: 10px;
-        }
         .hand-wrapper {
-            position: relative; height: 130px; width: 100%;
+            position: relative; height: 110px; width: 100%;
             display: flex; justify-content: center;
             margin-top: 15px; 
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        
-        /* Highlight active hand during split */
-        .hand-wrapper.inactive { opacity: 0.5; transform: scale(0.9); }
 
         .player-unit.active { z-index: 500 !important; }
         
@@ -256,13 +234,13 @@
 
         .player-unit.active .player-name { 
             color: var(--neon-blue); 
-            text-shadow: 0 0 10px var(--neon-blue); 
+            text-shadow: none; 
             animation: softPulse 2s infinite ease-in-out;
             transform: scale(1.1);
         }
 		
         .player-avatar {
-            width: 50px; height: 50px; /* Bigger Avatar */
+            width: 40px; height: 40px;
             border-radius: 50%;
             margin-right: 2px;
             border: 2px solid rgba(255,255,255,0.2);
@@ -278,7 +256,7 @@
         }
         
         .player-unit.active .score-display { color: var(--neon-blue); text-shadow: 0 4px 10px black; }
-        .player-unit.active .hand-wrapper.active-hand { transform: scale(1.1) translateY(10px); }
+        .player-unit.active .hand-wrapper { transform: scale(1.3) translateY(10px); }
 
         .player-unit.bust .score-display { color: #555; }
         .player-unit.bust { filter: grayscale(1) opacity(0.6); }
@@ -290,10 +268,9 @@
             color: black; font-family: var(--font-body); font-weight: 900;
             box-shadow: -3px 3px 10px rgba(0,0,0,0.7);
             transform-origin: bottom center;
-            display: flex; flex-direction: column; justify-content: space-between; padding: 8px;
+            display: flex; flex-direction: column; justify-content: space-between; padding: 5px;
             transition: box-shadow 0.3s;
             animation: deal 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.2) backwards;
-            font-size: calc(14px * var(--scale));
         }
         @keyframes deal { from { transform: translateY(50px) scale(0); opacity: 0; } to { opacity: 1; } }
 
@@ -302,9 +279,9 @@
             border: 1px solid var(--player-glow); 
         }
         .card.red { color: var(--neon-pink); }
-        .card-corner { line-height: 0.9; font-size: 1.1em; text-align: left; }
+        .card-corner { line-height: 0.9; font-size: 0.9rem; text-align: left; }
         .card-corner.bottom { transform: rotate(180deg); }
-        .card-center { position: absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size: 2.5em; }
+        .card-center { position: absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size: 2rem; }
         
         .card.hidden {
             background: #111; border: 1px solid #333;
@@ -314,9 +291,9 @@
 
         /* ACTIONS */
         .action-popup {
-            position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
             font-family: var(--font-display);
-            font-size: 3rem; font-weight: 400; font-style: italic; z-index: 600;
+            font-size: 2.5rem; font-weight: 400; font-style: italic; z-index: 600;
             animation: floatText 1.5s ease-out forwards;
 			white-space: nowrap;
         }
@@ -329,10 +306,10 @@
         @keyframes floatText {
             0% { opacity: 0; transform: translate(-50%, 20px) scale(0.5); }
             20% { opacity: 1; transform: translate(-50%, 0) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -100px) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -80px) scale(1); }
         }
 
-        /* --- EMOJI STORE ITEM (REVISION 6: Bigger & Visible) --- */
+        /* --- EMOJI STORE ITEM --- */
         .store-item {
             position: fixed;
             z-index: 2000;
@@ -345,13 +322,13 @@
         }
         .store-label {
             font-family: var(--font-display);
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: var(--gold);
             text-shadow: 0 0 10px black;
             margin: 5px 0;
         }
         .store-emoji {
-            font-size: 6rem; /* Bigger */
+            font-size: 4rem;
             animation: emojiPulse 2s infinite ease-in-out;
             filter: drop-shadow(0 0 20px var(--gold));
         }
@@ -366,8 +343,8 @@
 
         /* PROGRESS BAR */
         .timer-container {
-            width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            margin-top: 10px;
+            width: 100%; height: 4px; background: rgba(255,255,255,0.1);
+            margin-top: 39px;
             border-radius: 2px; overflow: hidden; opacity: 0; position: relative;
         }
         .timer-fill { height: 100%; background: var(--neon-blue); width: 0%; box-shadow: 0 0 10px var(--neon-blue); }
@@ -397,7 +374,6 @@
             box-sizing: border-box;
             overflow: auto;
             border: none;
-            height: 80px;
         }
 
         #log span {
@@ -605,7 +581,6 @@ input[type="button"], button {
         }
         #settings-panel.open { display: block; }
         
-
         .settings-header { 
             display: flex; justify-content: space-between; align-items: center; 
             margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;
@@ -691,27 +666,6 @@ input[type="button"], button {
             pointer-events: none !important;
             z-index: 0 !important;
         }
-
-        /* REVISION 5: Leaderboard */
-        #leaderboard-layer {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.9); z-index: 8000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            backdrop-filter: blur(10px);
-        }
-        #leaderboard-layer.show { display: flex; animation: fadeIn 0.5s; }
-        .lb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 40px; align-items: end; }
-        .lb-item { display: flex; flex-direction: column; align-items: center; }
-        .lb-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 20px white; }
-        .lb-1 .lb-avatar { width: 120px; height: 120px; border-color: var(--gold); box-shadow: 0 0 40px var(--gold); }
-        .lb-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 400px; overflow: hidden; }
-        .lb-row { background: #222; padding: 5px 15px; border-radius: 4px; display: flex; justify-content: space-between; width: 300px; }
-
-        /* REVISION 11: Repulsion Zone */
-        #repulsion-zone {
-            position: absolute; border: 2px dashed rgba(255,0,0,0.5); background: rgba(255,0,0,0.1);
-            pointer-events: none; z-index: 9999; display: none;
-        }
     </style>
 </head>
 <body>
@@ -722,16 +676,6 @@ input[type="button"], button {
     <div class="bg-vignette"></div>
     
     <canvas id="fx-canvas"></canvas>
-
-    <!-- Rev 5: Leaderboard -->
-    <div id="leaderboard-layer">
-        <h1 style="color:var(--gold)">LEADERBOARD</h1>
-        <div class="lb-grid" id="lb-top"></div>
-        <div class="lb-list" id="lb-rest"></div>
-    </div>
-
-    <!-- Rev 11: Repulsion Zone -->
-    <div id="repulsion-zone"></div>
 
     <div id="arena">
         <div id="dealer-spot">
@@ -759,7 +703,7 @@ input[type="button"], button {
                     <span class="description-main description">This is an interactive Blackjack overlay for Twitch that can be played by everyone in chat on your stream! ;)<br>
                     Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!<br></span>
                     <br>
-                    <span class="description-main description">Commands: !join !leave !hit !stand !bet[amt] !buy !split !double</span>
+                    <span class="description-main description">Commands: !join !leave !hit !stand !bet[amt] !buy</span>
                     <br>
                     <a id="authorize" class="login-box" target="">
                      <img id="twitch-logo" src="tlogo.png">
@@ -791,10 +735,6 @@ input[type="button"], button {
 		var chattersColor = '';
 		let previousChatters = [];
 		
-        // Rev 13: Badges
-        const globalBadges = {};
-        const channelBadges = {};
-
 		const cooldowns = new Map();
 		const chipHistory = new Map();
 		
@@ -857,8 +797,6 @@ input[type="button"], button {
                         session_id = id;
                         my_user_id = resp.data[0].id;
 						fetchEmotes(my_user_id);
-                        // Rev 13: Badges
-                        fetchBadges(my_user_id);
                         requestHooks(resp.data[0].id, my_user_id);
 							
 						setInterval(() => {
@@ -883,7 +821,6 @@ input[type="button"], button {
                                 if(activeP) {
                                     activeP.chips += bitAmt;
                                     spawnAction(activeP, `💎 +${bitAmt}`); 
-                                    playSound('chip'); // Rev 12
                                     updateUI();
                                 }
 
@@ -900,30 +837,19 @@ input[type="button"], button {
 					});
 					socket_space.on('channel.chat.message', ({ metadata, payload }) => {
     					let { event } = payload;
-    					let { chatter_user_name , chatter_user_id , message, color, badges } = event;		
+    					let { chatter_user_name , chatter_user_id , message, color } = event;		
 							console.log(`${chatter_user_name}: ${message.text}`);
 							
                             const fullMsg = message.text.trim();
-                            // Rev 8: Pass extra data for queue
-							if(fullMsg.toLowerCase() == '!join'){window.twitchCommand(chatter_user_id, chatter_user_name, "!join", color, badges);}
+							if(fullMsg.toLowerCase() == '!join'){window.twitchCommand(chatter_user_id, chatter_user_name, "!join", color);}
 							
 							if(fullMsg.toLowerCase() == '!hit'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
-                            if(fullMsg.toLowerCase() == '!hit1'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit1", color);} // Rev 4
-                            if(fullMsg.toLowerCase() == '!h1'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit1", color);}
-                            if(fullMsg.toLowerCase() == '!hit2'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit2", color);}
-                            if(fullMsg.toLowerCase() == '!h2'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit2", color);}
-
 							if(fullMsg.toLowerCase() == 'hit'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
 							if(fullMsg.toLowerCase() == '!hitme'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
 							if(fullMsg.toLowerCase() == '!h'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
 							if(fullMsg.toLowerCase() == 'h'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
 							
 							if(fullMsg.toLowerCase() == '!stand'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
-                            if(fullMsg.toLowerCase() == '!stand1'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand1", color);} // Rev 4
-                            if(fullMsg.toLowerCase() == '!s1'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand1", color);}
-                            if(fullMsg.toLowerCase() == '!stand2'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand2", color);}
-                            if(fullMsg.toLowerCase() == '!s2'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand2", color);}
-
 							if(fullMsg.toLowerCase() == 'stand'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
 							if(fullMsg.toLowerCase() == '!stay'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
 							if(fullMsg.toLowerCase() == 'stay'){window.twitchCommand(chatter_user_id, chatter_user_name, "!stand", color);}
@@ -934,14 +860,6 @@ input[type="button"], button {
 
                             if(fullMsg.toLowerCase().startsWith('!bet')){window.twitchCommand(chatter_user_id, chatter_user_name, fullMsg, color);}
 							if(fullMsg.toLowerCase().startsWith('bet')){window.twitchCommand(chatter_user_id, chatter_user_name, fullMsg, color);}
-                            
-                            // Rev 3 & 4
-                            if(fullMsg.toLowerCase().startsWith('!double') || fullMsg.toLowerCase() == '!dd') {
-                                window.twitchCommand(chatter_user_id, chatter_user_name, "!double", color);
-                            }
-                            if(fullMsg.toLowerCase().startsWith('!split')) {
-                                window.twitchCommand(chatter_user_id, chatter_user_name, "!split", color);
-                            }
 
                             if(fullMsg.toLowerCase() == '!buy'){window.twitchCommand(chatter_user_id, chatter_user_name, "!buy", color);}
 							if(fullMsg.toLowerCase() == 'buy'){window.twitchCommand(chatter_user_id, chatter_user_name, "!buy", color);}
@@ -951,19 +869,6 @@ input[type="button"], button {
                     console.log(err);
                     log('Error with Users Call');
                 });
-        }
-
-        // Rev 13: Fetch Badges
-        async function fetchBadges(broadcasterId) {
-            try {
-                let g = await fetch('https://api.twitch.tv/helix/chat/badges/global', { headers: { "Client-ID": client_id, "Authorization": "Bearer " + access_token } });
-                let gData = await g.json();
-                gData.data.forEach(set => globalBadges[set.set_id] = set.versions);
-
-                let c = await fetch(`https://api.twitch.tv/helix/chat/badges?broadcaster_id=${broadcasterId}`, { headers: { "Client-ID": client_id, "Authorization": "Bearer " + access_token } });
-                let cData = await c.json();
-                cData.data.forEach(set => channelBadges[set.set_id] = set.versions);
-            } catch(e) { console.error("Badges Error", e); }
         }
 
 		function getStuffNow(broadcaster_id) {
@@ -1002,8 +907,6 @@ input[type="button"], button {
         }
 		
 		async function sendTwitchChatMessage(broadcaster_id, message) {
-            // Rev 10: Check toggle
-            if(!CONFIG.CHAT_BOT) return;
 			const url = 'https://api.twitch.tv/helix/chat/messages';
 			const requestBody = { broadcaster_id: broadcaster_id, sender_id: broadcaster_id, message: message };
 			const options = {
@@ -1066,9 +969,11 @@ input[type="button"], button {
 						document.getElementById("bigcontainer1").style.display = "none";
 						document.getElementById("arena").style.display = "block";
 						document.getElementById("ui-layer").style.display = "block";
-                        // Rev 5: Start with Leaderboard
-						setTimeout(() => {
-                            startLeaderboardPhase();
+						  setTimeout(() => {
+							document.getElementById("bigcontainer").style.display = "none";
+							document.getElementById("bigcontainer1").style.display = "none";
+							document.getElementById("arena").style.display = "block";
+							document.getElementById("ui-layer").style.display = "block";
 						  }, 3000);
                     }
                 })
@@ -1100,11 +1005,8 @@ input[type="button"], button {
             START_CHIPS: 100, TURN_TIME: 14, LOBBY_TIME: 24, MAX_PLAYERS: 14,
             SPEED: 0.04, MAX_SPEED: 0.6, 
             MARGIN: 20, 
-            // Rev 1: Base Scale Variable
-            UNIT_W: 300, UNIT_H: 300,
-            MAX_BET: 200,
-            CHAT_BOT: false, // Rev 10
-            REPULSION: { active: false, x: window.innerWidth - 420, y: window.innerHeight - 380, w: 420, h: 380 } // Rev 11
+            UNIT_W: 200, UNIT_H: 220,
+            MAX_BET: 200
         };
 
         const SUITS = ['♠', '♥', '♦', '♣'];
@@ -1114,48 +1016,34 @@ input[type="button"], button {
         };
 
         // --- EMOJI ARRAY ---
-        const EMOJIS = ['🔥','💎','👑','🍀','💸','🌶️','🍕','🦄','👽','🚀','🌈','🎸','🍄','🎲','🧿','🦁','🐲','🧊','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','🎈','🎀','🧿','✨','💀','👻','🤖','🧸','🪐','🌞','🌊','🍭','🌭','🍟','🍺','💾','☠'];
+        const EMOJIS = ['🔥','💎','👑','🍀','💸','🌶️','🍕','🦄','👽','🚀','🌈','🎸','🍄','🎲','🧿','🦁','🐲','🧊','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','🎈','🎀','🧿','✨','💀','👻','🤖','🧸','🪐','🌞','🌊','🍭','🌭','🍟','🍺','💾','☠','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳'];
 
-		const EMOTE_SOURCES = ['738259432', '589929957', '835308705', '564254398']; 
-		let EMOTES_POOL = []; 
+		const EMOTE_SOURCES = ['738259432', '589929957', '835308705', '564254398']; // 1-graveyard420woo, 2-neverbeenhappiertv, 3-morjanga, 4-LadyMiYong (og crew)
+		let EMOTES_POOL = []; // This will hold our fetched emote URLs
 		
 		async function fetchEmotes(broadcasterId) {
 			const channelsToFetch = [broadcasterId, ...EMOTE_SOURCES];
+			
 			for (const id of channelsToFetch) {
 				try {
 					const resp = await fetch(`https://api.twitch.tv/helix/chat/emotes?broadcaster_id=${id}`, {
-						headers: { "Client-ID": client_id, "Authorization": "Bearer " + access_token }
+						headers: {
+							"Client-ID": client_id,
+							"Authorization": "Bearer " + access_token
+						}
 					});
 					const data = await resp.json();
 					if (data.data && data.data.length > 0) {
-						const mapped = data.data.map(e => e.images.url_4x); // Rev 6: 4x size
+						// We take the mid-sized static image (scale 2.0)
+						const mapped = data.data.map(e => e.images.url_2x);
 						EMOTES_POOL.push(...mapped);
 					}
-				} catch (e) { console.error("Failed to fetch emotes for channel " + id, e); }
+				} catch (e) {
+					console.error("Failed to fetch emotes for channel " + id, e);
+				}
 			}
 			EMOTES_POOL.sort(() => Math.random() - 0.5);
 		}
-
-        // Rev 12: Sound FX
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-             const osc = audioCtx.createOscillator();
-             const gain = audioCtx.createGain();
-             osc.connect(gain); gain.connect(audioCtx.destination);
-             
-             if(type==='flip') {
-                 osc.frequency.value = 600;
-                 gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-             }
-             if(type==='chip') {
-                 osc.frequency.value = 1200;
-                 gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-             }
-        }
 
         // --- PHYSICS ENGINE ---
         class Floater {
@@ -1170,22 +1058,12 @@ input[type="button"], button {
             update(others) {
                 this.x += this.vx; this.y += this.vy;
 
-                // Rev 11: Repulsion
-                if(CONFIG.REPULSION.active) {
-                    const r = CONFIG.REPULSION;
-                    if(this.x + CONFIG.UNIT_W > r.x && this.x < r.x + r.w && this.y + CONFIG.UNIT_H > r.y && this.y < r.y + r.h) {
-                         const dx = (this.x + CONFIG.UNIT_W/2) - (r.x + r.w/2);
-                         const dy = (this.y + CONFIG.UNIT_H/2) - (r.y + r.h/2);
-                         this.vx += dx * 0.002; this.vy += dy * 0.002;
-                    }
-                }
-
                 others.forEach(other => {
                     if (other === this.player) return;
                     const dx = this.x - other.floater.x;
                     const dy = this.y - other.floater.y;
                     const dist = Math.sqrt(dx*dx + dy*dy);
-                    if(dist < CONFIG.UNIT_W) { 
+                    if(dist < 210) { 
                         const angle = Math.atan2(dy, dx);
                         const force = 0.03; 
                         this.vx += Math.cos(angle) * force;
@@ -1225,9 +1103,9 @@ input[type="button"], button {
         const State = {
             phase: 'BOOT', paused: false, deck: [], players: [], dealer: { hand: [], score: 0 },
             activeIdx: -1, timers: { lobby: null, turn: null, lobbyVal: CONFIG.LOBBY_TIME }, house: 100,
-            dealerPos: { x: window.innerWidth / 2, y: 190, radius: 250 }, // Increased Radius for Rev 1
-            activeStoreItem: null,
-            waitingQueue: [] // Rev 8
+            dealerPos: { x: window.innerWidth / 2, y: 190, radius: 200 },
+            // STORE STATE
+            activeStoreItem: null 
         };
 
         const ctx = document.getElementById('fx-canvas').getContext('2d');
@@ -1309,55 +1187,36 @@ input[type="button"], button {
             setTimeout(() => el.remove(), 1500);
         }
 
-        // Rev 13: Helper for badges
-        function getBadgeHTML(badges) {
-            if(!badges) return '';
-            let html = '';
-            badges.forEach(b => {
-                let url = '';
-                if(channelBadges[b.set_id] && channelBadges[b.set_id][b.id]) url = channelBadges[b.set_id][b.id].image_url_2x;
-                else if(globalBadges[b.set_id] && globalBadges[b.set_id][b.id]) url = globalBadges[b.set_id][b.id].image_url_2x;
-                if(url) html += `<img class="badge-img" src="${url}">`;
-            });
-            return html;
-        }
-
         // --- PLAYER ---
-		function addPlayer(userId, name, color, badges) {
+		function addPlayer(userId, name, color) {
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
-				if (remaining > 0) return;
+				if (remaining > 0) {
+					sendTwitchChatMessage(my_user_id, `${name} is out paying off their debts for ${remaining} more seconds.`);
+					return;
+				}
 			}
-            
-            // Rev 8: Queue System
-            if(State.phase === 'PLAYING' || State.phase === 'RESULT') {
-                if(!State.players.some(p=>p.name===name) && !State.waitingQueue.some(q=>q.name===name)) {
-                    State.waitingQueue.push({userId, name, color, badges});
-                    sendTwitchChatMessage(my_user_id, `@${name} added to next game queue!`);
-                }
-                return;
-            }
-
+            if(State.phase !== 'LOBBY') return;
             if(State.players.some(p => p.name === name)) return;
             if(State.players.length >= CONFIG.MAX_PLAYERS) return;
 
             const glowColor = color || '#ff0055';
             const div = document.createElement('div');
-            div.className = 'player-unit joining'; // Rev 7: Animation
+            div.className = 'player-unit';
             div.style.setProperty('--player-glow', glowColor);
             
             div.innerHTML = `
                 <div class="player-header">
                     <div class="flair-container"></div>
                     <img class="player-avatar" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
-                    <div style="display:flex; flex-direction:column; align-items:center;">
-                        <div class="player-name">${name}</div>
-                        <div class="badges">${getBadgeHTML(badges)}</div>
+                    <div class="player-name">${name}</div>
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                        <div class="chip-display"></div>
+                        <div class="bet-display" style="font-size:0.7rem; color:var(--gold); font-weight:800; text-shadow:0 2px 4px black; height:10px; white-space: nowrap;"></div>
                     </div>
                 </div>
-                <div class="chip-display"></div>
                 <div class="score-display"></div>
-                <div class="hands-container"></div> <!-- Rev 4: Hands Container -->
+                <div class="hand-wrapper"></div>
                 <div class="timer-container"><div class="timer-fill"></div></div>
             `;
             document.getElementById('arena').appendChild(div);
@@ -1372,12 +1231,10 @@ input[type="button"], button {
                 savedFlair = history.flair || [];
             }
             
-            // Rev 4: Support for multiple hands
             const pObj = { 
-                name: name, chips: savedChips, 
-                hands: [], // Replaces single hand/score
-                afkCount: 0, // Rev 9
-                dom: div, timerPct: 0, flair: savedFlair 
+                name: name, chips: savedChips, currentBet: 0, 
+                hand: [], score: 0, status: 'waiting', dom: div, 
+                timerPct: 0, flair: savedFlair 
             };
 
             pObj.floater = new Floater(div, pObj);
@@ -1385,7 +1242,7 @@ input[type="button"], button {
             updateUI();
 
             if(State.players.length === 1 && State.phase === 'LOBBY') {
-                // startLobby(); // Controlled by loop
+                startLobby();
             }
         }
 
@@ -1393,8 +1250,8 @@ input[type="button"], button {
         const subMsgs = [
             "USE !JOIN TO ENTER", 
             "USE !BET [AMT] TO BET", 
-            "USE !HIT OR !STAND", 
-            "USE !DOUBLE or !SPLIT",
+            "USE !HIT TO HIT", 
+            "USE !STAND TO STAND",
             "LOOK OUT FOR !BUY ITEMS"
         ];
         let subMsgIdx = 0;
@@ -1421,48 +1278,10 @@ input[type="button"], button {
         }
 
         // --- GAME LOGIC ---
-        function startLeaderboardPhase() { // Rev 5
-            State.phase = 'LEADERBOARD';
-            document.getElementById('leaderboard-layer').classList.add('show');
-            renderLeaderboard();
-            setTimeout(() => {
-                document.getElementById('leaderboard-layer').classList.remove('show');
-                startLobby();
-            }, 8000);
-        }
-
-        function renderLeaderboard() {
-            const list = Array.from(chipHistory.entries()).map(([k,v]) => ({name:k, chips:v.chips})).sort((a,b)=>b.chips-a.chips);
-            let topHTML = ''; let restHTML = '';
-            for(let i=0; i<Math.min(3, list.length); i++) {
-                topHTML += `<div class="lb-item lb-${i+1}"><div class="lb-avatar"></div><div style="color:var(--gold);font-size:1.5rem">${list[i].name}</div><div>${list[i].chips}</div></div>`;
-            }
-            for(let i=3; i<Math.min(20, list.length); i++) {
-                restHTML += `<div class="lb-row"><span>${i+1}. ${list[i].name}</span><span>${list[i].chips}</span></div>`;
-            }
-            document.getElementById('lb-top').innerHTML = topHTML;
-            document.getElementById('lb-rest').innerHTML = restHTML;
-        }
-
         function startLobby() {
             State.phase = 'LOBBY'; State.timers.lobbyVal = CONFIG.LOBBY_TIME;
             startSubMessage();
             updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
-            
-            // Rev 8: Process Queue
-            while(State.waitingQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
-                const q = State.waitingQueue.shift();
-                addPlayer(q.userId, q.name, q.color, q.badges);
-            }
-
-            // Rev 9: AFK Check
-            State.players.forEach(p => {
-                p.afkCount++;
-                if(p.afkCount >= 5) {
-                    removePlayer(p.name);
-                    sendTwitchChatMessage(my_user_id, `Kicking ${p.name} for AFK.`);
-                }
-            });
             
             clearInterval(State.timers.lobby);
             State.timers.lobby = setInterval(() => {
@@ -1482,32 +1301,26 @@ input[type="button"], button {
         function startGame() {
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
-            playSound('flip'); // Rev 12
-
+            
             State.players.forEach(p => {
-                p.hands = [{ cards:[], bet:0, status:'playing' }]; // Rev 4: Initialize hands array
+                p.hand = []; p.score = 0; p.status = 'playing'; p.timerPct = 0;
                 let ante = 10;
                 if(p.chips < 10) ante = p.chips;
-                p.hands[0].bet = ante; 
+                p.currentBet = ante; 
                 p.chips -= ante; 
                 State.house += ante;
+                const hw = p.dom.querySelector('.hand-wrapper');
+                if(hw) hw.innerHTML = ''; 
             });
-
-            // Deal
             for(let i=0; i<2; i++) {
-                State.players.forEach(p => {
-                    p.hands[0].cards.push(State.deck.pop());
-                    playSound('flip');
-                });
+                State.players.forEach(p => p.hand.push(State.deck.pop()));
                 State.dealer.hand.push(State.deck.pop());
             }
-
             State.players.forEach(p => {
-                p.hands[0].score = calculateScore(p.hands[0].cards);
-                if(p.hands[0].score === 21) p.hands[0].status = 'blackjack';
+                p.score = calculateScore(p.hand);
+                if(p.score === 21) p.status = 'blackjack';
             });
             State.dealer.score = calculateScore(State.dealer.hand);
-            
             State.activeIdx = -1;
             nextTurn();
         }
@@ -1515,29 +1328,8 @@ input[type="button"], button {
         function nextTurn() {
             clearInterval(State.timers.turn); State.activeIdx++;
             if(State.activeIdx >= State.players.length) { runDealer(); return; }
-            
             const p = State.players[State.activeIdx];
-            
-            // Iterate through hands (Rev 4)
-            // For simplicity in this structure, we process all player's hands in one go logic-wise 
-            // OR we track activeHandIndex. Let's do activeHandIndex.
-            if(!p.activeHandIdx) p.activeHandIdx = 0;
-            
-            const h = p.hands[p.activeHandIdx];
-            if(h.status !== 'playing') { 
-                // Try next hand?
-                if(p.activeHandIdx < p.hands.length - 1) {
-                    p.activeHandIdx++;
-                    State.activeIdx--; // Stay on this player
-                    nextTurn();
-                    return;
-                }
-                nextTurn(); 
-                return; 
-            }
-            
-            // Rev 10: Bot
-            sendTwitchChatMessage(my_user_id, `It's ${p.name}'s turn! (!hit, !stand, !double, !split)`);
+            if(p.status !== 'playing') { nextTurn(); return; }
             
             let ticks = 0; const max = CONFIG.TURN_TIME * 20; updateUI(); 
             State.timers.turn = setInterval(() => {
@@ -1549,120 +1341,52 @@ input[type="button"], button {
 
         function hit() {
             const p = State.players[State.activeIdx];
-            const h = p.hands[p.activeHandIdx];
-            p.afkCount = 0;
-            
+            if(p.score >= 21) return;
             spawnAction(p, 'HIT');
-            h.cards.push(State.deck.pop()); 
-            h.score = calculateScore(h.cards);
-            playSound('flip');
-
-            if(h.score > 21) {
-                h.status = 'bust'; updateUI(); 
-                checkNext();
-            } else if(h.score === 21) {
-                stand();
+            p.hand.push(State.deck.pop()); p.score = calculateScore(p.hand);
+            if(p.score > 21) {
+                p.status = 'bust'; updateUI(); clearInterval(State.timers.turn); setTimeout(nextTurn, 1500);
+            } else if(p.score === 21) {
+                p.status = 'stand'; updateUI(); clearInterval(State.timers.turn); setTimeout(nextTurn, 1500);
             } else {
-                updateUI();
+                clearInterval(State.timers.turn); State.activeIdx--; nextTurn();
             }
         }
 
         function stand() {
             const p = State.players[State.activeIdx];
-            const h = p.hands[p.activeHandIdx];
-            p.afkCount = 0;
+            if(p.score > 21) return;
             spawnAction(p, 'STAND');
-            h.status = 'stand';
-            checkNext();
-        }
-
-        function checkNext() {
-            clearInterval(State.timers.turn);
-            const p = State.players[State.activeIdx];
-            if(p.activeHandIdx < p.hands.length - 1) {
-                p.activeHandIdx++;
-                State.activeIdx--; // Process next hand
-            }
-            setTimeout(nextTurn, 500);
-        }
-
-        // Rev 3: Double Down
-        function doubleDown() {
-            const p = State.players[State.activeIdx];
-            const h = p.hands[p.activeHandIdx];
-            p.afkCount = 0;
-            
-            if(h.cards.length !== 2) return;
-            if(p.chips < h.bet) { spawnAction(p, 'POOR'); return; }
-
-            p.chips -= h.bet;
-            State.house += h.bet;
-            h.bet *= 2;
-            
-            spawnAction(p, 'DOUBLE');
-            h.cards.push(State.deck.pop());
-            h.score = calculateScore(h.cards);
-            h.status = h.score > 21 ? 'bust' : 'stand';
-            playSound('flip');
-            updateUI();
-            checkNext();
-        }
-
-        // Rev 4: Split
-        function split() {
-            const p = State.players[State.activeIdx];
-            const h = p.hands[p.activeHandIdx];
-            p.afkCount = 0;
-
-            if(h.cards.length !== 2) return;
-            // Value check (Face or value?) Value usually
-            if(h.cards[0].value !== h.cards[1].value) return; 
-            if(p.chips < h.bet) { spawnAction(p, 'POOR'); return; }
-
-            spawnAction(p, 'SPLIT');
-            p.chips -= h.bet;
-            State.house += h.bet;
-
-            // Create new hand
-            const newHand = { cards: [h.cards.pop()], bet: h.bet, score: 0, status: 'playing' };
-            h.cards.push(State.deck.pop());
-            newHand.cards.push(State.deck.pop());
-            
-            h.score = calculateScore(h.cards);
-            newHand.score = calculateScore(newHand.cards);
-            
-            p.hands.push(newHand);
-            playSound('flip');
-            updateUI();
+            p.status = 'stand';
+            nextTurn();
         }
 
         function placeBet(player, amountStr) {
             if (State.phase !== 'PLAYING') return;
-            player.afkCount = 0;
-            // Rev 2: Additive Betting
             let val = parseInt(amountStr);
             if (isNaN(val) || val < 1) return;
-            
-            if (player.chips < val) return;
-            
-            player.chips -= val;
-            State.house += val;
-            
-            // Add to current active hand bet
-            if(!player.activeHandIdx) player.activeHandIdx = 0;
-            player.hands[player.activeHandIdx].bet += val;
-
-            spawnAction(player, `🪙 +${val}`);
-            playSound('chip');
+            if (val > CONFIG.MAX_BET) val = CONFIG.MAX_BET;
+            let additional = val - player.currentBet;
+            if (additional <= 0) return; 
+            if (player.chips < additional) return;
+            player.chips -= additional;
+            State.house += additional;
+            player.currentBet = val;
+            spawnAction(player, `🪙 BET ${val}`);
             updateUI();
+            clearInterval(State.timers.turn);
+            State.activeIdx--; 
+            nextTurn();
         }
 
 		async function runDealer() {
             State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
-            while(State.dealer.score < 17) {
-                State.dealer.hand.push(State.deck.pop()); 
-                State.dealer.score = calculateScore(State.dealer.hand);
-                playSound('flip');
+            while(State.dealer.score < 21) {
+                const topScore = Math.max(...State.players.filter(p => p.status !== 'bust').map(p => p.score), 0);
+                if (State.dealer.score > topScore) break;
+                if (State.dealer.score >= 17 && (State.dealer.score === topScore && Math.random() > 0.2)) break;
+                if (State.dealer.score >= 19) break;
+                State.dealer.hand.push(State.deck.pop()); State.dealer.score = calculateScore(State.dealer.hand);
                 updateUI(); await new Promise(r => setTimeout(r, 1000));
             }
             payouts();
@@ -1671,20 +1395,16 @@ input[type="button"], button {
         function payouts() {
             const ds = State.dealer.score; const db = ds > 21;
             const notificationQueue = [];
-            
             State.players.forEach(p => {
-                p.hands.forEach(h => {
-                    if(h.status === 'bust') return;
-                    let w = 0;
-                    if(h.status === 'blackjack') w = Math.floor(h.bet * 2.5);
-                    else if(db || h.score > ds) w = h.bet * 2;
-                    else if(h.score === ds) w = h.bet;
-                    
-                    if(w > 0) {
-                        p.chips += w; State.house -= w;
-                        notificationQueue.push({ type: 'win', text: `PAYING ${w} TO ${p.name}`, amt: w, dom: p.dom });
-                    }
-                });
+                if(p.status === 'bust') return;
+                let w = 0;
+                if(p.status === 'blackjack') w = Math.floor(p.currentBet * 2.5);
+                else if(db || p.score > ds) w = p.currentBet * 2;
+                else if(p.score === ds) w = p.currentBet;
+                if(w > 0) {
+                    p.chips += w; State.house -= w;
+                    notificationQueue.push({ type: 'win', text: `PAYING ${w} TO ${p.name}`, amt: w, dom: p.dom });
+                }
             });
 
             State.players = State.players.filter(p => { 
@@ -1693,7 +1413,7 @@ input[type="button"], button {
                     notificationQueue.push({ type: 'bust', text: `${p.name} goes bust 😭` });
                     cooldowns.set(safeName, Date.now() + 180000); 
                     chipHistory.set(safeName, { chips: 0, time: Date.now(), flair: p.flair });
-                    p.dom.classList.add('eliminated'); // Rev 7: Slide out handled by css
+                    p.dom.classList.add('eliminated');
                     setTimeout(() => p.dom.remove(), 2000);
                     return false;
                 } 
@@ -1702,11 +1422,11 @@ input[type="button"], button {
             updateUI();
             if(notificationQueue.length === 0) {
                 updateTopMsg("HOUSE WINS ALL");
-                setTimeout(startLeaderboardPhase, 4000);
+                setTimeout(startLobby, 4000);
             } else {
                 let i = 0;
                 const payCycle = setInterval(() => {
-                    if(i >= notificationQueue.length) { clearInterval(payCycle); startLeaderboardPhase(); return; }
+                    if(i >= notificationQueue.length) { clearInterval(payCycle); startLobby(); return; }
                     const item = notificationQueue[i];
                     updateTopMsg(item.text);
                     if(item.type === 'win') {
@@ -1715,7 +1435,7 @@ input[type="button"], button {
                         for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
                     }
                     i++;
-                }, 1500);
+                }, 2000);
             }
         }
 
@@ -1726,6 +1446,7 @@ input[type="button"], button {
         }
 
         function updateUI() {
+			// 1. House & Dealer Logic
 			document.getElementById('house-bank').innerText = `🪙${State.house}`;
 			const isPlayingPhase = (State.phase === 'PLAYING');
 			
@@ -1742,92 +1463,109 @@ input[type="button"], button {
 				dContainer.classList.remove('bust'); dScore.classList.remove('bust');
 			}
 		
+			// 2. Individual Player Logic
 			State.players.forEach((p, idx) => {
 				const isActive = (idx === State.activeIdx && State.phase === 'PLAYING');
 				p.dom.classList.toggle('active', isActive);
-				p.dom.querySelector('.chip-display').innerText = `🪙${p.chips}`;
+				p.dom.classList.toggle('bust', p.status === 'bust');
 				
-                // Rev 4: Render Hands
-                const handsDiv = p.dom.querySelector('.hands-container');
-                handsDiv.innerHTML = '';
-                
-                if(!p.hands || p.hands.length === 0) {
-                     // Lobby mode
-                } else {
-                    p.hands.forEach((h, hIdx) => {
-                        const hWrapper = document.createElement('div');
-                        hWrapper.className = `hand-wrapper ${hIdx === p.activeHandIdx ? 'active-hand' : 'inactive'}`;
-                        hWrapper.innerHTML = h.cards.map((c, i) => getCardHTML(c, i)).join('');
-                        
-                        // Show bet per hand
-                        if(p.hands.length > 1) {
-                            hWrapper.innerHTML += `<div style="position:absolute; bottom:-20px; font-weight:bold;">${h.score} (${h.bet})</div>`;
-                        }
-                        handsDiv.appendChild(hWrapper);
-                    });
-                }
-
-                // Main Score display (only if single hand)
-                const sDisp = p.dom.querySelector('.score-display');
-				if(p.hands && p.hands.length === 1) sDisp.innerText = p.hands[0].score || '';
-                else sDisp.innerText = '';
+				p.dom.querySelector('.chip-display').innerText = `🪙${p.chips}`;
+				p.dom.querySelector('.bet-display').innerText = p.currentBet > 0 ? `BET ${p.currentBet}` : '';
+				p.dom.querySelector('.score-display').innerText = p.score > 0 ? p.score : '';
 		
+				// --- FLAIR / STICKER LOGIC (Emoji & Emotes) ---
 				const fc = p.dom.querySelector('.flair-container');
 				if (fc) {
 					fc.innerHTML = p.flair.map(f => {
 						const isObj = typeof f === 'object' && f !== null;
+						// Handle legacy flair (strings) and new flair (objects)
 						const content = isObj ? (f.content || f.emoji) : f;
 						const isImg = isObj ? f.isImage : false;
-						const display = isImg ? `<img src="${content}" style="width:50px;">` : content;
-						return `<span class="flair-item" style="top:${isObj?f.top:0}px; left:${isObj?f.left:0}px;">${display}</span>`;
+						const top = isObj ? (f.top ?? 0) : 0;
+						const left = isObj ? (f.left ?? 50) : 50;
+						const rot = isObj ? (f.rot ?? 0) : 0;
+						
+						const display = isImg 
+							? `<img src="${content}" style="width:36px; height:36px; object-fit:contain;">`
+							: content;
+		
+						return `<span class="flair-item" style="top:${top}px; left:${left}px; transform:rotate(${rot}deg);">${display}</span>`;
 					}).join('');
+				}
+		
+				// --- CARD LOGIC (Crucial for cards to show!) ---
+				const hw = p.dom.querySelector('.hand-wrapper');
+				if (hw) {
+					// Only update the innerHTML if the card count has changed
+					if (hw.childElementCount !== p.hand.length) {
+						hw.innerHTML = p.hand.map((c, i) => getCardHTML(c, i)).join('');
+					}
 				}
 			});
 		}
 
-        // --- EMOJI STORE ITEM ---
+        // --- EMOJI STORE SPAWNER ---
         function spawnStoreEmoji() {
 			if(State.activeStoreItem) return;
 		
-			let visualContent = ''; let isImage = false;
+			let visualContent = '';
+			let isImage = false;
+			
+			// 60% chance for Twitch Emote if pool isn't empty, otherwise Emoji
 			if (EMOTES_POOL.length > 0 && Math.random() > 0.2) {
 				visualContent = EMOTES_POOL[Math.floor(Math.random() * EMOTES_POOL.length)];
 				isImage = true;
 			} else {
 				visualContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+				isImage = false;
 			}
 		
 			const price = 50 + (Math.floor(Math.random() * 9) * 10);
 			const div = document.createElement('div');
 			div.className = 'store-item';
 			
-            // Rev 6: Bigger/Flying
+			// Use an <img> tag if it's a Twitch Emote
 			const displayHTML = isImage 
-				? `<img src="${visualContent}" class="store-emoji" style="width:100px; height:100px; object-fit:contain;">`
+				? `<img src="${visualContent}" class="store-emoji" style="width:70px; height:70px; object-fit:contain;">`
 				: `<div class="store-emoji">${visualContent}</div>`;
 		
-			div.innerHTML = `<div class="store-label">!BUY</div>${displayHTML}<div class="store-label">🪙${price}</div>`;
+			div.innerHTML = `
+				<div class="store-label">!BUY</div>
+				${displayHTML}
+				<div class="store-label">🪙${price}</div>
+			`;
 			document.getElementById('arena').appendChild(div);
 		
 			const item = {
-				el: div, content: visualContent, isImage: isImage, price: price,
-				x: -200, y: 150 + Math.random() * (window.innerHeight - 400),
+				el: div, 
+				content: visualContent, 
+				isImage: isImage, // Keep track of type
+				price: price,
+				x: -150, y: 200 + Math.random() * (window.innerHeight - 400),
+				vx: 2 + Math.random() * 2,
+				vy: (Math.random() - 0.5) * 2,
 				startTime: Date.now()
 			};
 			State.activeStoreItem = item;
 		
-			const duration = 40000; // Rev 6: 40s
+			const duration = 25000;
 			const move = () => {
 				if(!State.activeStoreItem) return;
 				const elapsed = Date.now() - item.startTime;
-				if(elapsed > duration) { div.remove(); State.activeStoreItem = null; return; }
-				item.x += 0.5; // Slow fly
+				if(elapsed > duration) {
+					div.remove();
+					State.activeStoreItem = null;
+					return;
+				}
+				item.x += item.vx;
+				item.y += Math.sin(elapsed/500) * 2;
 				div.style.transform = `translate(${item.x}px, ${item.y}px)`;
 				requestAnimationFrame(move);
 			};
 			move();
 		}
 
+        // Trigger store periodically
         setInterval(() => {
             if(!State.paused && Math.random() > 0.5) spawnStoreEmoji();
         }, 170000);
@@ -1838,38 +1576,56 @@ input[type="button"], button {
 			if(!p) return;
 		
 			if(p.chips >= State.activeStoreItem.price) {
-				const itemData = State.activeStoreItem;
+				const itemData = State.activeStoreItem; // Cache ref
 				p.chips -= itemData.price;
 				State.house += itemData.price;
 				
 				p.flair.push({
-					content: itemData.content, isImage: itemData.isImage,
-					top: (Math.random() * 40 - 10), left: (Math.random() * 120 + 10),
+					content: itemData.content, // Stores emoji string OR image URL
+					isImage: itemData.isImage,
+					top: (Math.random() * 40 - 10),
+					left: (Math.random() * 120 + 10),
+					rot: (Math.random() * 40 - 20)
 				});
 				
 				spawnAction(p, 'BOUGHT');
-                playSound('chip');
 				
+				// FLYING CLONE
 				const clone = document.createElement('div');
 				clone.className = 'flair-item';
-				clone.innerHTML = itemData.isImage ? `<img src="${itemData.content}" style="width:60px;">` : itemData.content;
-				clone.style.zIndex = '5000'; clone.style.position = 'fixed';
+				if (itemData.isImage) {
+					clone.innerHTML = `<img src="${itemData.content}" style="width:40px; height:40px;">`;
+				} else {
+					clone.innerText = itemData.content;
+				}
+				clone.style.zIndex = '5000';
+				clone.style.position = 'fixed';
 				document.body.appendChild(clone);
 		
-				const startX = itemData.x; const startY = itemData.y;
+				// ... rest of the existing flight animation code ...
+				const startX = itemData.x;
+				const startY = itemData.y;
 				const rect = p.dom.getBoundingClientRect();
-				const targetX = rect.left + 100; const targetY = rect.top + 20;
+				const targetX = rect.left + 100;
+				const targetY = rect.top + 20;
+				const travelDuration = 1500;
 				const animStart = Date.now();
 		
 				const fly = () => {
-					const progress = Math.min(1, (Date.now() - animStart) / 1500);
+					const now = Date.now();
+					const progress = Math.min(1, (now - animStart) / travelDuration);
 					const curX = startX + (targetX - startX) * progress;
-					const curY = startY + (targetY - startY) * progress;
-					clone.style.left = `${curX}px`; clone.style.top = `${curY}px`;
+					const arc = Math.sin(progress * Math.PI) * -150; 
+					const curY = startY + (targetY - startY) * progress + arc;
+					clone.style.left = `${curX}px`;
+					clone.style.top = `${curY}px`;
+					clone.style.transform = `scale(${1 + Math.sin(progress * Math.PI)}) rotate(${progress * 360}deg)`;
 					if (progress < 1) requestAnimationFrame(fly);
-					else { clone.remove(); updateUI(); State.activeStoreItem.el.remove(); State.activeStoreItem=null; }
+					else { clone.remove(); updateUI(); }
 				};
 				fly();
+			} else {
+				spawnAction(p, '❌');
 			}
 		}
 
@@ -1880,42 +1636,42 @@ input[type="button"], button {
         animate();
 		
 		function removePlayer(name) {
+            if (State.phase !== 'LOBBY') return;
             const idx = State.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
             if (idx !== -1) {
                 const p = State.players[idx];
-                p.dom.classList.add('leaving'); // Rev 7
 				chipHistory.set(p.name.toLowerCase(), { chips: p.chips, time: Date.now(), flair: p.flair });
-                setTimeout(() => { if(p.dom) p.dom.remove(); }, 800);
+                if(p.dom) p.dom.remove(); 
                 State.players.splice(idx, 1); 
                 updateUI();
             }
         }
 
-        window.twitchCommand = (userId, username, command, color, badges) => {
+        window.twitchCommand = (userId, username, command, color) => {
             const cmdParts = command.trim().split(' ');
             const cmd = cmdParts[0].toLowerCase();
             const safeUser = username.trim();
 
-            if (cmd === '!join') addPlayer(userId, safeUser, color, badges);
-            else if (cmd === '!leave') removePlayer(safeUser);
+            if (State.phase === 'LOBBY') {
+                if (cmd === '!join') addPlayer(userId, safeUser, color);
+                else if (cmd === '!leave') removePlayer(safeUser);
+            }
+            
+            // !buy works anytime they are on screen
             if (cmd === '!buy') handleBuy(safeUser);
 
             if (State.phase === 'PLAYING') {
                 if (State.activeIdx > -1 && State.activeIdx < State.players.length) {
                     const activePlayer = State.players[State.activeIdx];
                     if (activePlayer.name.toLowerCase() === safeUser.toLowerCase()) {
-                        
-                        // Hand Selection Logic for Split (Rev 4)
-                        let handTarget = 0;
-                        if(cmd.endsWith('1')) handTarget = 0;
-                        if(cmd.endsWith('2')) handTarget = 1;
-                        activePlayer.activeHandIdx = handTarget; // Force selection? Or check matches
-
-                        if (cmd.startsWith('!hit')) hit();
-                        else if (cmd.startsWith('!stand')) stand();
-                        else if (cmd.startsWith('!bet')) { if (cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]); }
-                        else if (cmd === '!double') doubleDown(); // Rev 3
-                        else if (cmd === '!split') split(); // Rev 4
+                        if (cmd === '!hit') hit();
+                        else if (cmd === '!stand') stand();
+                        else if (cmd === '!bet') {
+                            if (cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
+                        }
+						else if (cmd === 'bet') {
+                            if (cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
+                        }
                     }
                 }
             }
@@ -1925,18 +1681,10 @@ input[type="button"], button {
         function toggleLogo(el) { document.body.classList.toggle('hide-logo', !el.checked); }
         function toggleTransparent(el) { document.body.classList.toggle('transparent-mode', el.checked); }
         function toggleShadows(el) { document.body.classList.toggle('high-contrast', el.checked); }
-        function adjMaxBet(delta) { CONFIG.MAX_BET += delta; }
-
-        // Rev 11: Repulsion Toggle
-        function toggleRepulsion(el) { 
-            CONFIG.REPULSION.active = el.checked; 
-            document.getElementById('repulsion-zone').style.display = el.checked ? 'block' : 'none';
-        }
-
-        // Rev 1: Scale Slider
-        function updateScale(val) {
-            document.documentElement.style.setProperty('--scale', val);
-            CONFIG.UNIT_W = 300 * val;
+        function adjMaxBet(delta) {
+            let n = CONFIG.MAX_BET + delta;
+            if(n < 100) n = 100; if(n > 10000) n = 10000;
+            CONFIG.MAX_BET = n; document.getElementById('disp-max-bet').innerText = n;
         }
 
         const dragger = document.getElementById('house-bank');
@@ -1960,22 +1708,37 @@ input[type="button"], button {
             dealerSpot.style.transform = 'none'; 
             dealerSpot.style.left = `${newX}px`;
             dealerSpot.style.top = `${newY}px`;
-            State.dealerPos.x = newX + 175; 
+            State.dealerPos.x = newX + 125; 
             State.dealerPos.y = newY + 70;
-            
-            // Rev 11 Update Zone
-            const r = document.getElementById('repulsion-zone');
-            if(CONFIG.REPULSION.active) {
-                 CONFIG.REPULSION.x = window.innerWidth - 420; // Default
-                 r.style.width = CONFIG.REPULSION.w + 'px';
-                 r.style.height = CONFIG.REPULSION.h + 'px';
-                 r.style.right = 0; r.style.bottom = 0;
-            }
         });
 
-        window.addEventListener('mouseup', () => { if(isDragging) { isDragging = false; dragger.style.cursor = 'grab'; } });
+        window.addEventListener('mouseup', () => {
+            if(isDragging) { isDragging = false; dragger.style.cursor = 'grab'; }
+        });
 
-        startLeaderboardPhase(); // Start loop
+        function adjLobbyTime(delta) {
+            let n = CONFIG.LOBBY_TIME + delta;
+            if(n < 5) n = 5;
+            CONFIG.LOBBY_TIME = n;
+            document.getElementById('disp-lobby-time').innerText = `${n}s`;
+            if(State.phase === 'LOBBY') {
+                State.timers.lobbyVal = (State.timers.lobbyVal + delta < 5) ? 5 : State.timers.lobbyVal + delta;
+            }
+        }
+
+        function adjTurnTime(delta) {
+            let n = CONFIG.TURN_TIME + delta;
+            if(n < 5) n = 5;
+            CONFIG.TURN_TIME = n;
+            document.getElementById('disp-turn-time').innerText = `${n}s`;
+        }
+		
+		function adjMaxPlayers(delta) {
+            let n = CONFIG.MAX_PLAYERS + delta;
+            if(n < 2) n = 2; if(n > 99) n = 99;
+            CONFIG.MAX_PLAYERS = n; document.getElementById('disp-max-players').innerText = n;
+        }
+        startLobby();
     </script>
     <div id="settings-trigger" onclick="toggleSettings()"></div>
 
@@ -1993,18 +1756,8 @@ input[type="button"], button {
             <label class="switch"><input type="checkbox" onchange="toggleTransparent(this)"><span class="slider"></span></label>
         </div>
         <div class="setting-row">
-            <span>DEALER BOT (REV 10)</span>
-            <label class="switch"><input type="checkbox" onchange="CONFIG.CHAT_BOT = this.checked"><span class="slider"></span></label>
-        </div>
-        <div class="setting-row">
-            <span>REPULSION ZONE (REV 11)</span>
-            <label class="switch"><input type="checkbox" onchange="toggleRepulsion(this)"><span class="slider"></span></label>
-        </div>
-        <div class="setting-row">
-            <span>GAME SCALE (REV 1)</span>
-            <div class="stepper">
-                <input type="range" min="0.5" max="2.0" step="0.1" value="1" oninput="updateScale(this.value)">
-            </div>
+            <span>HIGH CONTRAST SHADOWS</span>
+            <label class="switch"><input type="checkbox" onchange="toggleShadows(this)"><span class="slider"></span></label>
         </div>
         <div class="setting-row">
             <span>MAX BET LIMIT</span>
@@ -2012,6 +1765,30 @@ input[type="button"], button {
                 <button class="step-btn" onclick="adjMaxBet(-100)">-</button>
                 <span id="disp-max-bet">200</span>
                 <button class="step-btn" onclick="adjMaxBet(100)">+</button>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span>MAX PLAYERS</span>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjMaxPlayers(-1)">-</button>
+                <span id="disp-max-players">14</span>
+                <button class="step-btn" onclick="adjMaxPlayers(1)">+</button>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span>LOBBY TIME</span>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjLobbyTime(-1)">-</button>
+                <span id="disp-lobby-time">24s</span>
+                <button class="step-btn" onclick="adjLobbyTime(1)">+</button>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span>TURN TIME</span>
+            <div class="stepper">
+                <button class="step-btn" onclick="adjTurnTime(-1)">-</button>
+                <span id="disp-turn-time">14s</span>
+                <button class="step-btn" onclick="adjTurnTime(1)">+</button>
             </div>
         </div>
     </div>
