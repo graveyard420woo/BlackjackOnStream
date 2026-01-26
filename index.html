@@ -1094,6 +1094,7 @@
                 }
 			}
             
+            // Join Queue if active
             if(State.phase === 'PLAYING' || State.players.length >= CONFIG.MAX_PLAYERS) {
                 if(!State.joinQueue.some(q => q.name === name) && !State.players.some(p => p.name === name)) {
                     State.joinQueue.push({ userId, name, color, badgeData });
@@ -1109,6 +1110,7 @@
             div.className = 'player-unit joining'; 
             div.style.setProperty('--player-glow', glowColor);
             
+            // Build badge HTML
             let badgeHTML = '';
             if(badgeData && badgeData.length) {
                 const totalBadges = badgeData.length;
@@ -1122,7 +1124,6 @@
                         const version = set.find(v => v.id === b.id);
                         if(version) {
                             let angle = 0;
-                            // Fix: Ensure we divide correctly
                             if (totalBadges > 1) {
                                 angle = startAngle + (idx * ((endAngle - startAngle) / (totalBadges - 1)));
                             }
@@ -1155,7 +1156,7 @@
 			let savedChips = CONFIG.START_CHIPS;
             let savedFlair = [];
             if (history && (Date.now() - history.time) < 180000000000) {
-                savedChips = history.chips <= 0 ? 79 : history.chips;
+                savedChips = history.chips <= 0 ? 69 : history.chips;
                 savedFlair = history.flair || [];
             }
             
@@ -1168,12 +1169,11 @@
             
             const pObj = { 
                 name: name, chips: savedChips, 
-                // Set currentBet to default so they have a bet "on the table"
                 currentBet: defaultBet,
                 hands: [{ cards: [], bet: defaultBet, score: 0, status: 'waiting' }], 
                 activeHandIndex: 0,
                 dom: div, timerPct: 0, flair: savedFlair,
-                afkCount: 0
+                afkCount: 0 // Initialize AFK Counter
             };
 
             pObj.floater = new Floater(div, pObj);
@@ -1218,17 +1218,18 @@
             }
             updateQueueUI();
             
-            // FIX: AFK Check - Identify players to remove first to avoid loop skipping
-            const playersToRemove = State.players.filter(p => p.afkCount >= 5);
-            
-            playersToRemove.forEach(p => {
-                 sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
-                 removePlayer(p.name, true); // true = skip cooldown
-            });
+            // FIX: Reverse loop to safely remove AFK players
+            for (let i = State.players.length - 1; i >= 0; i--) {
+                const p = State.players[i];
+                if (p.afkCount >= 5) {
+                    sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
+                    removePlayer(p.name, true); // true = skip cooldown
+                }
+            }
 
             // Process Reset for remaining players
             State.players.forEach(p => {
-                 // FIX: Betting Logic - Reset variables for the new round
+                 // Reset variables for the new round
                  p.currentBet = 0;
 
                  let defaultBet = 10;
@@ -1302,13 +1303,18 @@
             State.firstTurnAnnounced = false; 
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
             
-            State.players.forEach(p => p.afkCount++);
+            // Increment AFK counters
+            State.players.forEach(p => {
+                if(typeof p.afkCount === 'undefined') p.afkCount = 0;
+                p.afkCount++;
+            });
 
             State.players.forEach(p => {
-                // Bet already deducted in Lobby logic
+                // Bet was already deducted in Lobby logic
                 let bet = p.currentBet; 
+                
                 if (bet === 0 && p.chips === 0) {
-                     // Should be bust if 0
+                     // If they have 0 chips and 0 bet, they are bust
                      p.hands = [{ cards: [], bet: 0, score: 0, status: 'bust' }];
                 } else {
                      State.house += bet;
@@ -1319,6 +1325,7 @@
             });
             
             playSfx('shuffle');
+            // Deal
             for(let i=0; i<2; i++) {
                 State.players.forEach(p => {
                     if(p.hands[0].status === 'playing') {
@@ -1777,7 +1784,7 @@
                 else if (rawCmd === 'bet') {
                     const activePlayer = State.players.find(p => p.name.toLowerCase() === safeUser.toLowerCase());
                     if(activePlayer) {
-                        activePlayer.afkCount = 0; 
+                        activePlayer.afkCount = 0; // RESET AFK
                         if(cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                     }
                 }
@@ -1793,7 +1800,7 @@
                 if (State.activeIdx > -1 && State.activeIdx < State.players.length) {
                     const activePlayer = State.players[State.activeIdx];
                     if (activePlayer.name.toLowerCase() === safeUser.toLowerCase()) {
-                        activePlayer.afkCount = 0; 
+                        activePlayer.afkCount = 0; // RESET AFK
                         if (rawCmd === 'hit' || rawCmd === 'h' || rawCmd === 'hitme') hit();
                         else if (rawCmd === 'stand' || rawCmd === 'stay' || rawCmd === 's') stand();
                         else if (rawCmd === 'dd' || rawCmd === 'doubledown') doubleDown();
