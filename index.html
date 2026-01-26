@@ -290,10 +290,13 @@
 
         .player-unit.active .player-name { 
             color: var(--neon-blue);
-            /* Tight Neon Blue Outline - Sharp */
+            /* Tight outline + small fuzz */
             text-shadow: 
-                0 0 2px var(--neon-blue),
-                0 0 4px var(--neon-blue);
+                -1px -1px 1px var(--neon-blue),  
+                 1px -1px 1px var(--neon-blue),
+                -1px  1px 1px var(--neon-blue),
+                 1px  1px 1px var(--neon-blue),
+                 0 0 4px var(--neon-blue);
             animation: softPulse 2s infinite ease-in-out;
         }
 		
@@ -1220,16 +1223,15 @@
                      removePlayer(p.name, true); 
                  }
                  
-                 // Reset Bet Logic for Lobby Start
+                 // FIX: Betting Logic
+                 // We do NOT refund p.currentBet here. That bet was played in the last round.
+                 // We simply reset variables for the new round.
+                 p.currentBet = 0;
+
                  let defaultBet = 10;
-                 // Refund previous currentBet if any? No, assume chips are resolved.
-                 // Ensure reset:
-                 if(p.currentBet === undefined) p.currentBet = 0;
-                 // Refund the visual bet back to chips to start fresh logic
-                 p.chips += p.currentBet;
-                 
                  if(p.chips < 10) defaultBet = p.chips;
-                 // Deduct default bet immediately
+                 
+                 // Deduct default bet immediately for the new round
                  p.chips -= defaultBet;
                  p.currentBet = defaultBet;
                  p.hands[0].bet = defaultBet; // sync
@@ -1335,7 +1337,7 @@
             nextTurn();
         }
 
-        function nextTurn() {
+ function nextTurn() {
             clearInterval(State.timers.turn);
             
             if(State.activeIdx !== -1) {
@@ -1357,7 +1359,7 @@
             
             if(p.hands[0].status !== 'playing') { nextTurn(); return; }
             
-            // Dealer Chat Logic
+            // Dealer Chat Logic Updated
             const currentScore = p.hands[0].score;
             let msg = `@${p.name} it is your turn! Showing a ${currentScore}`;
             if(!State.firstTurnAnnounced) {
