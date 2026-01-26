@@ -1175,14 +1175,14 @@
             if (savedChips < 10) defaultBet = savedChips;
             savedChips -= defaultBet;
             
-            const pObj = { 
+            /*const pObj = { 
                 name: name, chips: savedChips, 
                 currentBet: defaultBet,
                 hands: [{ cards: [], bet: defaultBet, score: 0, status: 'waiting' }], 
                 activeHandIndex: 0,
                 dom: div, timerPct: 0, flair: savedFlair,
                 afkCount: 0 // Initialize AFK Counter
-            };
+            };*/
 
             pObj.floater = new Floater(div, pObj);
             State.players.push(pObj);
