@@ -1070,6 +1070,14 @@
                 <div class="card-center">${card.suit}</div>
                 <div class="card-corner bottom">${card.face}<br>${card.suit}</div></div>`;
         }
+		
+		function markPlayerActive(username) {
+			const p = State.players.find(player => player.name.toLowerCase() === username.toLowerCase());
+			if (p) {
+				p.hasActed = true; // They did something!
+				p.afkCount = 0;    // Clear their strikes
+			}
+		}
 
         function spawnAction(player, type) {
             // Remove existing popups to prevent stacking
@@ -1154,9 +1162,11 @@
 			const history = chipHistory.get(name.toLowerCase());
 			let savedChips = CONFIG.START_CHIPS;
             let savedFlair = [];
+			let savedAFK = 0;
             if (history && (Date.now() - history.time) < 180000000000) {
                 savedChips = history.chips <= 0 ? 69 : history.chips;
                 savedFlair = history.flair || [];
+				savedAFK = history.afkCount || 0; // Load saved AFK
             }
             
             let defaultBet = 10;
@@ -1173,7 +1183,8 @@
 				dom: div, 
 				timerPct: 0, 
 				flair: savedFlair,
-				afkCount: 0  // Start at 0
+				afkCount: savedAFK, // Use saved value
+        		hasActed: false     // We will use this flag to check activity
 			};
 
             pObj.floater = new Floater(div, pObj);
@@ -1213,21 +1224,16 @@
         function startLobby() {
 			console.log("--- LOBBY STARTING ---");
 
-			// 1. THE PURGE: Remove players who hit the limit (5) in the PREVIOUS round
-			const AFK_LIMIT = 5;
-			// We filter out players who have exceeded the limit
-			const activePlayers = [];
-			
-			State.players.forEach(p => {
-				if (p.afkCount >= AFK_LIMIT) {
-					console.log(`[AFK] Removing ${p.name} - Inactive for ${p.afkCount} rounds.`);
+			// 1. CLEAR STRIKE OUTS
+			for (let i = State.players.length - 1; i >= 0; i--) {
+				const p = State.players[i];
+				if (p.afkCount >= 5) {
 					sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
-					if(p.dom) p.dom.remove(); // Remove their UI immediately
+					removePlayer(p.name, true);
 				} else {
-					activePlayers.push(p);
+					p.hasActed = false; // Reset the flag for the new round
 				}
-			});
-			State.players = activePlayers;
+			}
 
 		
 			// 2. PROCESS JOIN QUEUE
@@ -1539,6 +1545,17 @@
         }
 
         function payouts() {
+			State.players.forEach(p => {
+				if (!p.hasActed) {
+					p.afkCount = (p.afkCount || 0) + 1;
+					console.log(`[AFK Strike] ${p.name} now has ${p.afkCount} strikes.`);
+				} else {
+					p.afkCount = 0; // Reset
+				}
+				// Save to history so it persists across refreshes/leaves
+				const hist = chipHistory.get(p.name.toLowerCase());
+				if (hist) hist.afkCount = p.afkCount;
+			});
             const ds = State.dealer.score; const db = ds > 21;
             const notificationQueue = [];
             let chatReport = "";
@@ -1790,9 +1807,9 @@
             
             const safeUser = username.trim();
 			
-			const validActions = ['join', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
-			if (validActions.includes(rawCmd)) {
-				resetPlayerAFK(safeUser);
+			const manualCommands = ['join', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
+			if (manualCommands.includes(rawCmd)) {
+				markPlayerActive(safeUser);
 			}
 
             if (State.phase === 'LOBBY') {
@@ -1801,7 +1818,7 @@
                 else if (rawCmd === 'bet') {
                     const activePlayer = State.players.find(p => p.name.toLowerCase() === safeUser.toLowerCase());
                     if(activePlayer) {
-                        //activePlayer.afkCount = 0; // RESET AFK
+                        activePlayer.afkCount = 0; // RESET AFK
                         if(cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                     }
                 }
