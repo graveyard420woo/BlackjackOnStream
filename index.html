@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <title>Blackjack On Stream</title>
+    <title>Blackjack On Stream 2.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Montserrat:wght@400;600;800;900&display=swap');
 
@@ -16,8 +16,12 @@
             --warm-light: rgba(255, 200, 150, 0.15);
             --font-display: 'Righteous', cursive;
             --font-body: 'Montserrat', sans-serif;
-            --card-w: 70px;
-            --card-h: 98px;
+            
+            /* DYNAMIC SCALING VARIABLES */
+            --scale: 1.0; 
+            --card-w: calc(70px * var(--scale));
+            --card-h: calc(98px * var(--scale));
+            --unit-w: calc(260px * var(--scale)); 
         }
 
         body, html {
@@ -89,14 +93,9 @@
         }
 
         @keyframes hotRainbow {
-            0% { color: #ff0055; }
-			16% { color: #851f83; }
-            33% { color: #ed1b2f; }
-			48% { color: #92278f; }
-			61% { color: #00a99d; }
-            76% { color: #faa61a; }
-			88% { color: #ed0c6e; }
-            100% { color: #ff0055; }
+            0% { color: #ff0055; } 16% { color: #851f83; } 33% { color: #ed1b2f; }
+			48% { color: #92278f; } 61% { color: #00a99d; } 76% { color: #faa61a; }
+			88% { color: #ed0c6e; } 100% { color: #ff0055; }
         }
         h1 span { 
             animation: hotRainbow 160s linear infinite; 
@@ -138,18 +137,14 @@
         #arena { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
 
         #dealer-spot {
-            position: absolute; top: 120px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 120px; left: 50%; transform: translateX(-50%) scale(var(--scale));
             display: flex; flex-direction: column; align-items: center; z-index: 20;
-            width: 250px;
+            width: 300px;
+            transform-origin: top center;
         }
         
-		#house-bank {
-            cursor: grab;
-            user-select: none;
-        }
-        #house-bank:active {
-            cursor: grabbing;
-        }
+		#house-bank { cursor: grab; user-select: none; }
+        #house-bank:active { cursor: grabbing; }
 		
         .house-bank { 
             font-family: var(--font-display); font-size: 2rem; color: var(--gold); 
@@ -166,27 +161,59 @@
         .player-unit {
             position: absolute; 
             display: flex; flex-direction: column; align-items: center;
-            width: 200px; will-change: left, top;
+            width: var(--unit-w); will-change: left, top;
+            transform-origin: top center;
+            transform: scale(var(--scale));
+        }
+
+        /* --- ANIMATIONS (SLIDE IN/OUT) --- */
+        @keyframes slideInDown {
+            from { transform: translateY(-100vh) scale(var(--scale)); opacity: 0; }
+            to { transform: translateY(0) scale(var(--scale)); opacity: 1; }
+        }
+        @keyframes slideOutUp {
+            from { transform: translateY(0) scale(var(--scale)); opacity: 1; }
+            to { transform: translateY(-100vh) scale(var(--scale)); opacity: 0; }
+        }
+        .player-unit.joining { animation: slideInDown 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .player-unit.leaving { animation: slideOutUp 0.8s ease-in forwards !important; }
+        .player-unit.eliminated { animation: slideOutDrop 1.5s ease-in forwards !important; pointer-events: none !important; }
+        @keyframes slideOutDrop {
+            0% { transform: translateY(0) rotate(0deg) scale(var(--scale)); opacity: 1; }
+            100% { transform: translateY(150vh) rotate(20deg) scale(var(--scale)); opacity: 0; }
         }
 
         .player-header {
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            margin-bottom: 25px; z-index: 30; width: 100%;
-            position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin-bottom: 5px; z-index: 30; width: 100%; position: relative;
         }
+
+        .avatar-container { position: relative; width: 60px; height: 60px; margin-bottom: 4px; }
+        
+        /* BADGE ARC STYLING */
+        .badge-arc {
+            position: absolute; top: -15px; left: 50%; width: 100px; height: 50px;
+            transform: translateX(-50%); pointer-events: none; z-index: 5;
+        }
+        .chat-badge {
+            position: absolute; width: 16px; height: 16px; 
+            left: 50%; top: 50%;
+            transform-origin: 50% 50px; /* Radius */
+        }
+        .chat-badge img { width: 100%; height: 100%; object-fit: contain; }
 
         .player-name { 
             font-weight: 800; font-size: 1.1rem; color: #aaa;
             text-shadow: 0 2px 4px black; 
             transition: all 0.5s;
-            position: relative;
-            z-index: 2;
+            position: relative; z-index: 2;
+            margin-bottom: 2px;
         }
 
 /* --- STICKER FLAIR STYLING --- */
         .flair-container {
             position: absolute; 
-            top: -20px; left: 50%; 
+            top: -40px; left: 50%; 
             transform: translateX(-50%);
             width: 180px; height: 80px; /* Area for stickers to live */
             z-index: 1; pointer-events: none;
@@ -194,11 +221,8 @@
 
         .flair-item {
             position: absolute;
-            font-size: 2rem;
+            font-size: 2.5rem; /* Bigger */
             filter: drop-shadow(2px 0 0 rgba(255, 255, 255, 0.6)) 
-                    drop-shadow(-2px 0 0 rgba(255, 255, 255, 0.6)) 
-                    drop-shadow(0 2px 0 rgba(255, 255, 255, 0.6)) 
-                    drop-shadow(0 -2px 0 rgba(255, 255, 255, 0.6))
                     drop-shadow(0 4px 8px rgba(0,0,0,0.5));
             user-select: none;
         }
@@ -210,18 +234,34 @@
             background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;
         }
 
+        .bet-display {
+            font-size: 0.8rem; font-weight: 800; color: #fff;
+            text-shadow: 0 0 5px var(--neon-pink);
+            margin-top: 2px; height: 14px;
+        }
+
         .score-display { 
-            position: absolute; top: 45px; left: 50%; transform: translateX(-50%);
-            font-size: 2.5rem; font-weight: 900; line-height: 1;
-            text-shadow: 0 4px 10px black; z-index: 40;
-            transition: color 0.3s;
+            /* Hidden global score, used inside hand wrappers for split */
+            display: none;
+        }
+
+        /* HANDS CONTAINER (SPLIT SUPPORT) */
+        .hands-container {
+            display: flex; justify-content: center; width: 100%;
+            gap: 15px; /* Gap between split hands */
+            margin-top: 10px;
+            transition: all 0.3s ease;
         }
 
         .hand-wrapper {
-            position: relative; height: 110px; width: 100%;
+            position: relative; height: 110px; min-width: 80px;
             display: flex; justify-content: center;
-            margin-top: 15px; 
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .hand-score {
+            position: absolute; bottom: -20px; width: 100%; text-align: center;
+            font-size: 1.2rem; font-weight: 900; text-shadow: 0 2px 5px black;
         }
 
         .player-unit.active { z-index: 500 !important; }
@@ -240,9 +280,8 @@
         }
 		
         .player-avatar {
-            width: 40px; height: 40px;
+            width: 60px; height: 60px;
             border-radius: 50%;
-            margin-right: 2px;
             border: 2px solid rgba(255,255,255,0.2);
             box-shadow: 0 2px 5px black;
             background-color: #111;
@@ -255,11 +294,13 @@
             box-shadow: 0 0 15px var(--player-glow);
         }
         
-        .player-unit.active .score-display { color: var(--neon-blue); text-shadow: 0 4px 10px black; }
-        .player-unit.active .hand-wrapper { transform: scale(1.3) translateY(10px); }
-
-        .player-unit.bust .score-display { color: #555; }
-        .player-unit.bust { filter: grayscale(1) opacity(0.6); }
+        /* Highlight Active Split Hand */
+        .hand-wrapper.active-hand { transform: scale(1.15) translateY(-5px); z-index: 50; }
+        .hand-wrapper.active-hand .hand-score { color: var(--neon-blue); }
+        .hand-wrapper.inactive-hand { filter: opacity(0.6); transform: scale(0.9); }
+        
+        /* Grayscale Bust */
+        .hand-wrapper.bust { filter: grayscale(1) opacity(0.7); }
 
         /* --- CARDS --- */
         .card {
@@ -269,7 +310,7 @@
             box-shadow: -3px 3px 10px rgba(0,0,0,0.7);
             transform-origin: bottom center;
             display: flex; flex-direction: column; justify-content: space-between; padding: 5px;
-            transition: box-shadow 0.3s;
+            transition: box-shadow 0.3s, opacity 0.5s;
             animation: deal 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.2) backwards;
         }
         @keyframes deal { from { transform: translateY(50px) scale(0); opacity: 0; } to { opacity: 1; } }
@@ -302,6 +343,8 @@
         .pop-bet { color: var(--gold); text-shadow: 0 0 20px var(--gold); }
         .pop-bought { color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); }
         .pop-no { color: var(--neon-pink); text-shadow: 0 0 20px var(--neon-pink); font-style: normal; font-weight: 900; }
+        .pop-split { color: #d0f; text-shadow: 0 0 20px #d0f; }
+        .pop-dd { color: #f90; text-shadow: 0 0 20px #f90; }
 
         @keyframes floatText {
             0% { opacity: 0; transform: translate(-50%, 20px) scale(0.5); }
@@ -328,7 +371,7 @@
             margin: 5px 0;
         }
         .store-emoji {
-            font-size: 4rem;
+            font-size: 5rem; /* Bigger */
             animation: emojiPulse 2s infinite ease-in-out;
             filter: drop-shadow(0 0 20px var(--gold));
         }
@@ -343,12 +386,18 @@
 
         /* PROGRESS BAR */
         .timer-container {
-            width: 100%; height: 4px; background: rgba(255,255,255,0.1);
-            margin-top: 39px;
+            width: 100%; height: 5px; background: rgba(255,255,255,0.1);
+            margin-top: 25px; /* Pushed down below cards */
             border-radius: 2px; overflow: hidden; opacity: 0; position: relative;
         }
         .timer-fill { height: 100%; background: var(--neon-blue); width: 0%; box-shadow: 0 0 10px var(--neon-blue); }
         .player-unit.active .timer-container { opacity: 1; }
+		
+		/* REPULSION ZONE */
+		#repulsion-zone {
+		    position: absolute; border: 2px dashed rgba(255,0,0,0.5); background: rgba(255,0,0,0.1);
+		    pointer-events: none; z-index: 9999; display: none;
+		}
 		
 		#centercontentbox {
 		background-color: rgba(6, 3, 3, 0.85);
@@ -374,6 +423,9 @@
             box-sizing: border-box;
             overflow: auto;
             border: none;
+            height: 100px;
+            font-size: 0.9rem;
+            text-align: left;
         }
 
         #log span {
@@ -562,7 +614,7 @@ input[type="button"], button {
     height: 27px;
 }
 
-	/* --- SETTINGS & MODES --- */
+	/* --- SETTINGS & PANELS --- */
         #settings-trigger {
             position: fixed; top: 0; left: 0; width: 20px; height: 20px;
             z-index: 10000; cursor: pointer; opacity: 0;
@@ -570,7 +622,8 @@ input[type="button"], button {
         }
         #settings-trigger:hover { opacity: 0.3; background: white; }
 
-        #settings-panel {
+        /* Shared Panel Styling for Settings & Leaderboard */
+        .panel {
             display: none; position: fixed; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); width: 400px;
             background: rgba(10, 5, 10, 0.95); border: 2px solid var(--neon-blue);
@@ -579,6 +632,18 @@ input[type="button"], button {
             font-family: var(--font-body); color: white;
             backdrop-filter: blur(10px);
         }
+        
+        /* 3D Flip Animation for Leaderboard */
+        .panel.flip-in { 
+            display: block; 
+            animation: flipIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+            transform-origin: center;
+        }
+        @keyframes flipIn {
+            0% { transform: translate(-50%, -50%) rotateX(-90deg); opacity: 0; }
+            100% { transform: translate(-50%, -50%) rotateX(0deg); opacity: 1; }
+        }
+
         #settings-panel.open { display: block; }
         
         .settings-header { 
@@ -655,17 +720,14 @@ input[type="button"], button {
             font-size: 4.5rem;
             filter: drop-shadow(0 0 15px white);
         }
-		
-		@keyframes slideOutDrop {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(150vh) rotate(20deg); opacity: 0; }
-        }
-
-        .player-unit.eliminated {
-            animation: slideOutDrop 1.5s ease-in forwards;
-            pointer-events: none !important;
-            z-index: 0 !important;
-        }
+        
+        /* Leaderboard Styles */
+        .lb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-items: end; margin-bottom: 20px; }
+        .lb-top { display: flex; flex-direction: column; align-items: center; }
+        .lb-top img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid white; margin-bottom: 5px; }
+        .lb-1 img { width: 80px; height: 80px; border-color: var(--gold); box-shadow: 0 0 20px var(--gold); }
+        .lb-list { max-height: 250px; overflow-y: auto; }
+        .lb-row { display: flex; justify-content: space-between; padding: 5px 10px; background: rgba(255,255,255,0.1); margin-bottom: 4px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -676,13 +738,16 @@ input[type="button"], button {
     <div class="bg-vignette"></div>
     
     <canvas id="fx-canvas"></canvas>
+    
+    <!-- Repulsion Zone Visual -->
+    <div id="repulsion-zone"></div>
 
     <div id="arena">
         <div id="dealer-spot">
             <div id="house-bank" class="house-bank">🪙100</div>
             
             <div class="dealer-label">DEALER</div>
-            <div id="dealer-score" class="score-display" style="position:static; margin-bottom:10px;"></div>
+            <div id="dealer-score" class="score-display" style="position:static; margin-bottom:10px; display:block;"></div>
             <div id="dealer-hand" class="hand-wrapper" style="margin-top:0;"></div>
         </div>
     </div>
@@ -703,7 +768,7 @@ input[type="button"], button {
                     <span class="description-main description">This is an interactive Blackjack overlay for Twitch that can be played by everyone in chat on your stream! ;)<br>
                     Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!<br></span>
                     <br>
-                    <span class="description-main description">Commands: !join !leave !hit !stand !bet[amt] !buy</span>
+                    <span class="description-main description">Commands: !join !leave !hit !stand !bet[amt] !buy !split !double</span>
                     <br>
                     <a id="authorize" class="login-box" target="">
                      <img id="twitch-logo" src="tlogo.png">
@@ -735,6 +800,10 @@ input[type="button"], button {
 		var chattersColor = '';
 		let previousChatters = [];
 		
+        // Storage for Badges
+        let globalBadges = {};
+        let channelBadges = {};
+
 		const cooldowns = new Map();
 		const chipHistory = new Map();
 		
@@ -797,6 +866,7 @@ input[type="button"], button {
                         session_id = id;
                         my_user_id = resp.data[0].id;
 						fetchEmotes(my_user_id);
+                        fetchBadges(my_user_id); // Fetch Badges
                         requestHooks(resp.data[0].id, my_user_id);
 							
 						setInterval(() => {
@@ -837,11 +907,11 @@ input[type="button"], button {
 					});
 					socket_space.on('channel.chat.message', ({ metadata, payload }) => {
     					let { event } = payload;
-    					let { chatter_user_name , chatter_user_id , message, color } = event;		
+    					let { chatter_user_name , chatter_user_id , message, color, badges } = event;		
 							console.log(`${chatter_user_name}: ${message.text}`);
 							
                             const fullMsg = message.text.trim();
-							if(fullMsg.toLowerCase() == '!join'){window.twitchCommand(chatter_user_id, chatter_user_name, "!join", color);}
+							if(fullMsg.toLowerCase() == '!join'){window.twitchCommand(chatter_user_id, chatter_user_name, "!join", color, badges);}
 							
 							if(fullMsg.toLowerCase() == '!hit'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
 							if(fullMsg.toLowerCase() == 'hit'){window.twitchCommand(chatter_user_id, chatter_user_name, "!hit", color);}
@@ -860,6 +930,10 @@ input[type="button"], button {
 
                             if(fullMsg.toLowerCase().startsWith('!bet')){window.twitchCommand(chatter_user_id, chatter_user_name, fullMsg, color);}
 							if(fullMsg.toLowerCase().startsWith('bet')){window.twitchCommand(chatter_user_id, chatter_user_name, fullMsg, color);}
+                            
+                            // NEW COMMANDS
+                            if(fullMsg.toLowerCase() == '!double' || fullMsg.toLowerCase() == '!dd') window.twitchCommand(chatter_user_id, chatter_user_name, "!double", color);
+                            if(fullMsg.toLowerCase() == '!split') window.twitchCommand(chatter_user_id, chatter_user_name, "!split", color);
 
                             if(fullMsg.toLowerCase() == '!buy'){window.twitchCommand(chatter_user_id, chatter_user_name, "!buy", color);}
 							if(fullMsg.toLowerCase() == 'buy'){window.twitchCommand(chatter_user_id, chatter_user_name, "!buy", color);}
@@ -869,6 +943,20 @@ input[type="button"], button {
                     console.log(err);
                     log('Error with Users Call');
                 });
+        }
+        
+        async function fetchBadges(broadcasterId) {
+            try {
+                // Global
+                let g = await fetch('https://api.twitch.tv/helix/chat/badges/global', { headers: { "Client-ID": client_id, "Authorization": "Bearer " + access_token } });
+                let gData = await g.json();
+                gData.data.forEach(set => globalBadges[set.set_id] = set.versions);
+
+                // Channel
+                let c = await fetch(`https://api.twitch.tv/helix/chat/badges?broadcaster_id=${broadcasterId}`, { headers: { "Client-ID": client_id, "Authorization": "Bearer " + access_token } });
+                let cData = await c.json();
+                cData.data.forEach(set => channelBadges[set.set_id] = set.versions);
+            } catch(e) { console.error(e); }
         }
 
 		function getStuffNow(broadcaster_id) {
@@ -907,6 +995,7 @@ input[type="button"], button {
         }
 		
 		async function sendTwitchChatMessage(broadcaster_id, message) {
+            if(!CONFIG.CHAT_BOT) return; // Dealer Bot Toggle Check
 			const url = 'https://api.twitch.tv/helix/chat/messages';
 			const requestBody = { broadcaster_id: broadcaster_id, sender_id: broadcaster_id, message: message };
 			const options = {
@@ -1005,8 +1094,10 @@ input[type="button"], button {
             START_CHIPS: 100, TURN_TIME: 14, LOBBY_TIME: 24, MAX_PLAYERS: 14,
             SPEED: 0.04, MAX_SPEED: 0.6, 
             MARGIN: 20, 
-            UNIT_W: 200, UNIT_H: 220,
-            MAX_BET: 200
+            UNIT_W: 260, UNIT_H: 220,
+            MAX_BET: 200,
+            CHAT_BOT: true,
+            REPULSION: { active: false, x: 0, y: 0, w: 420, h: 380, corner: 'bottom-right' }
         };
 
         const SUITS = ['♠', '♥', '♦', '♣'];
@@ -1016,7 +1107,7 @@ input[type="button"], button {
         };
 
         // --- EMOJI ARRAY ---
-        const EMOJIS = ['🔥','💎','👑','🍀','💸','🌶️','🍕','🦄','👽','🚀','🌈','🎸','🍄','🎲','🧿','🦁','🐲','🧊','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','🎈','🎀','🧿','✨','💀','👻','🤖','🧸','🪐','🌞','🌊','🍭','🌭','🍟','🍺','💾','☠','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','🌭','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳','⛳'];
+        const EMOJIS = ['🔥','💎','👑','🍀','💸','🌶️','🍕','🦄','👽','🚀','🌈','🎸','🍄','🎲','🧿','🦁','🐲','🧊','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','🎈','🎀','🧿','✨','💀','👻','🤖','🧸','🪐','🌞','🌊','🍭','🌭','🍟','🍺','💾','☠'];
 
 		const EMOTE_SOURCES = ['738259432', '589929957', '835308705', '564254398']; // 1-graveyard420woo, 2-neverbeenhappiertv, 3-morjanga, 4-LadyMiYong (og crew)
 		let EMOTES_POOL = []; // This will hold our fetched emote URLs
@@ -1057,6 +1148,17 @@ input[type="button"], button {
 
             update(others) {
                 this.x += this.vx; this.y += this.vy;
+                
+                // Repulsion Logic
+                if(CONFIG.REPULSION.active) {
+                    const rX = window.innerWidth - 420;
+                    const rY = window.innerHeight - 380;
+                    // Simple repulsion from bottom right corner
+                    if(this.x + CONFIG.UNIT_W > rX && this.y + 250 > rY) {
+                        this.vx -= 0.1;
+                        this.vy -= 0.1;
+                    }
+                }
 
                 others.forEach(other => {
                     if (other === this.player) return;
@@ -1105,7 +1207,8 @@ input[type="button"], button {
             activeIdx: -1, timers: { lobby: null, turn: null, lobbyVal: CONFIG.LOBBY_TIME }, house: 100,
             dealerPos: { x: window.innerWidth / 2, y: 190, radius: 200 },
             // STORE STATE
-            activeStoreItem: null 
+            activeStoreItem: null,
+            gamesPlayed: 0
         };
 
         const ctx = document.getElementById('fx-canvas').getContext('2d');
@@ -1181,6 +1284,8 @@ input[type="button"], button {
         function spawnAction(player, type) {
             const el = document.createElement('div');
             el.className = `action-popup ${type==='HIT'?'pop-hit':(type==='STAND'?'pop-stand':(type==='BOUGHT'?'pop-bought':(type==='❌'?'pop-no':'pop-bet')))}`;
+            if(type==='SPLIT') el.className = 'action-popup pop-split';
+            if(type==='DOUBLE') el.className = 'action-popup pop-dd';
 
             el.innerText = type;
             player.dom.appendChild(el);
@@ -1188,7 +1293,7 @@ input[type="button"], button {
         }
 
         // --- PLAYER ---
-		function addPlayer(userId, name, color) {
+		function addPlayer(userId, name, color, badges) {
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
@@ -1196,27 +1301,51 @@ input[type="button"], button {
 					return;
 				}
 			}
-            if(State.phase !== 'LOBBY') return;
+            if(State.phase !== 'LOBBY') {
+                sendTwitchChatMessage(my_user_id, `${name}, please wait for the next lobby!`);
+                return;
+            }
             if(State.players.some(p => p.name === name)) return;
             if(State.players.length >= CONFIG.MAX_PLAYERS) return;
 
             const glowColor = color || '#ff0055';
             const div = document.createElement('div');
-            div.className = 'player-unit';
+            div.className = 'player-unit joining'; // JOIN ANIMATION
             div.style.setProperty('--player-glow', glowColor);
             
+            // Build Badge HTML
+            let badgeHTML = '';
+            if(badges) {
+                let badgeCount = 0;
+                badges.forEach(b => {
+                    let url = '';
+                    if(channelBadges[b.set_id] && channelBadges[b.set_id][b.id]) url = channelBadges[b.set_id][b.id].image_url_2x;
+                    else if(globalBadges[b.set_id] && globalBadges[b.set_id][b.id]) url = globalBadges[b.set_id][b.id].image_url_2x;
+                    
+                    if(url) {
+                        // Position badges in arc
+                        let deg = -60 + (badgeCount * 30);
+                        badgeHTML += `<div class="chat-badge" style="transform: rotate(${deg}deg) translateY(-38px) rotate(${-deg}deg);">
+                                        <img src="${url}">
+                                      </div>`;
+                        badgeCount++;
+                    }
+                });
+            }
+
             div.innerHTML = `
                 <div class="player-header">
                     <div class="flair-container"></div>
-                    <img class="player-avatar" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
-                    <div class="player-name">${name}</div>
-                    <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
-                        <div class="chip-display"></div>
-                        <div class="bet-display" style="font-size:0.7rem; color:var(--gold); font-weight:800; text-shadow:0 2px 4px black; height:10px; white-space: nowrap;"></div>
+                    <div class="avatar-container">
+                        <div class="badge-arc">${badgeHTML}</div>
+                        <img class="player-avatar" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
                     </div>
+                    <div class="player-name">${name}</div>
+                    <div class="chip-display"></div>
+                    <div class="bet-display"></div>
                 </div>
                 <div class="score-display"></div>
-                <div class="hand-wrapper"></div>
+                <div class="hands-container"></div>
                 <div class="timer-container"><div class="timer-fill"></div></div>
             `;
             document.getElementById('arena').appendChild(div);
@@ -1232,26 +1361,22 @@ input[type="button"], button {
             }
             
             const pObj = { 
-                name: name, chips: savedChips, currentBet: 0, 
-                hand: [], score: 0, status: 'waiting', dom: div, 
-                timerPct: 0, flair: savedFlair 
+                name: name, chips: savedChips, 
+                hands: [], // Updated to array for split
+                activeHandIdx: 0,
+                dom: div, timerPct: 0, flair: savedFlair 
             };
 
             pObj.floater = new Floater(div, pObj);
             State.players.push(pObj);
             updateUI();
-
-            if(State.players.length === 1 && State.phase === 'LOBBY') {
-                startLobby();
-            }
         }
 
         // --- SUB MESSAGE CYCLE ---
         const subMsgs = [
             "USE !JOIN TO ENTER", 
             "USE !BET [AMT] TO BET", 
-            "USE !HIT TO HIT", 
-            "USE !STAND TO STAND",
+            "USE !HIT, !STAND, !DOUBLE, !SPLIT", 
             "LOOK OUT FOR !BUY ITEMS"
         ];
         let subMsgIdx = 0;
@@ -1279,6 +1404,20 @@ input[type="button"], button {
 
         // --- GAME LOGIC ---
         function startLobby() {
+            // Check Leaderboard Trigger
+            if(State.gamesPlayed > 0) {
+                showLeaderboard();
+                setTimeout(() => {
+                    document.getElementById('leaderboard-panel').classList.remove('flip-in');
+                    document.getElementById('leaderboard-panel').style.display = 'none';
+                    runLobbyTimer();
+                }, 8000);
+            } else {
+                runLobbyTimer();
+            }
+        }
+        
+        function runLobbyTimer() {
             State.phase = 'LOBBY'; State.timers.lobbyVal = CONFIG.LOBBY_TIME;
             startSubMessage();
             updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
@@ -1288,7 +1427,8 @@ input[type="button"], button {
                 if(State.paused) return;
                 State.timers.lobbyVal--;
                 updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
-                updateUI();
+                
+                // AFK Kick (If no bet or commands in 5 games - Basic implementation)
                 
                 if(State.timers.lobbyVal <= 0) {
                     clearInterval(State.timers.lobby);
@@ -1299,39 +1439,68 @@ input[type="button"], button {
         }
 
         function startGame() {
+            State.gamesPlayed++;
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
             
             State.players.forEach(p => {
-                p.hand = []; p.score = 0; p.status = 'playing'; p.timerPct = 0;
+                p.hands = [{ cards: [], score: 0, bet: 0, status: 'playing' }];
+                p.activeHandIdx = 0;
+                p.timerPct = 0;
+                
                 let ante = 10;
                 if(p.chips < 10) ante = p.chips;
-                p.currentBet = ante; 
+                p.hands[0].bet = ante; 
                 p.chips -= ante; 
                 State.house += ante;
-                const hw = p.dom.querySelector('.hand-wrapper');
-                if(hw) hw.innerHTML = ''; 
             });
+            
+            // Deal
             for(let i=0; i<2; i++) {
-                State.players.forEach(p => p.hand.push(State.deck.pop()));
+                State.players.forEach(p => p.hands[0].cards.push(State.deck.pop()));
                 State.dealer.hand.push(State.deck.pop());
             }
+            
             State.players.forEach(p => {
-                p.score = calculateScore(p.hand);
-                if(p.score === 21) p.status = 'blackjack';
+                p.hands[0].score = calculateScore(p.hands[0].cards);
+                if(p.hands[0].score === 21) p.hands[0].status = 'blackjack';
             });
             State.dealer.score = calculateScore(State.dealer.hand);
+            
             State.activeIdx = -1;
             nextTurn();
         }
 
         function nextTurn() {
-            clearInterval(State.timers.turn); State.activeIdx++;
+            clearInterval(State.timers.turn);
+            
+            // Check if current player has another active hand (Split)
+            if(State.activeIdx !== -1) {
+                const p = State.players[State.activeIdx];
+                if(p.activeHandIdx < p.hands.length - 1) {
+                    p.activeHandIdx++;
+                    // Continue turn with next hand
+                    if(p.hands[p.activeHandIdx].status === 'playing') {
+                        startTurnTimer(p);
+                        return;
+                    }
+                }
+            }
+
+            State.activeIdx++;
             if(State.activeIdx >= State.players.length) { runDealer(); return; }
             const p = State.players[State.activeIdx];
-            if(p.status !== 'playing') { nextTurn(); return; }
             
-            let ticks = 0; const max = CONFIG.TURN_TIME * 20; updateUI(); 
+            p.activeHandIdx = 0; // Start at first hand
+            if(p.hands[0].status !== 'playing') { nextTurn(); return; }
+            
+            if(CONFIG.CHAT_BOT) sendTwitchChatMessage(my_user_id, `It's ${p.name}'s turn!`);
+            startTurnTimer(p);
+        }
+
+        function startTurnTimer(p) {
+            updateUI(); 
+            let ticks = 0; const max = CONFIG.TURN_TIME * 20; 
             State.timers.turn = setInterval(() => {
                 ticks++; p.timerPct = 100 - ((ticks/max)*100);
                 p.dom.querySelector('.timer-fill').style.width = `${p.timerPct}%`;
@@ -1341,51 +1510,118 @@ input[type="button"], button {
 
         function hit() {
             const p = State.players[State.activeIdx];
-            if(p.score >= 21) return;
+            const h = p.hands[p.activeHandIdx];
+            
             spawnAction(p, 'HIT');
-            p.hand.push(State.deck.pop()); p.score = calculateScore(p.hand);
-            if(p.score > 21) {
-                p.status = 'bust'; updateUI(); clearInterval(State.timers.turn); setTimeout(nextTurn, 1500);
-            } else if(p.score === 21) {
-                p.status = 'stand'; updateUI(); clearInterval(State.timers.turn); setTimeout(nextTurn, 1500);
+            h.cards.push(State.deck.pop()); h.score = calculateScore(h.cards);
+            
+            if(h.score > 21) {
+                h.status = 'bust'; updateUI(); 
+                // Check if need next hand or next player
+                clearInterval(State.timers.turn); 
+                setTimeout(() => {
+                   if(p.activeHandIdx < p.hands.length - 1) {
+                       p.activeHandIdx++;
+                       startTurnTimer(p);
+                   } else {
+                       nextTurn();
+                   }
+                }, 1500);
+            } else if(h.score === 21) {
+                stand();
             } else {
-                clearInterval(State.timers.turn); State.activeIdx--; nextTurn();
+                updateUI(); // Wait for next action
             }
         }
 
         function stand() {
             const p = State.players[State.activeIdx];
-            if(p.score > 21) return;
+            const h = p.hands[p.activeHandIdx];
             spawnAction(p, 'STAND');
-            p.status = 'stand';
-            nextTurn();
+            h.status = 'stand';
+            clearInterval(State.timers.turn);
+            
+            // Check split
+            if(p.activeHandIdx < p.hands.length - 1) {
+                p.activeHandIdx++;
+                startTurnTimer(p);
+            } else {
+                nextTurn();
+            }
         }
 
         function placeBet(player, amountStr) {
             if (State.phase !== 'PLAYING') return;
             let val = parseInt(amountStr);
             if (isNaN(val) || val < 1) return;
-            if (val > CONFIG.MAX_BET) val = CONFIG.MAX_BET;
-            let additional = val - player.currentBet;
-            if (additional <= 0) return; 
-            if (player.chips < additional) return;
-            player.chips -= additional;
-            State.house += additional;
-            player.currentBet = val;
-            spawnAction(player, `🪙 BET ${val}`);
+            if (player.chips < val) return;
+            
+            player.chips -= val;
+            State.house += val;
+            
+            // Add to current active hand
+            player.hands[player.activeHandIdx].bet += val;
+            
+            spawnAction(player, `🪙 +${val}`);
+            updateUI();
+        }
+        
+        function doubleDown() {
+            const p = State.players[State.activeIdx];
+            const h = p.hands[p.activeHandIdx];
+            if(h.cards.length !== 2) return;
+            if(p.chips < h.bet) return;
+            
+            p.chips -= h.bet;
+            State.house += h.bet;
+            h.bet *= 2;
+            
+            spawnAction(p, 'DOUBLE');
+            h.cards.push(State.deck.pop());
+            h.score = calculateScore(h.cards);
+            h.status = h.score > 21 ? 'bust' : 'stand';
+            
             updateUI();
             clearInterval(State.timers.turn);
-            State.activeIdx--; 
-            nextTurn();
+            
+            setTimeout(() => {
+                if(p.activeHandIdx < p.hands.length - 1) {
+                    p.activeHandIdx++;
+                    startTurnTimer(p);
+                } else {
+                    nextTurn();
+                }
+            }, 1500);
+        }
+        
+        function split() {
+            const p = State.players[State.activeIdx];
+            const h = p.hands[p.activeHandIdx];
+            if(h.cards.length !== 2) return;
+            // Value Check
+            if(h.cards[0].value !== h.cards[1].value) return; 
+            if(p.chips < h.bet) return;
+            
+            spawnAction(p, 'SPLIT');
+            p.chips -= h.bet;
+            State.house += h.bet;
+            
+            // Create Hand 2
+            const newHand = { cards: [h.cards.pop()], bet: h.bet, score: 0, status: 'playing' };
+            // Hit both once
+            h.cards.push(State.deck.pop());
+            newHand.cards.push(State.deck.pop());
+            
+            h.score = calculateScore(h.cards);
+            newHand.score = calculateScore(newHand.cards);
+            
+            p.hands.push(newHand); // Add to player array
+            updateUI();
         }
 
 		async function runDealer() {
             State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
-            while(State.dealer.score < 21) {
-                const topScore = Math.max(...State.players.filter(p => p.status !== 'bust').map(p => p.score), 0);
-                if (State.dealer.score > topScore) break;
-                if (State.dealer.score >= 17 && (State.dealer.score === topScore && Math.random() > 0.2)) break;
-                if (State.dealer.score >= 19) break;
+            while(State.dealer.score < 17) {
                 State.dealer.hand.push(State.deck.pop()); State.dealer.score = calculateScore(State.dealer.hand);
                 updateUI(); await new Promise(r => setTimeout(r, 1000));
             }
@@ -1396,16 +1632,22 @@ input[type="button"], button {
             const ds = State.dealer.score; const db = ds > 21;
             const notificationQueue = [];
             State.players.forEach(p => {
-                if(p.status === 'bust') return;
-                let w = 0;
-                if(p.status === 'blackjack') w = Math.floor(p.currentBet * 2.5);
-                else if(db || p.score > ds) w = p.currentBet * 2;
-                else if(p.score === ds) w = p.currentBet;
-                if(w > 0) {
-                    p.chips += w; State.house -= w;
-                    notificationQueue.push({ type: 'win', text: `PAYING ${w} TO ${p.name}`, amt: w, dom: p.dom });
-                }
+                p.hands.forEach(h => {
+                    if(h.status === 'bust') return;
+                    let w = 0;
+                    if(h.status === 'blackjack') w = Math.floor(h.bet * 2.5);
+                    else if(db || h.score > ds) w = h.bet * 2;
+                    else if(h.score === ds) w = h.bet;
+                    if(w > 0) {
+                        p.chips += w; State.house -= w;
+                        notificationQueue.push({ type: 'win', text: `PAYING ${w} TO ${p.name}`, amt: w, dom: p.dom });
+                    }
+                });
             });
+
+            // Fade Cards Logic
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(c => c.style.opacity = '0.5');
 
             State.players = State.players.filter(p => { 
                 if(p.chips <= 0) {
@@ -1413,20 +1655,27 @@ input[type="button"], button {
                     notificationQueue.push({ type: 'bust', text: `${p.name} goes bust 😭` });
                     cooldowns.set(safeName, Date.now() + 180000); 
                     chipHistory.set(safeName, { chips: 0, time: Date.now(), flair: p.flair });
-                    p.dom.classList.add('eliminated');
+                    p.dom.classList.add('eliminated'); // SLIDE DOWN ANIMATION
                     setTimeout(() => p.dom.remove(), 2000);
                     return false;
                 } 
                 return true; 
             });
             updateUI();
+            
             if(notificationQueue.length === 0) {
                 updateTopMsg("HOUSE WINS ALL");
                 setTimeout(startLobby, 4000);
             } else {
                 let i = 0;
                 const payCycle = setInterval(() => {
-                    if(i >= notificationQueue.length) { clearInterval(payCycle); startLobby(); return; }
+                    if(i >= notificationQueue.length) { 
+                        clearInterval(payCycle); 
+                        // Full fade out
+                        document.querySelectorAll('.card').forEach(c => c.style.opacity = '0');
+                        startLobby(); 
+                        return; 
+                    }
                     const item = notificationQueue[i];
                     updateTopMsg(item.text);
                     if(item.type === 'win') {
@@ -1467,51 +1716,61 @@ input[type="button"], button {
 			State.players.forEach((p, idx) => {
 				const isActive = (idx === State.activeIdx && State.phase === 'PLAYING');
 				p.dom.classList.toggle('active', isActive);
-				p.dom.classList.toggle('bust', p.status === 'bust');
-				
 				p.dom.querySelector('.chip-display').innerText = `🪙${p.chips}`;
-				p.dom.querySelector('.bet-display').innerText = p.currentBet > 0 ? `BET ${p.currentBet}` : '';
-				p.dom.querySelector('.score-display').innerText = p.score > 0 ? p.score : '';
-		
-				// --- FLAIR / STICKER LOGIC (Emoji & Emotes) ---
+				
+                // Sum bets
+                const totalBet = p.hands.reduce((acc, h) => acc + h.bet, 0);
+				p.dom.querySelector('.bet-display').innerText = totalBet > 0 ? `BET ${totalBet}` : '';
+
+                // Render Hands (Split Support)
+                const handsContainer = p.dom.querySelector('.hands-container');
+                let handsHTML = '';
+                
+                p.hands.forEach((h, hIdx) => {
+                    // Logic to detect if this specific hand is active
+                    const isHandActive = isActive && hIdx === p.activeHandIdx;
+                    const activeClass = isHandActive ? 'active-hand' : 'inactive-hand';
+                    const bustClass = h.status === 'bust' ? 'bust' : '';
+                    
+                    // Render Cards
+                    const cardsHTML = h.cards.map((c, i) => getCardHTML(c, i)).join('');
+                    
+                    handsHTML += `
+                        <div class="hand-wrapper ${activeClass} ${bustClass}">
+                            ${cardsHTML}
+                            ${h.score > 0 ? `<div class="hand-score">${h.score}</div>` : ''}
+                        </div>
+                    `;
+                });
+                if(handsContainer.innerHTML !== handsHTML) handsContainer.innerHTML = handsHTML;
+
+				// Flair
 				const fc = p.dom.querySelector('.flair-container');
 				if (fc) {
 					fc.innerHTML = p.flair.map(f => {
 						const isObj = typeof f === 'object' && f !== null;
-						// Handle legacy flair (strings) and new flair (objects)
 						const content = isObj ? (f.content || f.emoji) : f;
 						const isImg = isObj ? f.isImage : false;
 						const top = isObj ? (f.top ?? 0) : 0;
 						const left = isObj ? (f.left ?? 50) : 50;
-						const rot = isObj ? (f.rot ?? 0) : 0;
 						
 						const display = isImg 
 							? `<img src="${content}" style="width:36px; height:36px; object-fit:contain;">`
 							: content;
 		
-						return `<span class="flair-item" style="top:${top}px; left:${left}px; transform:rotate(${rot}deg);">${display}</span>`;
+						return `<span class="flair-item" style="top:${top}px; left:${left}px;">${display}</span>`;
 					}).join('');
-				}
-		
-				// --- CARD LOGIC (Crucial for cards to show!) ---
-				const hw = p.dom.querySelector('.hand-wrapper');
-				if (hw) {
-					// Only update the innerHTML if the card count has changed
-					if (hw.childElementCount !== p.hand.length) {
-						hw.innerHTML = p.hand.map((c, i) => getCardHTML(c, i)).join('');
-					}
 				}
 			});
 		}
 
-        // --- EMOJI STORE SPAWNER ---
+        // --- EMOJI STORE ITEM ---
         function spawnStoreEmoji() {
 			if(State.activeStoreItem) return;
 		
 			let visualContent = '';
 			let isImage = false;
 			
-			// 60% chance for Twitch Emote if pool isn't empty, otherwise Emoji
 			if (EMOTES_POOL.length > 0 && Math.random() > 0.2) {
 				visualContent = EMOTES_POOL[Math.floor(Math.random() * EMOTES_POOL.length)];
 				isImage = true;
@@ -1524,7 +1783,6 @@ input[type="button"], button {
 			const div = document.createElement('div');
 			div.className = 'store-item';
 			
-			// Use an <img> tag if it's a Twitch Emote
 			const displayHTML = isImage 
 				? `<img src="${visualContent}" class="store-emoji" style="width:70px; height:70px; object-fit:contain;">`
 				: `<div class="store-emoji">${visualContent}</div>`;
@@ -1539,11 +1797,9 @@ input[type="button"], button {
 			const item = {
 				el: div, 
 				content: visualContent, 
-				isImage: isImage, // Keep track of type
+				isImage: isImage, 
 				price: price,
 				x: -150, y: 200 + Math.random() * (window.innerHeight - 400),
-				vx: 2 + Math.random() * 2,
-				vy: (Math.random() - 0.5) * 2,
 				startTime: Date.now()
 			};
 			State.activeStoreItem = item;
@@ -1557,8 +1813,8 @@ input[type="button"], button {
 					State.activeStoreItem = null;
 					return;
 				}
-				item.x += item.vx;
-				item.y += Math.sin(elapsed/500) * 2;
+				item.x += 1.5; // Movement speed
+				item.y += Math.sin(elapsed/500) * 3; // SINE WAVE MOTION
 				div.style.transform = `translate(${item.x}px, ${item.y}px)`;
 				requestAnimationFrame(move);
 			};
@@ -1581,11 +1837,10 @@ input[type="button"], button {
 				State.house += itemData.price;
 				
 				p.flair.push({
-					content: itemData.content, // Stores emoji string OR image URL
+					content: itemData.content, 
 					isImage: itemData.isImage,
 					top: (Math.random() * 40 - 10),
 					left: (Math.random() * 120 + 10),
-					rot: (Math.random() * 40 - 20)
 				});
 				
 				spawnAction(p, 'BOUGHT');
@@ -1602,7 +1857,6 @@ input[type="button"], button {
 				clone.style.position = 'fixed';
 				document.body.appendChild(clone);
 		
-				// ... rest of the existing flight animation code ...
 				const startX = itemData.x;
 				const startY = itemData.y;
 				const rect = p.dom.getBoundingClientRect();
@@ -1619,7 +1873,6 @@ input[type="button"], button {
 					const curY = startY + (targetY - startY) * progress + arc;
 					clone.style.left = `${curX}px`;
 					clone.style.top = `${curY}px`;
-					clone.style.transform = `scale(${1 + Math.sin(progress * Math.PI)}) rotate(${progress * 360}deg)`;
 					if (progress < 1) requestAnimationFrame(fly);
 					else { clone.remove(); updateUI(); }
 				};
@@ -1640,24 +1893,21 @@ input[type="button"], button {
             const idx = State.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
             if (idx !== -1) {
                 const p = State.players[idx];
+                p.dom.classList.add('leaving'); // Slide Up Animation
 				chipHistory.set(p.name.toLowerCase(), { chips: p.chips, time: Date.now(), flair: p.flair });
-                if(p.dom) p.dom.remove(); 
+                setTimeout(() => { if(p.dom) p.dom.remove(); }, 1000); 
                 State.players.splice(idx, 1); 
                 updateUI();
             }
         }
 
-        window.twitchCommand = (userId, username, command, color) => {
+        window.twitchCommand = (userId, username, command, color, badges) => {
             const cmdParts = command.trim().split(' ');
             const cmd = cmdParts[0].toLowerCase();
             const safeUser = username.trim();
 
-            if (State.phase === 'LOBBY') {
-                if (cmd === '!join') addPlayer(userId, safeUser, color);
-                else if (cmd === '!leave') removePlayer(safeUser);
-            }
-            
-            // !buy works anytime they are on screen
+            if (cmd === '!join') addPlayer(userId, safeUser, color, badges);
+            else if (cmd === '!leave') removePlayer(safeUser);
             if (cmd === '!buy') handleBuy(safeUser);
 
             if (State.phase === 'PLAYING') {
@@ -1672,6 +1922,8 @@ input[type="button"], button {
 						else if (cmd === 'bet') {
                             if (cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                         }
+                        else if (cmd === '!double') doubleDown();
+                        else if (cmd === '!split') split();
                     }
                 }
             }
@@ -1710,6 +1962,14 @@ input[type="button"], button {
             dealerSpot.style.top = `${newY}px`;
             State.dealerPos.x = newX + 125; 
             State.dealerPos.y = newY + 70;
+            
+            // Repulsion Update
+            const r = document.getElementById('repulsion-zone');
+            if(CONFIG.REPULSION.active) {
+                // Bottom right fixed logic
+                r.style.width = '420px'; r.style.height = '380px';
+                r.style.bottom = '0'; r.style.right = '0';
+            }
         });
 
         window.addEventListener('mouseup', () => {
@@ -1738,14 +1998,60 @@ input[type="button"], button {
             if(n < 2) n = 2; if(n > 99) n = 99;
             CONFIG.MAX_PLAYERS = n; document.getElementById('disp-max-players').innerText = n;
         }
+
+        // Leaderboard Display
+        function showLeaderboard() {
+            const lb = document.getElementById('leaderboard-panel');
+            const grid = document.getElementById('lb-grid');
+            const list = document.getElementById('lb-list');
+            
+            // Build data
+            const all = Array.from(chipHistory.entries()).map(([k,v]) => ({name:k, chips:v.chips})).sort((a,b)=>b.chips-a.chips);
+            
+            let gridHTML = '';
+            for(let i=0; i<3 && i<all.length; i++) {
+                gridHTML += `<div class="lb-top lb-${i+1}"><img src="gy.png"><div style="color:var(--gold);font-size:1.2rem;">${all[i].name}</div><div>${all[i].chips}</div></div>`;
+            }
+            grid.innerHTML = gridHTML;
+            
+            let listHTML = '';
+            for(let i=3; i<all.length; i++) {
+                listHTML += `<div class="lb-row"><span>${i+1}. ${all[i].name}</span><span>${all[i].chips}</span></div>`;
+            }
+            list.innerHTML = listHTML;
+            
+            lb.classList.add('flip-in');
+        }
+
+        function updateScale(val) {
+            document.documentElement.style.setProperty('--scale', val);
+        }
+
+        function toggleRepulsion(el) {
+            CONFIG.REPULSION.active = el.checked;
+            document.getElementById('repulsion-zone').style.display = el.checked ? 'block' : 'none';
+        }
+
         startLobby();
     </script>
     <div id="settings-trigger" onclick="toggleSettings()"></div>
 
-    <div id="settings-panel">
+    <div id="settings-panel" class="panel">
         <div class="settings-header">
             <h2>STREAM CONFIG</h2>
             <div class="close-settings" onclick="toggleSettings()">✖</div>
+        </div>
+        <div class="setting-row">
+            <span>DEALER BOT</span>
+            <label class="switch"><input type="checkbox" checked onchange="CONFIG.CHAT_BOT = this.checked"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <span>REPULSION ZONE</span>
+            <label class="switch"><input type="checkbox" onchange="toggleRepulsion(this)"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <span>GAME SCALE</span>
+            <input type="range" min="0.5" max="1.5" step="0.1" value="1.0" oninput="updateScale(this.value)">
         </div>
         <div class="setting-row">
             <span>SHOW LOGO</span>
@@ -1792,5 +2098,13 @@ input[type="button"], button {
             </div>
         </div>
     </div>
+    
+    <!-- Leaderboard Panel -->
+    <div id="leaderboard-panel" class="panel">
+        <h2 style="color:var(--gold);text-align:center;">LEADERBOARD</h2>
+        <div id="lb-grid" class="lb-grid"></div>
+        <div id="lb-list" class="lb-list"></div>
+    </div>
+
 </body>
 </html>
