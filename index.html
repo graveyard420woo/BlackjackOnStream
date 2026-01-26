@@ -289,11 +289,10 @@
         }
 
         .player-unit.active .player-name { 
-            color: var(--neon-blue);
-            /* Less Fat Neon Blue Outline */
-            text-shadow: 0 0 3px var(--neon-blue);
-            animation: softPulse 2s infinite ease-in-out;
-        }
+        color: var(--neon-blue);
+        text-shadow: 0 0 3px var(--neon-blue), 0 0 6px var(--neon-blue); /* Tighter outline */
+        animation: softPulse 2s infinite ease-in-out;
+    }
 		
         .avatar-wrapper { position: relative; width: 60px; height: 60px; }
         
@@ -417,12 +416,12 @@
 
         /* PROGRESS BAR - MOVED UP (Negative margin to pull close to cards) */
         .timer-container {
-            width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            margin-top: -25px; 
-            border-radius: 3px; overflow: hidden; opacity: 0; position: relative;
-        }
-        .timer-fill { height: 100%; background: var(--neon-blue); width: 0%; box-shadow: 0 0 10px var(--neon-blue); }
-        .player-unit.active .timer-container { opacity: 1; }
+        width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+        margin-top: -45px; /* Moved up 20px more */
+        border-radius: 3px; overflow: hidden; opacity: 0; position: relative;
+    }
+    .timer-fill { height: 100%; background: var(--neon-blue); width: 0%; box-shadow: 0 0 10px var(--neon-blue); }
+    .player-unit.active .timer-container { opacity: 1; }
 		
 		#centercontentbox {
     		background-color: rgba(6, 3, 3, 0.85);
@@ -916,78 +915,77 @@
 
         // --- PHYSICS ENGINE ---
         class Floater {
-            constructor(el, player) {
-                this.el = el; this.player = player;
-                this.x = CONFIG.MARGIN + Math.random() * (window.innerWidth - CONFIG.MARGIN*2 - CONFIG.UNIT_W);
-                this.y = 80 + Math.random() * (window.innerHeight - 350 - CONFIG.UNIT_H);
-                this.vx = (Math.random()-0.5) * 0.5; this.vy = (Math.random()-0.5) * 0.5;
-            }
-
-            update(others) {
-                this.x += this.vx; this.y += this.vy;
-                const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--unit-scale')) || 1.5;
-                const effectiveW = CONFIG.UNIT_W * scale; 
-                const effectiveH = CONFIG.UNIT_H * scale;
-
-                others.forEach(other => {
-                    if (other === this.player) return;
-                    const dx = this.x - other.floater.x;
-                    const dy = this.y - other.floater.y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if(dist < (effectiveW * 0.9)) { 
-                        const angle = Math.atan2(dy, dx);
-                        this.vx += Math.cos(angle) * 0.03;
-                        this.vy += Math.sin(angle) * 0.03;
-                    }
-                });
-
-                const ddx = (this.x + effectiveW/2) - State.dealerPos.x;
-                const ddy = (this.y + 100) - State.dealerPos.y;
-                const dDist = Math.sqrt(ddx*ddx + ddy*ddy);
-                if(dDist < State.dealerPos.radius + 80) {
-                     const angle = Math.atan2(ddy, ddx);
-                     this.vx += Math.cos(angle) * 0.05;
-                     this.vy += Math.sin(angle) * 0.05;
-                }
-
-                if(CONFIG.STREAMER_ZONE.active) {
-                    const z = CONFIG.STREAMER_ZONE;
-                    let zx = z.alignX === 'right' ? window.innerWidth - z.w : z.x;
-                    let zy = z.alignY === 'bottom' ? window.innerHeight - z.h : z.y;
-                    let cx = this.x + effectiveW/2;
-                    let cy = this.y + effectiveH/2;
-                    
-                    if (cx > zx && cx < zx + z.w && cy > zy && cy < zy + z.h) {
-                        const angle = Math.atan2(window.innerHeight/2 - cy, window.innerWidth/2 - cx);
-                        this.vx += Math.cos(angle) * 0.2;
-                        this.vy += Math.sin(angle) * 0.2;
-                    }
-                }
-                
-                // Repel from Top Right (Queue/Status Area)
-                // Zone approx: Right side, Top 150px
-                if (this.x > window.innerWidth - 300 && this.y < 150) {
-                     this.vx -= 0.05;
-                     this.vy += 0.05;
-                }
-
-                const speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
-                if(speed > CONFIG.MAX_SPEED) {
-                    this.vx = (this.vx / speed) * CONFIG.MAX_SPEED;
-                    this.vy = (this.vy / speed) * CONFIG.MAX_SPEED;
-                }
-
-                const rEdge = window.innerWidth - CONFIG.MARGIN - effectiveW;
-                const bEdge = window.innerHeight - CONFIG.MARGIN - effectiveH;
-                if (this.x < CONFIG.MARGIN) { this.x = CONFIG.MARGIN; this.vx = Math.abs(this.vx); }
-                if (this.x > rEdge) { this.x = rEdge; this.vx = -Math.abs(this.vx); }
-                if (this.y < 80) { this.y = 80; this.vy = Math.abs(this.vy); }
-                if (this.y > bEdge) { this.y = bEdge; this.vy = -Math.abs(this.vy); }
-
-                this.el.style.left = `${this.x}px`;
-                this.el.style.top = `${this.y}px`;
-            }
+        constructor(el, player) {
+            this.el = el; this.player = player;
+            this.x = CONFIG.MARGIN + Math.random() * (window.innerWidth - CONFIG.MARGIN*2 - CONFIG.UNIT_W);
+            this.y = 80 + Math.random() * (window.innerHeight - 350 - CONFIG.UNIT_H);
+            this.vx = (Math.random()-0.5) * 0.5; this.vy = (Math.random()-0.5) * 0.5;
         }
+
+        update(others) {
+            this.x += this.vx; this.y += this.vy;
+            const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--unit-scale')) || 1.5;
+            const effectiveW = CONFIG.UNIT_W * scale; 
+            const effectiveH = CONFIG.UNIT_H * scale;
+
+            others.forEach(other => {
+                if (other === this.player) return;
+                const dx = this.x - other.floater.x;
+                const dy = this.y - other.floater.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < (effectiveW * 0.9)) { 
+                    const angle = Math.atan2(dy, dx);
+                    this.vx += Math.cos(angle) * 0.03;
+                    this.vy += Math.sin(angle) * 0.03;
+                }
+            });
+
+            const ddx = (this.x + effectiveW/2) - State.dealerPos.x;
+            const ddy = (this.y + 100) - State.dealerPos.y;
+            const dDist = Math.sqrt(ddx*ddx + ddy*ddy);
+            if(dDist < State.dealerPos.radius + 80) {
+                    const angle = Math.atan2(ddy, ddx);
+                    this.vx += Math.cos(angle) * 0.05;
+                    this.vy += Math.sin(angle) * 0.05;
+            }
+
+            if(CONFIG.STREAMER_ZONE.active) {
+                const z = CONFIG.STREAMER_ZONE;
+                let zx = z.alignX === 'right' ? window.innerWidth - z.w : z.x;
+                let zy = z.alignY === 'bottom' ? window.innerHeight - z.h : z.y;
+                let cx = this.x + effectiveW/2;
+                let cy = this.y + effectiveH/2;
+                
+                if (cx > zx && cx < zx + z.w && cy > zy && cy < zy + z.h) {
+                    const angle = Math.atan2(window.innerHeight/2 - cy, window.innerWidth/2 - cx);
+                    this.vx += Math.cos(angle) * 0.2;
+                    this.vy += Math.sin(angle) * 0.2;
+                }
+            }
+            
+            // Repel from Top Right (Queue/Status Area)
+            if (this.x > window.innerWidth - 350 && this.y < 200) {
+                    this.vx -= 0.08;
+                    this.vy += 0.08;
+            }
+
+            const speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+            if(speed > CONFIG.MAX_SPEED) {
+                this.vx = (this.vx / speed) * CONFIG.MAX_SPEED;
+                this.vy = (this.vy / speed) * CONFIG.MAX_SPEED;
+            }
+
+            const rEdge = window.innerWidth - CONFIG.MARGIN - effectiveW;
+            const bEdge = window.innerHeight - CONFIG.MARGIN - effectiveH;
+            if (this.x < CONFIG.MARGIN) { this.x = CONFIG.MARGIN; this.vx = Math.abs(this.vx); }
+            if (this.x > rEdge) { this.x = rEdge; this.vx = -Math.abs(this.vx); }
+            if (this.y < 80) { this.y = 80; this.vy = Math.abs(this.vy); }
+            if (this.y > bEdge) { this.y = bEdge; this.vy = -Math.abs(this.vy); }
+
+            this.el.style.left = `${this.x}px`;
+            this.el.style.top = `${this.y}px`;
+        }
+    }
 
         const State = {
             phase: 'BOOT', paused: false, deck: [], players: [], dealer: { hand: [], score: 0 },
@@ -1197,385 +1195,195 @@
 
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
-        function startLobby() {
-            while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
-                const p = State.joinQueue.shift();
-                addPlayer(p.userId, p.name, p.color, p.badgeData);
-            }
-            updateQueueUI();
-            
-            State.players.forEach(p => {
-                 if(p.afkCount >= 5) {
-                     sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
-                     removePlayer(p.name, true); 
-                 }
-            });
-
-            State.phase = 'LOBBY'; State.timers.lobbyVal = CONFIG.LOBBY_TIME;
-            startSubMessage();
-            updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
-            
-            clearInterval(State.timers.lobby);
-            State.timers.lobby = setInterval(() => {
-                if(State.paused) return;
-                State.timers.lobbyVal--;
-                updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
-                updateUI();
-                
-                if(State.timers.lobbyVal <= 0) {
-                    clearInterval(State.timers.lobby);
-                    stopSubMessage();
-                    (State.players.length > 0) ? startGame() : (State.timers.lobbyVal = CONFIG.LOBBY_TIME, updateTopMsg("WAITING FOR PLAYERS..."), startSubMessage());
+        // --- GAME LOGIC ---
+    function startLobby() {
+        while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
+            const p = State.joinQueue.shift();
+            addPlayer(p.userId, p.name, p.color, p.badgeData);
+        }
+        updateQueueUI();
+        
+        State.players.forEach(p => {
+                if(p.afkCount >= 5) {
+                    sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
+                    removePlayer(p.name, true); 
                 }
-            }, 1000);
-        }
+        });
 
-        function showLeaderboard() {
-            if (!CONFIG.SHOW_LEADERBOARD) return; // Check toggle
-
-            const pnl = document.getElementById('leaderboard-panel');
-            const list = document.getElementById('lb-list');
-            const overlay = document.getElementById('blur-overlay');
+        // RESET BETS TO 10 (OR ALL IN)
+        State.players.forEach(p => {
+            // Logic: 
+            // 1. Determine reset amount (10 or remaining chips)
+            // 2. Set chips and bet
             
+            let ante = 10;
+            if(p.chips < 10) ante = p.chips;
+            
+            p.chips -= ante;
+            State.house += ante;
+            
+            // Re-initialize hand with reset bet
+            p.hands = [{ cards: [], bet: ante, score: 0, status: 'waiting' }];
+        });
+        updateUI();
+
+        State.phase = 'LOBBY'; State.timers.lobbyVal = CONFIG.LOBBY_TIME;
+        startSubMessage();
+        updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
+        
+        clearInterval(State.timers.lobby);
+        State.timers.lobby = setInterval(() => {
+            if(State.paused) return;
+            State.timers.lobbyVal--;
+            updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
+            updateUI();
+            
+            if(State.timers.lobbyVal <= 0) {
+                clearInterval(State.timers.lobby);
+                stopSubMessage();
+                (State.players.length > 0) ? startGame() : (State.timers.lobbyVal = CONFIG.LOBBY_TIME, updateTopMsg("WAITING FOR PLAYERS..."), startSubMessage());
+            }
+        }, 1000);
+    }
+
+    function startGame() {
+        State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
+        State.firstTurnAnnounced = false; 
+        setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
+        
+        State.players.forEach(p => p.afkCount++);
+
+        State.players.forEach(p => {
+            // Carry over the bet established in Lobby
+            let incomingBet = p.hands[0].bet || 0;
+            // Setup fresh hand for gameplay, keeping the bet
+            p.hands = [{ cards: [], bet: incomingBet, score: 0, status: 'playing' }];
+            p.activeHandIndex = 0;
+            p.timerPct = 0;
+        });
+        
+        playSfx('shuffle');
+        for(let i=0; i<2; i++) {
             State.players.forEach(p => {
-                chipHistory.set(p.name.toLowerCase(), { chips: p.chips, time: Date.now(), flair: p.flair });
-            });
-
-            const allPlayers = Array.from(chipHistory.entries()).map(([k,v]) => ({name:k, ...v})).sort((a,b) => b.chips - a.chips);
-            
-            list.innerHTML = allPlayers.slice(0, 15).map((p, i) => {
-                const flairHTML = p.flair.slice(0, 3).map(f => {
-                     const isObj = typeof f === 'object' && f !== null;
-                     const content = isObj ? (f.content || f.emoji) : f;
-                     const isImg = isObj ? f.isImage : false;
-                     return isImg ? `<img src="${content}" class="lb-flair-icon">` : `<span class="lb-flair-text">${content}</span>`;
-                }).join('');
-                
-                return `
-                <div class="lb-item ${i===0?'lb-top-1':(i===1?'lb-top-2':(i===2?'lb-top-3':''))}">
-                    <div class="lb-rank">#${i+1}</div>
-                    <div class="lb-name">${p.name.toUpperCase()} ${flairHTML}</div>
-                    <div class="lb-chips">🪙${p.chips}</div>
-                </div>
-            `}).join('');
-            
-            pnl.classList.add('visible');
-            overlay.classList.add('active'); 
-            
-            setTimeout(() => {
-                pnl.classList.remove('visible');
-                overlay.classList.remove('active'); 
-            }, 5000); 
-        }
-
-        function startGame() {
-            State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
-            State.firstTurnAnnounced = false; // Reset chat flag
-			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
-            
-            State.players.forEach(p => p.afkCount++);
-
-            State.players.forEach(p => {
-                let incomingBet = p.hands[0].bet || 0;
-                p.hands = [{ cards: [], bet: incomingBet, score: 0, status: 'playing' }];
-                p.activeHandIndex = 0;
-                p.timerPct = 0;
-
-                if(p.hands[0].bet === 0) {
-                    let ante = 10;
-                    if(p.chips < 10) ante = p.chips;
-                    
-                    if(ante > 0) {
-                        p.chips -= ante;
-                        State.house += ante;
-                        p.hands[0].bet = ante;
-                    } else {
-                         p.hands[0].status = 'bust'; 
-                    }
+                if(p.hands[0].status === 'playing') {
+                    p.hands[0].cards.push(State.deck.pop());
+                    playSfx('deal');
                 }
             });
-            
-            playSfx('shuffle');
-            for(let i=0; i<2; i++) {
-                State.players.forEach(p => {
-                    if(p.hands[0].status === 'playing') {
-                        p.hands[0].cards.push(State.deck.pop());
-                        playSfx('deal');
-                    }
-                });
-                State.dealer.hand.push(State.deck.pop());
-            }
-
-            State.players.forEach(p => {
-                p.hands[0].score = calculateScore(p.hands[0].cards);
-                if(p.hands[0].score === 21) p.hands[0].status = 'blackjack';
-            });
-            State.dealer.score = calculateScore(State.dealer.hand);
-            State.activeIdx = -1;
-            nextTurn();
+            State.dealer.hand.push(State.deck.pop());
         }
 
-        function nextTurn() {
-            clearInterval(State.timers.turn);
-            
-            if(State.activeIdx !== -1) {
-                const currentP = State.players[State.activeIdx];
-                if(currentP && currentP.activeHandIndex < currentP.hands.length - 1) {
-                    currentP.activeHandIndex++;
-                    if(currentP.hands[currentP.activeHandIndex].status === 'playing') {
-                         startTurnTimer(currentP);
-                         return;
-                    }
+        State.players.forEach(p => {
+            p.hands[0].score = calculateScore(p.hands[0].cards);
+            if(p.hands[0].score === 21) p.hands[0].status = 'blackjack';
+        });
+        State.dealer.score = calculateScore(State.dealer.hand);
+        State.activeIdx = -1;
+        nextTurn();
+    }
+
+    function nextTurn() {
+        clearInterval(State.timers.turn);
+        
+        if(State.activeIdx !== -1) {
+            const currentP = State.players[State.activeIdx];
+            if(currentP && currentP.activeHandIndex < currentP.hands.length - 1) {
+                currentP.activeHandIndex++;
+                if(currentP.hands[currentP.activeHandIndex].status === 'playing') {
+                        startTurnTimer(currentP);
+                        return;
                 }
             }
-
-            State.activeIdx++;
-            if(State.activeIdx >= State.players.length) { runDealer(); return; }
-            
-            const p = State.players[State.activeIdx];
-            p.activeHandIndex = 0; 
-            
-            if(p.hands[0].status !== 'playing') { nextTurn(); return; }
-            
-            // Dealer Chat Logic
-            const currentScore = p.hands[0].score;
-            let msg = `@${p.name} it is your turn! (Score: ${currentScore})`;
-            if(!State.firstTurnAnnounced) {
-                msg += " !hit, !stand, !dd, or !split.";
-                State.firstTurnAnnounced = true;
-            }
-            sendTwitchChatMessage(msg);
-            
-            startTurnTimer(p);
         }
 
-        function startTurnTimer(p) {
-            let ticks = 0; const max = CONFIG.TURN_TIME * 20; updateUI(); 
-            State.timers.turn = setInterval(() => {
-                ticks++; p.timerPct = 100 - ((ticks/max)*100);
-                p.dom.querySelector('.timer-fill').style.width = `${p.timerPct}%`;
-                if(ticks >= max) { clearInterval(State.timers.turn); stand(); }
-            }, 50);
+        State.activeIdx++;
+        if(State.activeIdx >= State.players.length) { runDealer(); return; }
+        
+        const p = State.players[State.activeIdx];
+        p.activeHandIndex = 0; 
+        
+        if(p.hands[0].status !== 'playing') { nextTurn(); return; }
+        
+        // Dealer Chat Logic Updated
+        const currentScore = p.hands[0].score;
+        let msg = `@${p.name} it is your turn! Showing a ${currentScore}`;
+        if(!State.firstTurnAnnounced) {
+            msg += ". !hit, !stand, !dd, or !split.";
+            State.firstTurnAnnounced = true;
         }
+        sendTwitchChatMessage(msg);
+        
+        startTurnTimer(p);
+    }
 
-        function hit() {
-            clearInterval(State.timers.turn); 
-            const p = State.players[State.activeIdx];
-            const hand = p.hands[p.activeHandIndex];
-            if(hand.score >= 21) return;
-            
-            spawnAction(p, 'HIT');
-            playSfx('deal');
-            hand.cards.push(State.deck.pop()); 
-            hand.score = calculateScore(hand.cards);
-            
-            if(hand.score > 21) {
-                hand.status = 'bust'; updateUI(); 
-                setTimeout(() => {
-                    if(p.activeHandIndex < p.hands.length - 1) {
-                         p.activeHandIndex++;
-                         startTurnTimer(p);
-                    } else {
-                        nextTurn();
-                    }
-                }, 1500);
-            } else if(hand.score === 21) {
-                stand();
-            } else {
-                updateUI();
-                startTurnTimer(p); 
-            }
-        }
+    function payouts() {
+        const ds = State.dealer.score; const db = ds > 21;
+        const notificationQueue = [];
+        let chatReport = "";
 
-        function stand() {
-            clearInterval(State.timers.turn); 
-            const p = State.players[State.activeIdx];
-            const hand = p.hands[p.activeHandIndex];
-            if(hand.score > 21) return;
-            spawnAction(p, 'STAND');
-            hand.status = 'stand';
-            updateUI();
-            
-             if(p.activeHandIndex < p.hands.length - 1) {
-                 p.activeHandIndex++;
-                 startTurnTimer(p);
-             } else {
-                 nextTurn();
-             }
-        }
-
-        function placeBet(player, amountStr) {
-            if (State.phase !== 'LOBBY') return; 
-            let val = parseInt(amountStr);
-            if (isNaN(val) || val < 1) return;
-            if (val > CONFIG.MAX_BET) val = CONFIG.MAX_BET;
-            
-            const currentBet = player.hands[0].bet;
-            player.chips += currentBet;
-            State.house -= currentBet;
-
-            if (player.chips < val) val = player.chips; 
-            
-            player.chips -= val;
-            State.house += val;
-            player.hands[0].bet = val;
-            
-            spawnAction(player, `🪙 BET ${val}`);
-            updateUI();
-        }
-
-        function doubleDown() {
-            clearInterval(State.timers.turn);
-            const p = State.players[State.activeIdx];
-            const hand = p.hands[p.activeHandIndex];
-            if(hand.cards.length !== 2) return; 
-            if(p.chips < hand.bet) return; 
-
-            p.chips -= hand.bet;
-            State.house += hand.bet;
-            hand.bet *= 2;
-            
-            spawnAction(p, 'DOUBLE');
-            playSfx('deal');
-            hand.cards.push(State.deck.pop());
-            hand.score = calculateScore(hand.cards);
-            
-            if(hand.score > 21) hand.status = 'bust';
-            else hand.status = 'stand'; 
-            
-            updateUI();
-             if(p.activeHandIndex < p.hands.length - 1) {
-                 p.activeHandIndex++;
-                 startTurnTimer(p);
-             } else {
-                 setTimeout(nextTurn, 1500);
-             }
-        }
-
-        function splitPair() {
-            clearInterval(State.timers.turn); // Stop timer immediately
-            const p = State.players[State.activeIdx];
-            const hand = p.hands[p.activeHandIndex];
-            
-            // Validation
-            if(p.hands.length >= 2 || hand.cards.length !== 2 || hand.cards[0].value !== hand.cards[1].value || p.chips < hand.bet) {
-                spawnAction(p, '❌');
-                startTurnTimer(p); // Resume timer
-                return;
-            }
-
-            p.chips -= hand.bet;
-            State.house += hand.bet;
-
-            spawnAction(p, 'SPLIT');
-            
-            const card2 = hand.cards.pop();
-            const newHand = { cards: [card2], bet: hand.bet, score: 0, status: 'playing' };
-            p.hands.push(newHand);
-
-            playSfx('deal');
-            hand.cards.push(State.deck.pop());
-            hand.score = calculateScore(hand.cards);
-            
-            newHand.cards.push(State.deck.pop());
-            newHand.score = calculateScore(newHand.cards);
-            
-            updateUI();
-            
-            startTurnTimer(p);
-        }
-
-		async function runDealer() {
-            State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
-            
-            // Fixed loop logic
-            while(true) {
-                let activeHands = [];
-                State.players.forEach(p => p.hands.forEach(h => { if(h.status !== 'bust') activeHands.push(h); }));
-                const topScore = Math.max(...activeHands.map(h => h.score), 0);
-                
-                // Dealer Stands on 17
-                if (State.dealer.score >= 17) break;
-                
-                // Optimization: If dealer already beats everyone
-                if (activeHands.length > 0 && State.dealer.score > topScore) break;
-                
-                State.dealer.hand.push(State.deck.pop()); 
-                State.dealer.score = calculateScore(State.dealer.hand);
-                playSfx('deal');
-                updateUI(); 
-                await new Promise(r => setTimeout(r, 1000));
-            }
-            payouts();
-        }
-
-        function payouts() {
-            const ds = State.dealer.score; const db = ds > 21;
-            const notificationQueue = [];
-            let chatReport = "";
-
-            State.players.forEach(p => {
-                let totalWin = 0;
-                p.hands.forEach(h => {
-                    if(h.status === 'bust') return;
-                    let w = 0;
-                    if(h.status === 'blackjack') w = Math.floor(h.bet * 2.5);
-                    else if(db || h.score > ds) w = h.bet * 2;
-                    else if(h.score === ds) w = h.bet; 
-                    if(w > 0) {
-                        p.chips += w; State.house -= w;
-                        totalWin += w;
-                    }
-                });
-                
-                const hist = chipHistory.get(p.name.toLowerCase());
-                if(hist) hist.chips = p.chips;
-                
-                if(totalWin > 0) notificationQueue.push({ type: 'win', text: `PAYING ${totalWin} TO ${p.name}`, amt: totalWin, dom: p.dom });
-                if(totalWin > 0) chatReport += `${p.name} won ${totalWin}. `;
+        State.players.forEach(p => {
+            let totalWin = 0;
+            p.hands.forEach(h => {
+                if(h.status === 'bust') return;
+                let w = 0;
+                if(h.status === 'blackjack') w = Math.floor(h.bet * 2.5);
+                else if(db || h.score > ds) w = h.bet * 2;
+                else if(h.score === ds) w = h.bet; 
+                if(w > 0) {
+                    p.chips += w; State.house -= w;
+                    totalWin += w;
+                }
             });
             
-            if(chatReport) sendTwitchChatMessage(chatReport);
-
-            State.players = State.players.filter(p => { 
-                if(p.chips <= 0) {
-                    const safeName = p.name.toLowerCase();
-                    notificationQueue.push({ type: 'bust', text: `${p.name} goes bust 😭` });
-                    cooldowns.set(safeName, Date.now() + 30000); 
-                    chipHistory.set(safeName, { chips: 0, time: Date.now(), flair: p.flair });
-                    p.dom.classList.add('leaving');
-                    setTimeout(() => p.dom.remove(), 2000);
-                    return false;
-                } 
-                return true; 
-            });
-            updateUI();
+            const hist = chipHistory.get(p.name.toLowerCase());
+            if(hist) hist.chips = p.chips;
             
-            // SHOW LEADERBOARD NOW (Result Phase)
-            showLeaderboard();
+            if(totalWin > 0) notificationQueue.push({ type: 'win', text: `PAYING ${totalWin} TO ${p.name}`, amt: totalWin, dom: p.dom });
+            if(totalWin > 0) chatReport += `${p.name} won ${totalWin}. `;
+        });
+        
+        if(chatReport) sendTwitchChatMessage(chatReport);
 
-            if(notificationQueue.length === 0) {
-                updateTopMsg("HOUSE WINS ALL");
-                setTimeout(startLobby, 8000); 
-            } else {
-                let i = 0;
-                const payCycle = setInterval(() => {
-                    if(i >= notificationQueue.length) { 
-                        clearInterval(payCycle); 
-                        setTimeout(startLobby, 6000); 
-                        return; 
-                    }
-                    const item = notificationQueue[i];
-                    updateTopMsg(item.text);
-                    if(item.type === 'win') {
-                        const r = item.dom.getBoundingClientRect();
-                        const pCount = Math.min(item.amt, 350); 
-                        for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
-                    }
-                    i++;
-                }, 2000);
-            }
+        State.players = State.players.filter(p => { 
+            if(p.chips <= 0) {
+                const safeName = p.name.toLowerCase();
+                notificationQueue.push({ type: 'bust', text: `${p.name} goes bust 😭` });
+                cooldowns.set(safeName, Date.now() + 30000); 
+                chipHistory.set(safeName, { chips: 0, time: Date.now(), flair: p.flair });
+                p.dom.classList.add('leaving');
+                setTimeout(() => p.dom.remove(), 2000);
+                return false;
+            } 
+            return true; 
+        });
+        updateUI();
+        
+        if(notificationQueue.length === 0) {
+            updateTopMsg("HOUSE WINS ALL");
+            // Show LB after messages (in this case immediate)
+            setTimeout(showLeaderboard, 2000);
+            setTimeout(startLobby, 8000); 
+        } else {
+            let i = 0;
+            const payCycle = setInterval(() => {
+                if(i >= notificationQueue.length) { 
+                    clearInterval(payCycle); 
+                    // Show Leaderboard after all messages have run
+                    showLeaderboard();
+                    setTimeout(startLobby, 6000); 
+                    return; 
+                }
+                const item = notificationQueue[i];
+                updateTopMsg(item.text);
+                if(item.type === 'win') {
+                    const r = item.dom.getBoundingClientRect();
+                    const pCount = Math.min(item.amt, 350); 
+                    for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
+                }
+                i++;
+            }, 2000);
         }
+    }
 
         function updateTopMsg(t) {
             const el = document.getElementById('top-message');
