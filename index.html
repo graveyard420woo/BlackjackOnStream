@@ -146,7 +146,7 @@
         #arena { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
 
         #dealer-spot {
-            position: absolute; top: 120px; left: 50%; transform: translateX(-50%) scale(1.3); /* Made Bigger */
+            position: absolute; top: 120px; left: 50%; transform: translateX(-50%) scale(1.3);
             display: flex; flex-direction: column; align-items: center; z-index: 20;
             width: 250px;
         }
@@ -168,19 +168,17 @@
         .dealer-label { font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 5px; opacity: 0.5; text-align: center; }
 
         #dealer-hand.bust { filter: grayscale(1) opacity(0.6); transition: all 0.5s; }
-        #dealer-score.bust { color: #555; transition: all 0.5s; }
 
         /* --- PLAYER UNIT --- */
         .player-unit {
             position: absolute; 
             display: flex; flex-direction: column; align-items: center;
             width: 280px; will-change: left, top;
-            transform: scale(var(--unit-scale)); /* Scale Controller */
+            transform: scale(var(--unit-scale)); 
             transform-origin: center center;
             transition: transform 0.2s ease-out;
         }
         
-        /* New Join/Leave Animations */
         @keyframes slideInDown {
             from { transform: translateY(-100vh) scale(var(--unit-scale)); opacity: 0; }
             to { transform: translateY(0) scale(var(--unit-scale)); opacity: 1; }
@@ -215,12 +213,13 @@
             top: -40px; left: 50%; 
             transform: translateX(-50%);
             width: 250px; height: 120px;
-            z-index: 1; pointer-events: none;
+            z-index: 60; /* Higher than badges */
+            pointer-events: none;
         }
 
         .flair-item {
             position: absolute;
-            font-size: 3rem; /* Bigger stickers */
+            font-size: 3rem;
             filter: drop-shadow(2px 0 0 rgba(255, 255, 255, 0.6)) 
                     drop-shadow(0 4px 8px rgba(0,0,0,0.5));
             user-select: none;
@@ -246,10 +245,11 @@
              text-shadow: 0 1px 2px black; white-space: nowrap;
         }
 
+        /* CARDS moved further down (50px) */
         .hand-wrapper {
             position: relative; min-height: 110px; width: 100%;
             display: flex; justify-content: center;
-            margin-top: 35px; /* Pushed down to not overlap header */
+            margin-top: 50px; 
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             perspective: 500px;
             align-items: flex-start;
@@ -263,7 +263,6 @@
             flex-shrink: 0;
             padding-left: 45px; /* Space for score on left */
         }
-        /* Scaling for split */
         .sub-hand.split-mode { transform: scale(0.7); }
 
         .sub-hand.inactive {
@@ -282,14 +281,9 @@
         }
 
         .player-unit.active .player-name { 
-            color: var(--gold);
-            /* Tighter Gold Outline */
-            text-shadow: 
-                -1px -1px 0 var(--gold),  
-                 1px -1px 0 var(--gold),
-                -1px  1px 0 var(--gold),
-                 1px  1px 0 var(--gold),
-                 0 0 10px rgba(255, 204, 0, 0.5);
+            color: var(--neon-blue);
+            /* Tighter Neon Blue Outline */
+            text-shadow: 0 0 5px var(--neon-blue);
             animation: softPulse 2s infinite ease-in-out;
         }
 		
@@ -308,14 +302,13 @@
         .badge-container {
             position: absolute; top: -20px; left: -15px; 
             width: 90px; height: 90px; pointer-events: none;
-            z-index: 5;
+            z-index: 40; /* Lower than flair */
         }
-        /* Absolute positioned badges for semi-circle */
         .twitch-badge { 
             position: absolute;
             width: 20px; height: 20px; 
             filter: drop-shadow(0 0 2px black); 
-            left: 35px; top: 35px; /* Center origin */
+            left: 35px; top: 35px; 
         }
         
         .player-unit.active .player-avatar {
@@ -323,7 +316,7 @@
             box-shadow: 0 0 15px var(--player-glow);
         }
         
-        /* New Hand Score Style - Moved Left */
+        /* Unified Score Style (Left of cards) */
         .hand-score {
             position: absolute; left: -45px; top: 50%; transform: translateY(-50%);
             font-size: 1.8rem; font-weight: 900; 
@@ -348,11 +341,6 @@
         }
         @keyframes deal { from { transform: translateY(50px) scale(0); opacity: 0; } to { opacity: 1; } }
         
-        .player-unit.active .card { 
-            /* Removed Neon Blue Glow per request */
-            box-shadow: -5px 5px 15px rgba(0,0,0,0.8);
-        }
-
         .card.red { color: var(--neon-pink); }
         .card-corner { line-height: 0.9; font-size: 0.9rem; text-align: left; }
         .card-corner.bottom { transform: rotate(180deg); }
@@ -399,13 +387,13 @@
         }
         .store-label {
             font-family: var(--font-display);
-            font-size: 1.5rem; /* Bigger */
+            font-size: 1.5rem; 
             color: var(--gold);
             text-shadow: 0 0 10px black;
             margin: 5px 0;
         }
         .store-emoji {
-            font-size: 6rem; /* Bigger */
+            font-size: 6rem;
             animation: emojiPulse 2s infinite ease-in-out;
             filter: drop-shadow(0 0 20px var(--gold));
         }
@@ -421,7 +409,7 @@
         /* PROGRESS BAR - MOVED TO BOTTOM */
         .timer-container {
             width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            margin-top: 10px; /* Below cards */
+            margin-top: 10px; 
             border-radius: 3px; overflow: hidden; opacity: 0; position: relative;
         }
         .timer-fill { height: 100%; background: var(--neon-blue); width: 0%; box-shadow: 0 0 10px var(--neon-blue); }
@@ -492,21 +480,21 @@
       .lb-list { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; }
       .lb-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; }
       .lb-rank { font-weight: 900; font-size: 1.5rem; width: 40px; }
-      .lb-name { flex-grow: 1; font-weight: 700; font-size: 1.2rem; text-align: left; margin-left: 10px; }
+      .lb-name { flex-grow: 1; font-weight: 700; font-size: 1.2rem; text-align: left; margin-left: 10px; display:flex; align-items:center; gap:5px; }
       .lb-chips { font-family: var(--font-display); color: var(--neon-green); font-size: 1.3rem; }
       .lb-top-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); border: 1px solid gold; }
       .lb-top-2 { border: 1px solid silver; }
       .lb-top-3 { border: 1px solid #cd7f32; }
+      .lb-flair-icon { width: 24px; height: 24px; object-fit: contain; }
+      .lb-flair-text { font-size: 1.2rem; }
 
       /* --- STREAMER ZONE INDICATOR --- */
       #streamer-zone {
           position: fixed; border: 2px dashed rgba(255, 0, 0, 0.3);
           background: rgba(255, 0, 0, 0.1); pointer-events: none; z-index: 9999;
-          display: none;
-          transition: opacity 1s ease;
+          opacity: 0; transition: opacity 1s ease;
       }
-      #streamer-zone.fade-out { opacity: 0; }
-      #streamer-zone.show { display: block; opacity: 1; }
+      #streamer-zone.visible { opacity: 1; }
 
       /* --- SETTINGS & MODES --- */
         #settings-trigger {
@@ -645,7 +633,7 @@
             <div id="house-bank" class="house-bank">🪙100</div>
             
             <div class="dealer-label">DEALER</div>
-            <div id="dealer-score" class="score-display" style="position:static; margin-bottom:10px;"></div>
+            <!-- Dealer Score removed from here, injected into hand wrapper -->
             <div id="dealer-hand" class="hand-wrapper" style="margin-top:0;"></div>
         </div>
     </div>
@@ -1103,7 +1091,7 @@
             div.className = 'player-unit joining'; // Add entry animation
             div.style.setProperty('--player-glow', glowColor);
             
-            // Build badge HTML (Semi-Circle Arc)
+            // Build badge HTML (Semi-Circle Arc) - Fixed Loop logic to display all badges
             let badgeHTML = '';
             if(badgeData && badgeData.length) {
                 const totalBadges = badgeData.length;
@@ -1116,10 +1104,11 @@
                     if(set) {
                         const version = set.find(v => v.id === b.id);
                         if(version) {
-                            // Calculate Angle
+                            // Calculate Angle - Divisor is totalBadges-1 unless total is 1
                             let angle = 0;
-                            if (totalBadges === 1) angle = 0;
-                            else angle = startAngle + (idx * ((endAngle - startAngle) / (totalBadges - 1)));
+                            if (totalBadges > 1) {
+                                angle = startAngle + (idx * ((endAngle - startAngle) / (totalBadges - 1)));
+                            }
                             
                             // Transform for semi-circle placement
                             badgeHTML += `<img class="twitch-badge" src="${version.image_url_2x}" style="transform: rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg);">`;
@@ -1250,13 +1239,22 @@
             // 2. Pull ALL players from history
             const allPlayers = Array.from(chipHistory.entries()).map(([k,v]) => ({name:k, ...v})).sort((a,b) => b.chips - a.chips);
             
-            list.innerHTML = allPlayers.slice(0, 15).map((p, i) => `
+            list.innerHTML = allPlayers.slice(0, 15).map((p, i) => {
+                // Generate flair html
+                const flairHTML = p.flair.slice(0, 3).map(f => {
+                     const isObj = typeof f === 'object' && f !== null;
+                     const content = isObj ? (f.content || f.emoji) : f;
+                     const isImg = isObj ? f.isImage : false;
+                     return isImg ? `<img src="${content}" class="lb-flair-icon">` : `<span class="lb-flair-text">${content}</span>`;
+                }).join('');
+                
+                return `
                 <div class="lb-item ${i===0?'lb-top-1':(i===1?'lb-top-2':(i===2?'lb-top-3':''))}">
                     <div class="lb-rank">#${i+1}</div>
-                    <div class="lb-name">${p.name.toUpperCase()}</div>
+                    <div class="lb-name">${p.name.toUpperCase()} ${flairHTML}</div>
                     <div class="lb-chips">🪙${p.chips}</div>
                 </div>
-            `).join('');
+            `}).join('');
             
             pnl.classList.add('visible');
             overlay.classList.add('active'); // Blur on
@@ -1264,7 +1262,7 @@
             setTimeout(() => {
                 pnl.classList.remove('visible');
                 overlay.classList.remove('active'); // Blur off
-            }, 10000);
+            }, 5000); // Duration 5s
         }
 
         function startGame() {
@@ -1452,7 +1450,7 @@
         }
 
         function splitPair() {
-            clearInterval(State.timers.turn);
+            clearInterval(State.timers.turn); // Stop timer immediately
             const p = State.players[State.activeIdx];
             const hand = p.hands[p.activeHandIndex];
             
@@ -1466,10 +1464,12 @@
 
             spawnAction(p, 'SPLIT');
             
+            // Logic: Create new hand structure before UI update
             const card2 = hand.cards.pop();
             const newHand = { cards: [card2], bet: hand.bet, score: 0, status: 'playing' };
             p.hands.push(newHand);
 
+            // Deal new cards to both
             playSfx('deal');
             hand.cards.push(State.deck.pop());
             hand.score = calculateScore(hand.cards);
@@ -1477,7 +1477,10 @@
             newHand.cards.push(State.deck.pop());
             newHand.score = calculateScore(newHand.cards);
             
+            // Critical: Force UI update to render new hand structure BEFORE restarting timer
             updateUI();
+            
+            // Resume Timer for current hand
             startTurnTimer(p);
         }
 
@@ -1542,16 +1545,21 @@
             });
             updateUI();
             
-            // SHOW LEADERBOARD NOW (Result Phase)
-            showLeaderboard();
-
             if(notificationQueue.length === 0) {
                 updateTopMsg("HOUSE WINS ALL");
-                setTimeout(startLobby, 8000); // Increased delay so leaderboard can be seen
+                // Show Leaderboard after house win
+                setTimeout(showLeaderboard, 2000);
+                setTimeout(startLobby, 8000); 
             } else {
                 let i = 0;
                 const payCycle = setInterval(() => {
-                    if(i >= notificationQueue.length) { clearInterval(payCycle); startLobby(); return; }
+                    if(i >= notificationQueue.length) { 
+                        clearInterval(payCycle); 
+                        // Show Leaderboard after payouts complete
+                        showLeaderboard();
+                        setTimeout(startLobby, 6000); 
+                        return; 
+                    }
                     const item = notificationQueue[i];
                     updateTopMsg(item.text);
                     if(item.type === 'win') {
@@ -1577,14 +1585,17 @@
 			
 			const dContainer = document.getElementById('dealer-hand');
 			const newDHTML = State.dealer.hand.map((c,i) => getCardHTML(c, i, (i===1 && isPlayingPhase))).join('');
-			if(dContainer.innerHTML !== newDHTML) dContainer.innerHTML = newDHTML;
+			if(dContainer.innerHTML !== newDHTML) {
+                // Dealer Score injected similar to players
+                const dScoreVal = State.dealer.score > 0 ? State.dealer.score : '';
+                const dScoreHTML = dScoreVal ? `<div class="hand-score">${dScoreVal}</div>` : '';
+                dContainer.innerHTML = dScoreHTML + newDHTML;
+            }
 			
-			const dScore = document.getElementById('dealer-score');
-            // Always show Dealer Score if > 0
-			dScore.innerText = State.dealer.score > 0 ? State.dealer.score : '';
+            // We removed the old separate dealer-score div updates here since it's injected above
 			
-			if(State.dealer.score > 21) { dContainer.classList.add('bust'); dScore.classList.add('bust'); } 
-            else { dContainer.classList.remove('bust'); dScore.classList.remove('bust'); }
+			if(State.dealer.score > 21) { dContainer.classList.add('bust'); } 
+            else { dContainer.classList.remove('bust'); }
 		
 			// 2. Individual Player Logic
 			State.players.forEach((p, idx) => {
@@ -1780,16 +1791,16 @@
              CONFIG.STREAMER_ZONE.active = el.checked;
              const zone = document.getElementById('streamer-zone');
              if(el.checked) {
-                 zone.classList.remove('fade-out');
-                 zone.classList.add('show');
+                 zone.classList.remove('visible'); // Reset to trigger fade again
+                 void zone.offsetWidth; // Force reflow
+                 zone.classList.add('visible'); // Fade in
                  updateStreamerZone();
                  // Fade out visual after 3s but keep physics active
                  setTimeout(() => {
-                     zone.classList.add('fade-out');
+                     zone.classList.remove('visible');
                  }, 3000);
              } else {
-                 zone.classList.remove('show');
-                 zone.classList.remove('fade-out');
+                 zone.classList.remove('visible');
              }
         }
         
