@@ -891,7 +891,7 @@
         }
 
         let CONFIG = {
-            START_CHIPS: 100, TURN_TIME: 14, LOBBY_TIME: 24, MAX_PLAYERS: 14,
+            START_CHIPS: 110, TURN_TIME: 14, LOBBY_TIME: 24, MAX_PLAYERS: 14,
             SPEED: 0.04, MAX_SPEED: 0.6, MARGIN: 20, 
             UNIT_W: 220, UNIT_H: 260, 
             MAX_BET: 200,
@@ -1155,7 +1155,7 @@
 			let savedChips = CONFIG.START_CHIPS;
             let savedFlair = [];
             if (history && (Date.now() - history.time) < 180000000000) {
-                savedChips = history.chips <= 0 ? 69 : history.chips;
+                savedChips = history.chips <= 0 ? 79 : history.chips;
                 savedFlair = history.flair || [];
             }
             
@@ -1211,21 +1211,24 @@
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
         function startLobby() {
+            // Process Queue
             while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
                 const p = State.joinQueue.shift();
                 addPlayer(p.userId, p.name, p.color, p.badgeData);
             }
             updateQueueUI();
             
+            // FIX: AFK Check - Identify players to remove first to avoid loop skipping
+            const playersToRemove = State.players.filter(p => p.afkCount >= 5);
+            
+            playersToRemove.forEach(p => {
+                 sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
+                 removePlayer(p.name, true); // true = skip cooldown
+            });
+
+            // Process Reset for remaining players
             State.players.forEach(p => {
-                 if(p.afkCount >= 5) {
-                     sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
-                     removePlayer(p.name, true); 
-                 }
-                 
-                 // FIX: Betting Logic
-                 // We do NOT refund p.currentBet here. That bet was played in the last round.
-                 // We simply reset variables for the new round.
+                 // FIX: Betting Logic - Reset variables for the new round
                  p.currentBet = 0;
 
                  let defaultBet = 10;
