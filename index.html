@@ -1084,6 +1084,19 @@
         }
 
 		function addPlayer(userId, name, color, badgeData = []) {
+			const pObj = { 
+			userId: userId, // Store this for tracking
+			name: name, 
+			chips: savedChips, 
+			currentBet: defaultBet,
+			hands: [{ cards: [], bet: defaultBet, score: 0, status: 'waiting' }], 
+			activeHandIndex: 0,
+			dom: div, 
+			timerPct: 0, 
+			flair: savedFlair,
+			afkCount: 0  // Start at 0
+		};
+			
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
@@ -1206,16 +1219,23 @@
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
         function startLobby() {
-			// 1. THE AFK PURGE
-			// We use a simple while loop or filter to avoid index skipping issues
+			console.log("--- LOBBY STARTING ---");
+
+			// 1. THE PURGE: Remove players who hit the limit (5) in the PREVIOUS round
 			const AFK_LIMIT = 5;
-			const toRemove = State.players.filter(p => p.afkCount >= AFK_LIMIT);
+			// We filter out players who have exceeded the limit
+			const activePlayers = [];
 			
-			toRemove.forEach(p => {
-				console.log(`Removing ${p.name} for being AFK for ${p.afkCount} rounds.`);
-				sendTwitchChatMessage(`@${p.name} was removed for inactivity (5 rounds).`);
-				removePlayer(p.name, true); // true skips the 'bust' cooldown
+			State.players.forEach(p => {
+				if (p.afkCount >= AFK_LIMIT) {
+					console.log(`[AFK] Removing ${p.name} - Inactive for ${p.afkCount} rounds.`);
+					sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
+					if(p.dom) p.dom.remove(); // Remove their UI immediately
+				} else {
+					activePlayers.push(p);
+				}
 			});
+			State.players = activePlayers;
 
 		
 			// 2. PROCESS JOIN QUEUE
@@ -1295,13 +1315,13 @@
         function startGame() {
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
             State.firstTurnAnnounced = false; 
+			
+			State.players.forEach(p => {
+			p.afkCount = (p.afkCount || 0) + 1;
+			console.log(`[AFK Check] ${p.name} is now at ${p.afkCount}`);
+		});
+			
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
-            
-            State.players.forEach(p => {
-				if (typeof p.afkCount !== 'number') p.afkCount = 0;
-				p.afkCount++;
-				console.log(`${p.name} AFK count: ${p.afkCount}`);
-			});
 
             State.players.forEach(p => {
                 let incomingBet = p.currentBet; 
@@ -1668,6 +1688,14 @@
 				p.afkCount = 0;
 			}
 		}
+		
+		function resetPlayerAFK(username) {
+			const p = State.players.find(player => player.name.toLowerCase() === username.toLowerCase());
+			if (p) {
+				if (p.afkCount > 0) console.log(`[AFK] ${p.name} reset to 0 (Activity detected)`);
+				p.afkCount = 0;
+			}
+		}
 
         function spawnStoreEmoji() {
 			if(State.activeStoreItem) return;
@@ -1777,9 +1805,10 @@
             if(rawCmd.startsWith('!')) rawCmd = rawCmd.substring(1);
             
             const safeUser = username.trim();
-			const recognizedCommands = ['join', 'leave', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
-			if (recognizedCommands.includes(rawCmd)) {
-				markPlayerActive(safeUser);
+			
+			const validActions = ['join', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
+			if (validActions.includes(rawCmd)) {
+				resetPlayerAFK(safeUser);
 			}
 
             if (State.phase === 'LOBBY') {
