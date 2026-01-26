@@ -1309,7 +1309,7 @@
             State.firstTurnAnnounced = false; 
 			
 			State.players.forEach(p => {
-			p.afkCount = p.afkCount + 1;
+			p.afkCount = (p.afkCount || 0) + 1;
 			console.log(`[AFK Check] ${p.name} is now at ${p.afkCount}`);
 		});
 			
@@ -1801,7 +1801,7 @@
                 else if (rawCmd === 'bet') {
                     const activePlayer = State.players.find(p => p.name.toLowerCase() === safeUser.toLowerCase());
                     if(activePlayer) {
-                        activePlayer.afkCount = 0; // RESET AFK
+                        //activePlayer.afkCount = 0; // RESET AFK
                         if(cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                     }
                 }
