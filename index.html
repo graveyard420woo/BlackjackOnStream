@@ -134,7 +134,7 @@
         #sub-message.visible { opacity: 1; }
         
         #queue-display {
-            margin-top: 10px;
+            margin-top: 20px; /* Moved down */
             font-size: 0.9rem; color: var(--neon-blue);
             text-align: right; font-weight: 600;
             text-shadow: 0 2px 4px black;
@@ -253,11 +253,11 @@
              text-shadow: 0 1px 2px black; white-space: nowrap;
         }
 
-        /* CARDS moved further down (90px) */
+        /* CARDS moved UP (65px) - Closer to name */
         .hand-wrapper {
             position: relative; min-height: 110px; width: 100%;
             display: flex; justify-content: center;
-            margin-top: 90px; 
+            margin-top: 65px; 
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             perspective: 500px;
             align-items: flex-start;
@@ -290,12 +290,8 @@
 
         .player-unit.active .player-name { 
             color: var(--neon-blue);
-            /* Tight Neon Blue Outline - Sharp */
-            text-shadow: 
-                -1px -1px 0 var(--neon-blue),  
-                 1px -1px 0 var(--neon-blue),
-                -1px  1px 0 var(--neon-blue),
-                 1px  1px 0 var(--neon-blue);
+            /* Less Fat Neon Blue Outline */
+            text-shadow: 0 0 3px var(--neon-blue);
             animation: softPulse 2s infinite ease-in-out;
         }
 		
@@ -316,6 +312,7 @@
             width: 90px; height: 90px; pointer-events: none;
             z-index: 40; /* Lower than flair */
         }
+        /* Absolute positioned badges for semi-circle */
         .twitch-badge { 
             position: absolute;
             width: 20px; height: 20px; 
@@ -418,10 +415,10 @@
         /* FX CANVAS */
         #fx-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9000; }
 
-        /* PROGRESS BAR - MOVED TO BOTTOM of Cards (hair below) */
+        /* PROGRESS BAR - MOVED UP (Negative margin to pull close to cards) */
         .timer-container {
             width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            margin-top: 5px; 
+            margin-top: -25px; 
             border-radius: 3px; overflow: hidden; opacity: 0; position: relative;
         }
         .timer-fill { height: 100%; background: var(--neon-blue); width: 0%; box-shadow: 0 0 10px var(--neon-blue); }
@@ -854,6 +851,7 @@
                     if (resp.error) log(`Error ${type}: ${resp.message}`);
                     else {
                         log(`Created ${type}`);
+                        // Force transition on hook creation
 						document.getElementById("bigcontainer").style.display = "none";
 						document.getElementById("bigcontainer1").style.display = "none";
 						document.getElementById("arena").style.display = "block";
@@ -892,7 +890,9 @@
             SPEED: 0.04, MAX_SPEED: 0.6, MARGIN: 20, 
             UNIT_W: 220, UNIT_H: 260, 
             MAX_BET: 200,
-            DEALER_CHAT: false,
+            DEALER_CHAT: true,
+            SHOW_LEADERBOARD: true,
+            // Streamer Zone Left Default
             STREAMER_ZONE: { active: false, x: 0, y: 0, w: 420, h: 380, alignX: 'left', alignY: 'bottom' }
         };
 
@@ -963,6 +963,13 @@
                         this.vy += Math.sin(angle) * 0.2;
                     }
                 }
+                
+                // Repel from Top Right (Queue/Status Area)
+                // Zone approx: Right side, Top 150px
+                if (this.x > window.innerWidth - 300 && this.y < 150) {
+                     this.vx -= 0.05;
+                     this.vy += 0.05;
+                }
 
                 const speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
                 if(speed > CONFIG.MAX_SPEED) {
@@ -987,7 +994,8 @@
             activeIdx: -1, timers: { lobby: null, turn: null, lobbyVal: CONFIG.LOBBY_TIME }, house: 100,
             dealerPos: { x: window.innerWidth / 2, y: 190, radius: 250 },
             joinQueue: [],
-            activeStoreItem: null 
+            activeStoreItem: null,
+            firstTurnAnnounced: false
         };
 
         const ctx = document.getElementById('fx-canvas').getContext('2d');
@@ -1223,6 +1231,8 @@
         }
 
         function showLeaderboard() {
+            if (!CONFIG.SHOW_LEADERBOARD) return; // Check toggle
+
             const pnl = document.getElementById('leaderboard-panel');
             const list = document.getElementById('lb-list');
             const overlay = document.getElementById('blur-overlay');
@@ -1260,6 +1270,7 @@
 
         function startGame() {
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
+            State.firstTurnAnnounced = false; // Reset chat flag
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
             
             State.players.forEach(p => p.afkCount++);
@@ -1326,7 +1337,15 @@
             
             if(p.hands[0].status !== 'playing') { nextTurn(); return; }
             
-            sendTwitchChatMessage(`@${p.name} it is your turn! hit, stand, dd, or split.`);
+            // Dealer Chat Logic
+            const currentScore = p.hands[0].score;
+            let msg = `@${p.name} it is your turn! (Score: ${currentScore})`;
+            if(!State.firstTurnAnnounced) {
+                msg += " !hit, !stand, !dd, or !split.";
+                State.firstTurnAnnounced = true;
+            }
+            sendTwitchChatMessage(msg);
+            
             startTurnTimer(p);
         }
 
@@ -1463,7 +1482,6 @@
             
             updateUI();
             
-            // Critical: Restart timer for the first hand (current active hand)
             startTurnTimer(p);
         }
 
@@ -1472,7 +1490,6 @@
             
             // Fixed loop logic
             while(true) {
-                // Check if dealer beats everyone who hasn't busted
                 let activeHands = [];
                 State.players.forEach(p => p.hands.forEach(h => { if(h.status !== 'bust') activeHands.push(h); }));
                 const topScore = Math.max(...activeHands.map(h => h.score), 0);
@@ -1534,17 +1551,17 @@
             });
             updateUI();
             
+            // SHOW LEADERBOARD NOW (Result Phase)
+            showLeaderboard();
+
             if(notificationQueue.length === 0) {
                 updateTopMsg("HOUSE WINS ALL");
-                // Show LB
-                setTimeout(showLeaderboard, 2000);
                 setTimeout(startLobby, 8000); 
             } else {
                 let i = 0;
                 const payCycle = setInterval(() => {
                     if(i >= notificationQueue.length) { 
                         clearInterval(payCycle); 
-                        showLeaderboard();
                         setTimeout(startLobby, 6000); 
                         return; 
                     }
@@ -1715,6 +1732,12 @@
                 } 
                 State.players.splice(idx, 1); 
                 updateUI();
+                
+                // RESET GAME IF NO PLAYERS LEFT
+                if (State.players.length === 0 && State.phase === 'PLAYING') {
+                    updateTopMsg("ALL PLAYERS LEFT");
+                    setTimeout(startLobby, 2000);
+                }
             }
         }
 
@@ -1762,6 +1785,7 @@
         function toggleTransparent(el) { document.body.classList.toggle('transparent-mode', el.checked); }
         function toggleShadows(el) { document.body.classList.toggle('high-contrast', el.checked); }
         function toggleDealerChat(el) { CONFIG.DEALER_CHAT = el.checked; }
+        function toggleLeaderboard(el) { CONFIG.SHOW_LEADERBOARD = el.checked; }
         
         function toggleStreamerZone(el) {
              CONFIG.STREAMER_ZONE.active = el.checked;
@@ -1877,7 +1901,11 @@
         </div>
         <div class="setting-row">
             <span>DEALER CHAT BOT</span>
-            <label class="switch"><input type="checkbox" onchange="toggleDealerChat(this)"><span class="slider"></span></label>
+            <label class="switch"><input type="checkbox" checked onchange="toggleDealerChat(this)"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <span>SHOW LEADERBOARD</span>
+            <label class="switch"><input type="checkbox" checked onchange="toggleLeaderboard(this)"><span class="slider"></span></label>
         </div>
         <div class="setting-row">
             <span>STREAMER ZONE (LEFT)</span>
