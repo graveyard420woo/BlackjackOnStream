@@ -168,6 +168,14 @@
         .dealer-label { font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 5px; opacity: 0.5; text-align: center; }
 
         #dealer-hand.bust { filter: grayscale(1) opacity(0.6); transition: all 0.5s; }
+        
+        /* Dealer Score - Static Position Above Cards */
+        #dealer-score {
+            font-size: 2rem; font-weight: 900; 
+            color: white; text-shadow: 0 2px 5px black;
+            margin-bottom: 10px;
+        }
+        #dealer-score.bust { color: #555; }
 
         /* --- PLAYER UNIT --- */
         .player-unit {
@@ -245,11 +253,11 @@
              text-shadow: 0 1px 2px black; white-space: nowrap;
         }
 
-        /* CARDS moved further down (50px) */
+        /* CARDS moved further down (90px) */
         .hand-wrapper {
             position: relative; min-height: 110px; width: 100%;
             display: flex; justify-content: center;
-            margin-top: 50px; 
+            margin-top: 90px; 
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             perspective: 500px;
             align-items: flex-start;
@@ -282,8 +290,12 @@
 
         .player-unit.active .player-name { 
             color: var(--neon-blue);
-            /* Tighter Neon Blue Outline */
-            text-shadow: 0 0 5px var(--neon-blue);
+            /* Tight Neon Blue Outline - Sharp */
+            text-shadow: 
+                -1px -1px 0 var(--neon-blue),  
+                 1px -1px 0 var(--neon-blue),
+                -1px  1px 0 var(--neon-blue),
+                 1px  1px 0 var(--neon-blue);
             animation: softPulse 2s infinite ease-in-out;
         }
 		
@@ -406,10 +418,10 @@
         /* FX CANVAS */
         #fx-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9000; }
 
-        /* PROGRESS BAR - MOVED TO BOTTOM */
+        /* PROGRESS BAR - MOVED TO BOTTOM of Cards (hair below) */
         .timer-container {
             width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            margin-top: 10px; 
+            margin-top: 5px; 
             border-radius: 3px; overflow: hidden; opacity: 0; position: relative;
         }
         .timer-fill { height: 100%; background: var(--neon-blue); width: 0%; box-shadow: 0 0 10px var(--neon-blue); }
@@ -631,9 +643,8 @@
     <div id="arena">
         <div id="dealer-spot">
             <div id="house-bank" class="house-bank">🪙100</div>
-            
             <div class="dealer-label">DEALER</div>
-            <!-- Dealer Score removed from here, injected into hand wrapper -->
+            <div id="dealer-score"></div>
             <div id="dealer-hand" class="hand-wrapper" style="margin-top:0;"></div>
         </div>
     </div>
@@ -657,7 +668,7 @@
                     <span class="description-main description">This is an interactive Blackjack overlay for Twitch that can be played by everyone in chat on your stream! ;)<br>
                     Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!<br></span>
                     <br>
-                    <span class="description-main description">Commands: !join !leave !hit !stand !dd !split !bet !buy</span>
+                    <span class="description-main description">Commands: !join !leave !hit !stand !bet[amt] !buy</span>
                     <br>
                     <a id="authorize" class="login-box" target="">
                      <img id="twitch-logo" src="tlogo.png">
@@ -843,7 +854,6 @@
                     if (resp.error) log(`Error ${type}: ${resp.message}`);
                     else {
                         log(`Created ${type}`);
-                        // Force transition on hook creation
 						document.getElementById("bigcontainer").style.display = "none";
 						document.getElementById("bigcontainer1").style.display = "none";
 						document.getElementById("arena").style.display = "block";
@@ -880,10 +890,9 @@
         let CONFIG = {
             START_CHIPS: 100, TURN_TIME: 14, LOBBY_TIME: 24, MAX_PLAYERS: 14,
             SPEED: 0.04, MAX_SPEED: 0.6, MARGIN: 20, 
-            UNIT_W: 220, UNIT_H: 260, // Sized up
+            UNIT_W: 220, UNIT_H: 260, 
             MAX_BET: 200,
             DEALER_CHAT: false,
-            // Streamer Zone Left Default
             STREAMER_ZONE: { active: false, x: 0, y: 0, w: 420, h: 380, alignX: 'left', alignY: 'bottom' }
         };
 
@@ -909,7 +918,6 @@
         class Floater {
             constructor(el, player) {
                 this.el = el; this.player = player;
-                // Random start
                 this.x = CONFIG.MARGIN + Math.random() * (window.innerWidth - CONFIG.MARGIN*2 - CONFIG.UNIT_W);
                 this.y = 80 + Math.random() * (window.innerHeight - 350 - CONFIG.UNIT_H);
                 this.vx = (Math.random()-0.5) * 0.5; this.vy = (Math.random()-0.5) * 0.5;
@@ -921,7 +929,6 @@
                 const effectiveW = CONFIG.UNIT_W * scale; 
                 const effectiveH = CONFIG.UNIT_H * scale;
 
-                // Player Repulsion
                 others.forEach(other => {
                     if (other === this.player) return;
                     const dx = this.x - other.floater.x;
@@ -934,7 +941,6 @@
                     }
                 });
 
-                // Dealer Repulsion (Scaled Up)
                 const ddx = (this.x + effectiveW/2) - State.dealerPos.x;
                 const ddy = (this.y + 100) - State.dealerPos.y;
                 const dDist = Math.sqrt(ddx*ddx + ddy*ddy);
@@ -944,7 +950,6 @@
                      this.vy += Math.sin(angle) * 0.05;
                 }
 
-                // Streamer Zone Repulsion
                 if(CONFIG.STREAMER_ZONE.active) {
                     const z = CONFIG.STREAMER_ZONE;
                     let zx = z.alignX === 'right' ? window.innerWidth - z.w : z.x;
@@ -1055,6 +1060,10 @@
         }
 
         function spawnAction(player, type) {
+            // Remove existing popups to prevent stacking
+            const existing = player.dom.querySelectorAll('.action-popup');
+            existing.forEach(el => el.remove());
+
             const el = document.createElement('div');
             el.className = `action-popup ${type==='HIT'?'pop-hit':(type==='STAND'?'pop-stand':(type==='DOUBLE'?'pop-dd':(type==='SPLIT'?'pop-split':(type==='BOUGHT'?'pop-bought':(type==='❌'?'pop-no':'pop-bet')))))}`;
             el.innerText = type;
@@ -1062,12 +1071,10 @@
             setTimeout(() => el.remove(), 1500);
         }
 
-        // --- PLAYER ---
 		function addPlayer(userId, name, color, badgeData = []) {
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
-                    // Original wording restored
 					sendTwitchChatMessage(`@${name} is out paying off their debts for ${remaining} more seconds.`);
 					return;
 				} else {
@@ -1075,7 +1082,6 @@
                 }
 			}
             
-            // Join Queue if active
             if(State.phase === 'PLAYING' || State.players.length >= CONFIG.MAX_PLAYERS) {
                 if(!State.joinQueue.some(q => q.name === name) && !State.players.some(p => p.name === name)) {
                     State.joinQueue.push({ userId, name, color, badgeData });
@@ -1088,29 +1094,26 @@
 
             const glowColor = color || '#ff0055';
             const div = document.createElement('div');
-            div.className = 'player-unit joining'; // Add entry animation
+            div.className = 'player-unit joining'; 
             div.style.setProperty('--player-glow', glowColor);
             
-            // Build badge HTML (Semi-Circle Arc) - Fixed Loop logic to display all badges
             let badgeHTML = '';
             if(badgeData && badgeData.length) {
                 const totalBadges = badgeData.length;
                 const startAngle = -60; 
                 const endAngle = 60;
-                const radius = 35; // Dist from center of avatar
+                const radius = 35; 
                 
                 badgeData.forEach((b, idx) => {
                     const set = badgeCache.get(b.set_id);
                     if(set) {
                         const version = set.find(v => v.id === b.id);
                         if(version) {
-                            // Calculate Angle - Divisor is totalBadges-1 unless total is 1
                             let angle = 0;
+                            // Fix: Ensure we divide correctly
                             if (totalBadges > 1) {
                                 angle = startAngle + (idx * ((endAngle - startAngle) / (totalBadges - 1)));
                             }
-                            
-                            // Transform for semi-circle placement
                             badgeHTML += `<img class="twitch-badge" src="${version.image_url_2x}" style="transform: rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg);">`;
                         }
                     }
@@ -1130,7 +1133,6 @@
                     <div class="bet-display"></div>
                 </div>
                 <div class="player-name" style="color:${glowColor}">${name}</div>
-                <!-- Score Removed from main body, injected into hand -->
                 <div class="hand-wrapper"></div>
                 <div class="timer-container"><div class="timer-fill"></div></div>
             `;
@@ -1145,10 +1147,8 @@
                 savedFlair = history.flair || [];
             }
             
-            // Player Object with Split Support
             const pObj = { 
                 name: name, chips: savedChips, 
-                // Hands array. Index 0 is default.
                 hands: [{ cards: [], bet: 0, score: 0, status: 'waiting' }], 
                 activeHandIndex: 0,
                 dom: div, timerPct: 0, flair: savedFlair,
@@ -1168,7 +1168,6 @@
             else el.innerText = '';
         }
 
-        // --- SUB MESSAGE CYCLE ---
         const subMsgs = [ "USE !JOIN TO ENTER", "USE !BET [AMT] IN LOBBY", "USE !HIT OR !STAND", "USE !DD TO DOUBLE DOWN", "!SPLIT PAIRS" ];
         let subMsgIdx = 0;
         let subMsgInterval = null;
@@ -1190,20 +1189,17 @@
 
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
-        // --- GAME LOGIC ---
         function startLobby() {
-            // Process Queue
             while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
                 const p = State.joinQueue.shift();
                 addPlayer(p.userId, p.name, p.color, p.badgeData);
             }
             updateQueueUI();
             
-            // AFK Check (Skip Cooldown if removed via AFK)
             State.players.forEach(p => {
                  if(p.afkCount >= 5) {
                      sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
-                     removePlayer(p.name, true); // true = skip cooldown
+                     removePlayer(p.name, true); 
                  }
             });
 
@@ -1231,16 +1227,13 @@
             const list = document.getElementById('lb-list');
             const overlay = document.getElementById('blur-overlay');
             
-            // 1. Sync current players to chipHistory so leaderboard is accurate
             State.players.forEach(p => {
                 chipHistory.set(p.name.toLowerCase(), { chips: p.chips, time: Date.now(), flair: p.flair });
             });
 
-            // 2. Pull ALL players from history
             const allPlayers = Array.from(chipHistory.entries()).map(([k,v]) => ({name:k, ...v})).sort((a,b) => b.chips - a.chips);
             
             list.innerHTML = allPlayers.slice(0, 15).map((p, i) => {
-                // Generate flair html
                 const flairHTML = p.flair.slice(0, 3).map(f => {
                      const isObj = typeof f === 'object' && f !== null;
                      const content = isObj ? (f.content || f.emoji) : f;
@@ -1257,31 +1250,26 @@
             `}).join('');
             
             pnl.classList.add('visible');
-            overlay.classList.add('active'); // Blur on
+            overlay.classList.add('active'); 
             
             setTimeout(() => {
                 pnl.classList.remove('visible');
-                overlay.classList.remove('active'); // Blur off
-            }, 5000); // Duration 5s
+                overlay.classList.remove('active'); 
+            }, 5000); 
         }
 
         function startGame() {
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
             
-            // Increment AFK counters (will be reset if they act)
             State.players.forEach(p => p.afkCount++);
 
             State.players.forEach(p => {
-                // FIXED BETTING LOGIC: Save the bet from lobby before resetting hands
                 let incomingBet = p.hands[0].bet || 0;
-
-                // Reset to single hand but preserve the bet
                 p.hands = [{ cards: [], bet: incomingBet, score: 0, status: 'playing' }];
                 p.activeHandIndex = 0;
                 p.timerPct = 0;
 
-                // Auto Bet logic if no bet placed
                 if(p.hands[0].bet === 0) {
                     let ante = 10;
                     if(p.chips < 10) ante = p.chips;
@@ -1291,13 +1279,12 @@
                         State.house += ante;
                         p.hands[0].bet = ante;
                     } else {
-                         p.hands[0].status = 'bust'; // No chips to play
+                         p.hands[0].status = 'bust'; 
                     }
                 }
             });
             
             playSfx('shuffle');
-            // Deal
             for(let i=0; i<2; i++) {
                 State.players.forEach(p => {
                     if(p.hands[0].status === 'playing') {
@@ -1320,7 +1307,6 @@
         function nextTurn() {
             clearInterval(State.timers.turn);
             
-            // Logic to stay on same player if they have split hands waiting
             if(State.activeIdx !== -1) {
                 const currentP = State.players[State.activeIdx];
                 if(currentP && currentP.activeHandIndex < currentP.hands.length - 1) {
@@ -1336,7 +1322,6 @@
             if(State.activeIdx >= State.players.length) { runDealer(); return; }
             
             const p = State.players[State.activeIdx];
-            // Ensure we start at first hand
             p.activeHandIndex = 0; 
             
             if(p.hands[0].status !== 'playing') { nextTurn(); return; }
@@ -1355,7 +1340,7 @@
         }
 
         function hit() {
-            clearInterval(State.timers.turn); // Prevent Race Condition
+            clearInterval(State.timers.turn); 
             const p = State.players[State.activeIdx];
             const hand = p.hands[p.activeHandIndex];
             if(hand.score >= 21) return;
@@ -1368,7 +1353,6 @@
             if(hand.score > 21) {
                 hand.status = 'bust'; updateUI(); 
                 setTimeout(() => {
-                    // If split, move to next hand, else next player
                     if(p.activeHandIndex < p.hands.length - 1) {
                          p.activeHandIndex++;
                          startTurnTimer(p);
@@ -1380,12 +1364,12 @@
                 stand();
             } else {
                 updateUI();
-                startTurnTimer(p); // Restart timer for next action
+                startTurnTimer(p); 
             }
         }
 
         function stand() {
-            clearInterval(State.timers.turn); // Prevent Race Condition
+            clearInterval(State.timers.turn); 
             const p = State.players[State.activeIdx];
             const hand = p.hands[p.activeHandIndex];
             if(hand.score > 21) return;
@@ -1454,22 +1438,22 @@
             const p = State.players[State.activeIdx];
             const hand = p.hands[p.activeHandIndex];
             
-            if(p.hands.length >= 2) return; 
-            if(hand.cards.length !== 2) return;
-            if(hand.cards[0].value !== hand.cards[1].value) return; 
-            if(p.chips < hand.bet) return;
+            // Validation
+            if(p.hands.length >= 2 || hand.cards.length !== 2 || hand.cards[0].value !== hand.cards[1].value || p.chips < hand.bet) {
+                spawnAction(p, '❌');
+                startTurnTimer(p); // Resume timer
+                return;
+            }
 
             p.chips -= hand.bet;
             State.house += hand.bet;
 
             spawnAction(p, 'SPLIT');
             
-            // Logic: Create new hand structure before UI update
             const card2 = hand.cards.pop();
             const newHand = { cards: [card2], bet: hand.bet, score: 0, status: 'playing' };
             p.hands.push(newHand);
 
-            // Deal new cards to both
             playSfx('deal');
             hand.cards.push(State.deck.pop());
             hand.score = calculateScore(hand.cards);
@@ -1477,26 +1461,33 @@
             newHand.cards.push(State.deck.pop());
             newHand.score = calculateScore(newHand.cards);
             
-            // Critical: Force UI update to render new hand structure BEFORE restarting timer
             updateUI();
             
-            // Resume Timer for current hand
+            // Critical: Restart timer for the first hand (current active hand)
             startTurnTimer(p);
         }
 
 		async function runDealer() {
             State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
-            while(State.dealer.score < 21) {
+            
+            // Fixed loop logic
+            while(true) {
+                // Check if dealer beats everyone who hasn't busted
                 let activeHands = [];
                 State.players.forEach(p => p.hands.forEach(h => { if(h.status !== 'bust') activeHands.push(h); }));
                 const topScore = Math.max(...activeHands.map(h => h.score), 0);
                 
-                if (State.dealer.score > topScore) break; 
-                if (State.dealer.score >= 17) break; 
+                // Dealer Stands on 17
+                if (State.dealer.score >= 17) break;
                 
-                State.dealer.hand.push(State.deck.pop()); State.dealer.score = calculateScore(State.dealer.hand);
+                // Optimization: If dealer already beats everyone
+                if (activeHands.length > 0 && State.dealer.score > topScore) break;
+                
+                State.dealer.hand.push(State.deck.pop()); 
+                State.dealer.score = calculateScore(State.dealer.hand);
                 playSfx('deal');
-                updateUI(); await new Promise(r => setTimeout(r, 1000));
+                updateUI(); 
+                await new Promise(r => setTimeout(r, 1000));
             }
             payouts();
         }
@@ -1520,7 +1511,6 @@
                     }
                 });
                 
-                // Update history map with current chips
                 const hist = chipHistory.get(p.name.toLowerCase());
                 if(hist) hist.chips = p.chips;
                 
@@ -1534,7 +1524,6 @@
                 if(p.chips <= 0) {
                     const safeName = p.name.toLowerCase();
                     notificationQueue.push({ type: 'bust', text: `${p.name} goes bust 😭` });
-                    // Cooldown only for BUSTED players (30s)
                     cooldowns.set(safeName, Date.now() + 30000); 
                     chipHistory.set(safeName, { chips: 0, time: Date.now(), flair: p.flair });
                     p.dom.classList.add('leaving');
@@ -1547,7 +1536,7 @@
             
             if(notificationQueue.length === 0) {
                 updateTopMsg("HOUSE WINS ALL");
-                // Show Leaderboard after house win
+                // Show LB
                 setTimeout(showLeaderboard, 2000);
                 setTimeout(startLobby, 8000); 
             } else {
@@ -1555,7 +1544,6 @@
                 const payCycle = setInterval(() => {
                     if(i >= notificationQueue.length) { 
                         clearInterval(payCycle); 
-                        // Show Leaderboard after payouts complete
                         showLeaderboard();
                         setTimeout(startLobby, 6000); 
                         return; 
@@ -1579,25 +1567,20 @@
         }
 
         function updateUI() {
-			// 1. House & Dealer Logic
 			document.getElementById('house-bank').innerText = `🪙${State.house}`;
 			const isPlayingPhase = (State.phase === 'PLAYING');
+            
+            // Dealer Score Logic
+            const dScore = document.getElementById('dealer-score');
+            dScore.innerText = State.dealer.score > 0 ? State.dealer.score : '';
 			
 			const dContainer = document.getElementById('dealer-hand');
 			const newDHTML = State.dealer.hand.map((c,i) => getCardHTML(c, i, (i===1 && isPlayingPhase))).join('');
-			if(dContainer.innerHTML !== newDHTML) {
-                // Dealer Score injected similar to players
-                const dScoreVal = State.dealer.score > 0 ? State.dealer.score : '';
-                const dScoreHTML = dScoreVal ? `<div class="hand-score">${dScoreVal}</div>` : '';
-                dContainer.innerHTML = dScoreHTML + newDHTML;
-            }
+			if(dContainer.innerHTML !== newDHTML) dContainer.innerHTML = newDHTML;
 			
-            // We removed the old separate dealer-score div updates here since it's injected above
-			
-			if(State.dealer.score > 21) { dContainer.classList.add('bust'); } 
-            else { dContainer.classList.remove('bust'); }
+			if(State.dealer.score > 21) { dContainer.classList.add('bust'); dScore.classList.add('bust'); } 
+            else { dContainer.classList.remove('bust'); dScore.classList.remove('bust'); }
 		
-			// 2. Individual Player Logic
 			State.players.forEach((p, idx) => {
 				const isActive = (idx === State.activeIdx && State.phase === 'PLAYING');
 				p.dom.classList.toggle('active', isActive);
@@ -1608,7 +1591,6 @@
                 const totalBet = p.hands.reduce((sum, h) => sum + h.bet, 0);
 				p.dom.querySelector('.bet-display').innerText = totalBet > 0 ? `BET ${totalBet}` : '';
 		
-				// --- FLAIR ---
 				const fc = p.dom.querySelector('.flair-container');
 				if (fc) {
 					fc.innerHTML = p.flair.map(f => {
@@ -1623,7 +1605,6 @@
 					}).join('');
 				}
 		
-				// --- CARD LOGIC (SPLIT HANDLER + SCORES) ---
 				const hw = p.dom.querySelector('.hand-wrapper');
 				if (hw) {
                     const handsHTML = p.hands.map((h, hIdx) => {
@@ -1632,7 +1613,6 @@
                         const opacityClass = (p.hands.length > 1 && !isHandActive && State.phase === 'PLAYING') ? 'inactive' : 'active-hand';
                         const splitClass = p.hands.length > 1 ? 'split-mode' : '';
                         
-                        // Score Logic: Show score if > 0 or not empty
                         const scoreDisplay = h.score > 0 ? `<div class="hand-score">${h.score}</div>` : '';
 
                         return `<div class="sub-hand ${opacityClass} ${splitClass}">${scoreDisplay}${cardsHTML}</div>`;
@@ -1643,7 +1623,6 @@
 			});
 		}
 
-        // --- EMOJI STORE SPAWNER ---
         function spawnStoreEmoji() {
 			if(State.activeStoreItem) return;
 		
@@ -1728,11 +1707,10 @@
                 const p = State.players[idx];
 				chipHistory.set(p.name.toLowerCase(), { chips: p.chips, time: Date.now(), flair: p.flair });
                 
-                // NO Cooldown on voluntary leave unless requested via skip flag (which handles AFK logic)
                 if(!skipCooldown) cooldowns.delete(p.name.toLowerCase());
 
                 if(p.dom) {
-                    p.dom.classList.add('leaving'); // Slide up animation
+                    p.dom.classList.add('leaving'); 
                     setTimeout(() => p.dom.remove(), 1000);
                 } 
                 State.players.splice(idx, 1); 
@@ -1742,7 +1720,6 @@
 
         window.twitchCommand = (userId, username, command, color, badges) => {
             const cmdParts = command.trim().split(' ');
-            // Normalize: strip ! if present
             let rawCmd = cmdParts[0].toLowerCase();
             if(rawCmd.startsWith('!')) rawCmd = rawCmd.substring(1);
             
@@ -1754,12 +1731,11 @@
                 else if (rawCmd === 'bet') {
                     const activePlayer = State.players.find(p => p.name.toLowerCase() === safeUser.toLowerCase());
                     if(activePlayer) {
-                        activePlayer.afkCount = 0; // Action resets afk
+                        activePlayer.afkCount = 0; 
                         if(cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                     }
                 }
             }
-            // Queue join during game
             else if(rawCmd === 'join') {
                  addPlayer(userId, safeUser, color, badges);
             }
@@ -1771,7 +1747,7 @@
                 if (State.activeIdx > -1 && State.activeIdx < State.players.length) {
                     const activePlayer = State.players[State.activeIdx];
                     if (activePlayer.name.toLowerCase() === safeUser.toLowerCase()) {
-                        activePlayer.afkCount = 0; // Action resets afk
+                        activePlayer.afkCount = 0; 
                         if (rawCmd === 'hit' || rawCmd === 'h' || rawCmd === 'hitme') hit();
                         else if (rawCmd === 'stand' || rawCmd === 'stay' || rawCmd === 's') stand();
                         else if (rawCmd === 'dd' || rawCmd === 'doubledown') doubleDown();
@@ -1791,11 +1767,10 @@
              CONFIG.STREAMER_ZONE.active = el.checked;
              const zone = document.getElementById('streamer-zone');
              if(el.checked) {
-                 zone.classList.remove('visible'); // Reset to trigger fade again
-                 void zone.offsetWidth; // Force reflow
-                 zone.classList.add('visible'); // Fade in
+                 zone.classList.remove('visible'); 
+                 void zone.offsetWidth; 
+                 zone.classList.add('visible'); 
                  updateStreamerZone();
-                 // Fade out visual after 3s but keep physics active
                  setTimeout(() => {
                      zone.classList.remove('visible');
                  }, 3000);
@@ -1849,6 +1824,8 @@
             dealerSpot.style.top = `${newY}px`;
             State.dealerPos.x = newX + 125; 
             State.dealerPos.y = newY + 70;
+            // Fix: Keep scale when dragging
+            dealerSpot.style.transform = 'scale(1.3)';
         });
 
         window.addEventListener('mouseup', () => {
