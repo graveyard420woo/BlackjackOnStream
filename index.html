@@ -146,7 +146,7 @@
         #arena { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
 
         #dealer-spot {
-            position: absolute; top: 120px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: 120px; left: 50%; transform: translateX(-50%) scale(1.3); /* Made Bigger */
             display: flex; flex-direction: column; align-items: center; z-index: 20;
             width: 250px;
         }
@@ -249,11 +249,11 @@
         .hand-wrapper {
             position: relative; min-height: 110px; width: 100%;
             display: flex; justify-content: center;
-            margin-top: 10px; 
+            margin-top: 35px; /* Pushed down to not overlap header */
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             perspective: 500px;
             align-items: flex-start;
-            gap: 15px; /* Gap between split hands */
+            gap: 15px; 
         }
         
         .sub-hand {
@@ -261,7 +261,7 @@
             transition: all 0.3s ease;
             transform-origin: top center;
             flex-shrink: 0;
-            padding-left: 30px; /* Space for score */
+            padding-left: 45px; /* Space for score on left */
         }
         /* Scaling for split */
         .sub-hand.split-mode { transform: scale(0.7); }
@@ -276,16 +276,21 @@
         .player-unit.active { z-index: 500 !important; }
         
         @keyframes softPulse {
-            0% { opacity: 0.8; }
-            50% { opacity: 1; }
-            100% { opacity: 0.8; }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         .player-unit.active .player-name { 
-            color: var(--gold); /* Gold Glow requested */
-            text-shadow: 0 0 10px var(--gold), 0 0 20px rgba(255, 204, 0, 0.6); 
+            color: var(--gold);
+            /* Tighter Gold Outline */
+            text-shadow: 
+                -1px -1px 0 var(--gold),  
+                 1px -1px 0 var(--gold),
+                -1px  1px 0 var(--gold),
+                 1px  1px 0 var(--gold),
+                 0 0 10px rgba(255, 204, 0, 0.5);
             animation: softPulse 2s infinite ease-in-out;
-            transform: scale(1.1);
         }
 		
         .avatar-wrapper { position: relative; width: 60px; height: 60px; }
@@ -318,12 +323,12 @@
             box-shadow: 0 0 15px var(--player-glow);
         }
         
-        /* New Hand Score Style - Left of cards */
+        /* New Hand Score Style - Moved Left */
         .hand-score {
-            position: absolute; left: -15px; top: 50%; transform: translateY(-50%);
+            position: absolute; left: -45px; top: 50%; transform: translateY(-50%);
             font-size: 1.8rem; font-weight: 900; 
             color: white; text-shadow: 0 2px 5px black;
-            width: 40px; text-align: center;
+            width: 40px; text-align: right;
             z-index: 50;
         }
         .player-unit.active .hand-score { color: var(--neon-blue); }
@@ -343,8 +348,11 @@
         }
         @keyframes deal { from { transform: translateY(50px) scale(0); opacity: 0; } to { opacity: 1; } }
         
-        /* Removed neon blue glow on active cards as requested */
-        
+        .player-unit.active .card { 
+            /* Removed Neon Blue Glow per request */
+            box-shadow: -5px 5px 15px rgba(0,0,0,0.8);
+        }
+
         .card.red { color: var(--neon-pink); }
         .card-corner { line-height: 0.9; font-size: 0.9rem; text-align: left; }
         .card-corner.bottom { transform: rotate(180deg); }
@@ -453,7 +461,16 @@
 	  .initial-fade { opacity: 0; transition: opacity 1s ease-in-out; }
 	  .visible-fade { opacity: 1; transition: opacity 1s ease-in-out; }
 
-      /* --- LEADERBOARD 3D ANIMATION --- */
+      /* --- LEADERBOARD & BLUR OVERLAY --- */
+      #blur-overlay {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(8px) grayscale(90%);
+          z-index: 4999;
+          opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+      }
+      #blur-overlay.active { opacity: 1; pointer-events: auto; }
+
       #leaderboard-panel {
           position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
           width: 600px; background: rgba(5, 5, 10, 0.95);
@@ -611,6 +628,8 @@
     <div class="bg-vignette"></div>
     
     <canvas id="fx-canvas"></canvas>
+
+    <div id="blur-overlay"></div>
 
     <!-- Leaderboard Overlay -->
     <div id="leaderboard-panel">
@@ -927,11 +946,11 @@
                     }
                 });
 
-                // Dealer Repulsion
+                // Dealer Repulsion (Scaled Up)
                 const ddx = (this.x + effectiveW/2) - State.dealerPos.x;
                 const ddy = (this.y + 100) - State.dealerPos.y;
                 const dDist = Math.sqrt(ddx*ddx + ddy*ddy);
-                if(dDist < State.dealerPos.radius + 50) {
+                if(dDist < State.dealerPos.radius + 80) {
                      const angle = Math.atan2(ddy, ddx);
                      this.vx += Math.cos(angle) * 0.05;
                      this.vy += Math.sin(angle) * 0.05;
@@ -973,7 +992,7 @@
         const State = {
             phase: 'BOOT', paused: false, deck: [], players: [], dealer: { hand: [], score: 0 },
             activeIdx: -1, timers: { lobby: null, turn: null, lobbyVal: CONFIG.LOBBY_TIME }, house: 100,
-            dealerPos: { x: window.innerWidth / 2, y: 190, radius: 200 },
+            dealerPos: { x: window.innerWidth / 2, y: 190, radius: 250 },
             joinQueue: [],
             activeStoreItem: null 
         };
@@ -1221,6 +1240,7 @@
         function showLeaderboard() {
             const pnl = document.getElementById('leaderboard-panel');
             const list = document.getElementById('lb-list');
+            const overlay = document.getElementById('blur-overlay');
             
             // 1. Sync current players to chipHistory so leaderboard is accurate
             State.players.forEach(p => {
@@ -1239,7 +1259,12 @@
             `).join('');
             
             pnl.classList.add('visible');
-            setTimeout(() => pnl.classList.remove('visible'), 10000);
+            overlay.classList.add('active'); // Blur on
+            
+            setTimeout(() => {
+                pnl.classList.remove('visible');
+                overlay.classList.remove('active'); // Blur off
+            }, 10000);
         }
 
         function startGame() {
@@ -1250,20 +1275,23 @@
             State.players.forEach(p => p.afkCount++);
 
             State.players.forEach(p => {
-                // Reset to single hand
-                p.hands = [{ cards: [], bet: 0, score: 0, status: 'playing' }];
+                // FIXED BETTING LOGIC: Save the bet from lobby before resetting hands
+                let incomingBet = p.hands[0].bet || 0;
+
+                // Reset to single hand but preserve the bet
+                p.hands = [{ cards: [], bet: incomingBet, score: 0, status: 'playing' }];
                 p.activeHandIndex = 0;
                 p.timerPct = 0;
 
-                // Auto Bet logic
-                let bet = p.hands[0].bet;
-                if(bet === 0) {
-                    bet = 10;
-                    if(p.chips < 10) bet = p.chips;
-                    if(bet > 0) {
-                        p.chips -= bet;
-                        State.house += bet;
-                        p.hands[0].bet = bet;
+                // Auto Bet logic if no bet placed
+                if(p.hands[0].bet === 0) {
+                    let ante = 10;
+                    if(p.chips < 10) ante = p.chips;
+                    
+                    if(ante > 0) {
+                        p.chips -= ante;
+                        State.house += ante;
+                        p.hands[0].bet = ante;
                     } else {
                          p.hands[0].status = 'bust'; // No chips to play
                     }
@@ -1404,7 +1432,6 @@
 
             p.chips -= hand.bet;
             State.house += hand.bet;
-
             hand.bet *= 2;
             
             spawnAction(p, 'DOUBLE');
@@ -1553,7 +1580,8 @@
 			if(dContainer.innerHTML !== newDHTML) dContainer.innerHTML = newDHTML;
 			
 			const dScore = document.getElementById('dealer-score');
-			dScore.innerText = (isPlayingPhase || State.dealer.score === 0) ? '' : State.dealer.score;
+            // Always show Dealer Score if > 0
+			dScore.innerText = State.dealer.score > 0 ? State.dealer.score : '';
 			
 			if(State.dealer.score > 21) { dContainer.classList.add('bust'); dScore.classList.add('bust'); } 
             else { dContainer.classList.remove('bust'); dScore.classList.remove('bust'); }
