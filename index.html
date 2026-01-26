@@ -1094,7 +1094,6 @@
                 }
 			}
             
-            // Join Queue if active
             if(State.phase === 'PLAYING' || State.players.length >= CONFIG.MAX_PLAYERS) {
                 if(!State.joinQueue.some(q => q.name === name) && !State.players.some(p => p.name === name)) {
                     State.joinQueue.push({ userId, name, color, badgeData });
@@ -1110,7 +1109,6 @@
             div.className = 'player-unit joining'; 
             div.style.setProperty('--player-glow', glowColor);
             
-            // Build badge HTML
             let badgeHTML = '';
             if(badgeData && badgeData.length) {
                 const totalBadges = badgeData.length;
@@ -1160,11 +1158,8 @@
                 savedFlair = history.flair || [];
             }
             
-            // Default 10 bet immediately
             let defaultBet = 10;
             if (savedChips < 10) defaultBet = savedChips;
-            
-            // Deduct immediately on entry/lobby
             savedChips -= defaultBet;
             
             const pObj = { 
@@ -1211,34 +1206,30 @@
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
         function startLobby() {
-            // Process Queue
             while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
                 const p = State.joinQueue.shift();
                 addPlayer(p.userId, p.name, p.color, p.badgeData);
             }
             updateQueueUI();
             
-            // FIX: Use Reverse Loop to safely remove AFK players without skipping
-            // We loop backwards so removing an item doesn't shift indices of items yet to be checked
-            for (let i = State.players.length - 1; i >= 0; i--) {
-                const p = State.players[i];
-                if (p.afkCount >= 5) {
-                    sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
-                    removePlayer(p.name, true); // true = skip cooldown
-                }
-            }
+            // FIX: Create a separate list of AFK players first
+            const afkPlayers = State.players.filter(p => (p.afkCount || 0) >= 5);
+            
+            // Then remove them (safely outside the main loop)
+            afkPlayers.forEach(p => {
+                sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
+                removePlayer(p.name, true); 
+            });
 
             State.players.forEach(p => {
-                 // Reset variables for the new round
                  p.currentBet = 0;
 
                  let defaultBet = 10;
                  if(p.chips < 10) defaultBet = p.chips;
                  
-                 // Deduct default bet immediately for the new round
                  p.chips -= defaultBet;
                  p.currentBet = defaultBet;
-                 p.hands[0].bet = defaultBet; // sync
+                 p.hands[0].bet = defaultBet; 
             });
 
             State.phase = 'LOBBY'; State.timers.lobbyVal = CONFIG.LOBBY_TIME;
@@ -1303,29 +1294,26 @@
             State.firstTurnAnnounced = false; 
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
             
-            // FIX: Increment AFK counters with safety check
+            // FIX: Increment AFK counters
             State.players.forEach(p => {
-                if (typeof p.afkCount !== 'number') p.afkCount = 0;
+                if(typeof p.afkCount !== 'number') p.afkCount = 0;
                 p.afkCount++;
             });
 
             State.players.forEach(p => {
-                // Bet was already deducted in Lobby logic
-                let bet = p.currentBet; 
+                let incomingBet = p.currentBet; 
                 
-                if (bet === 0 && p.chips === 0) {
-                     // If they have 0 chips and 0 bet, they are bust
+                if (incomingBet === 0 && p.chips === 0) {
                      p.hands = [{ cards: [], bet: 0, score: 0, status: 'bust' }];
                 } else {
-                     State.house += bet;
-                     p.hands = [{ cards: [], bet: bet, score: 0, status: 'playing' }];
+                     State.house += incomingBet;
+                     p.hands = [{ cards: [], bet: incomingBet, score: 0, status: 'playing' }];
                 }
                 p.activeHandIndex = 0;
                 p.timerPct = 0;
             });
             
             playSfx('shuffle');
-            // Deal
             for(let i=0; i<2; i++) {
                 State.players.forEach(p => {
                     if(p.hands[0].status === 'playing') {
@@ -1346,7 +1334,7 @@
             State.activeIdx = -1;
             nextTurn();
         }
-
+		
  function nextTurn() {
             clearInterval(State.timers.turn);
             
