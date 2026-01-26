@@ -1211,25 +1211,25 @@
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
         function startLobby() {
-            // 1. Process Join Queue
+            // Process Queue
             while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
                 const p = State.joinQueue.shift();
                 addPlayer(p.userId, p.name, p.color, p.badgeData);
             }
             updateQueueUI();
             
-            // 2. Identify AFK Players (Snapshot)
-            // Filter first to avoid loop indexing issues during removal
-            const afkPlayers = State.players.filter(p => p.afkCount >= 5);
-            
-            // 3. Remove AFK Players
-            afkPlayers.forEach(p => {
-                sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
-                removePlayer(p.name, true); // true = skip cooldown/leave logic
-            });
+            // FIX: Use Reverse Loop to safely remove AFK players without skipping
+            // We loop backwards so removing an item doesn't shift indices of items yet to be checked
+            for (let i = State.players.length - 1; i >= 0; i--) {
+                const p = State.players[i];
+                if (p.afkCount >= 5) {
+                    sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
+                    removePlayer(p.name, true); // true = skip cooldown
+                }
+            }
 
-            // 4. Reset Betting for Remaining Players
             State.players.forEach(p => {
+                 // Reset variables for the new round
                  p.currentBet = 0;
 
                  let defaultBet = 10;
@@ -1238,7 +1238,7 @@
                  // Deduct default bet immediately for the new round
                  p.chips -= defaultBet;
                  p.currentBet = defaultBet;
-                 p.hands[0].bet = defaultBet;
+                 p.hands[0].bet = defaultBet; // sync
             });
 
             State.phase = 'LOBBY'; State.timers.lobbyVal = CONFIG.LOBBY_TIME;
@@ -1303,9 +1303,9 @@
             State.firstTurnAnnounced = false; 
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
             
-            // Increment AFK counters (Safety check included)
+            // FIX: Increment AFK counters with safety check
             State.players.forEach(p => {
-                if(typeof p.afkCount !== 'number') p.afkCount = 0;
+                if (typeof p.afkCount !== 'number') p.afkCount = 0;
                 p.afkCount++;
             });
 
