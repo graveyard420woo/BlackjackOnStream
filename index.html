@@ -1206,50 +1206,51 @@
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
         function startLobby() {
-            while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
-                const p = State.joinQueue.shift();
-                addPlayer(p.userId, p.name, p.color, p.badgeData);
-            }
-            updateQueueUI();
-            
-            // FIX: Create a separate list of AFK players first
-            const afkPlayers = State.players.filter(p => (p.afkCount || 0) >= 5);
-            
-            // Then remove them (safely outside the main loop)
-            afkPlayers.forEach(p => {
-                sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
-                removePlayer(p.name, true); 
-            });
-
-            State.players.forEach(p => {
-                 p.currentBet = 0;
-
-                 let defaultBet = 10;
-                 if(p.chips < 10) defaultBet = p.chips;
-                 
-                 p.chips -= defaultBet;
-                 p.currentBet = defaultBet;
-                 p.hands[0].bet = defaultBet; 
-            });
-
-            State.phase = 'LOBBY'; State.timers.lobbyVal = CONFIG.LOBBY_TIME;
-            startSubMessage();
-            updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
-            
-            clearInterval(State.timers.lobby);
-            State.timers.lobby = setInterval(() => {
-                if(State.paused) return;
-                State.timers.lobbyVal--;
-                updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
-                updateUI();
-                
-                if(State.timers.lobbyVal <= 0) {
-                    clearInterval(State.timers.lobby);
-                    stopSubMessage();
-                    (State.players.length > 0) ? startGame() : (State.timers.lobbyVal = CONFIG.LOBBY_TIME, updateTopMsg("WAITING FOR PLAYERS..."), startSubMessage());
-                }
-            }, 1000);
-        }
+			// 1. CLEAR INACTIVE PLAYERS FIRST
+			// Any player who has reached the limit (5 games) is removed before the new lobby starts
+			const afkLimit = 5;
+			const afkPlayers = State.players.filter(p => (p.afkCount || 0) >= afkLimit);
+			
+			afkPlayers.forEach(p => {
+				sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
+				removePlayer(p.name, true); 
+			});
+		
+			// 2. PROCESS JOIN QUEUE
+			while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
+				const p = State.joinQueue.shift();
+				addPlayer(p.userId, p.name, p.color, p.badgeData);
+			}
+			updateQueueUI();
+		
+			// 3. INITIALIZE PLAYER BETS FOR THIS ROUND
+			State.players.forEach(p => {
+				 p.currentBet = 0;
+				 let defaultBet = Math.min(10, p.chips);
+				 p.chips -= defaultBet;
+				 p.currentBet = defaultBet;
+				 p.hands[0].bet = defaultBet; 
+			});
+		
+			State.phase = 'LOBBY'; 
+			State.timers.lobbyVal = CONFIG.LOBBY_TIME;
+			startSubMessage();
+			updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
+			
+			clearInterval(State.timers.lobby);
+			State.timers.lobby = setInterval(() => {
+				if(State.paused) return;
+				State.timers.lobbyVal--;
+				updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
+				updateUI();
+				
+				if(State.timers.lobbyVal <= 0) {
+					clearInterval(State.timers.lobby);
+					stopSubMessage();
+					(State.players.length > 0) ? startGame() : (State.timers.lobbyVal = CONFIG.LOBBY_TIME, updateTopMsg("WAITING FOR PLAYERS..."), startSubMessage());
+				}
+			}, 1000);
+		}
 
         function showLeaderboard() {
             if (!CONFIG.SHOW_LEADERBOARD) return; 
@@ -1699,6 +1700,7 @@
 			if(!p) return;
 		
 			if(p.chips >= State.activeStoreItem.price) {
+				p.afkCount = 0; // RESET AFK COUNT ON PURCHASE
 				const itemData = State.activeStoreItem; 
 				p.chips -= itemData.price; State.house += itemData.price;
 				
@@ -1765,6 +1767,12 @@
             if(rawCmd.startsWith('!')) rawCmd = rawCmd.substring(1);
             
             const safeUser = username.trim();
+			const existingPlayer = State.players.find(p => p.name.toLowerCase() === safeUser.toLowerCase());
+
+			// ANY command from an existing player resets their AFK tracker
+			if (existingPlayer) {
+				existingPlayer.afkCount = 0;
+			}
 
             if (State.phase === 'LOBBY') {
                 if (rawCmd === 'join') addPlayer(userId, safeUser, color, badges);
