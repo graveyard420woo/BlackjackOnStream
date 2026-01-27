@@ -772,6 +772,7 @@
         // Audio Context for Procedural SFX
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(type) {
+			if (!CONFIG.SOUND_ENABLED) return;
 			try {
 				if (type === 'shuffle') {
 					// Play the single shuffle file
@@ -945,6 +946,7 @@
             MAX_BET: 200,
             DEALER_CHAT: true,
             SHOW_LEADERBOARD: true,
+			SOUND_ENABLED: true,
             // Streamer Zone Left Default
             STREAMER_ZONE: { active: false, x: 0, y: 0, w: 420, h: 380, alignX: 'left', alignY: 'bottom' }
         };
@@ -2209,6 +2211,12 @@ function nextTurn() {
             document.getElementById('disp-turn-time').innerText = `${n}s`;
         }
 		
+		function toggleSound(el) {
+			CONFIG.SOUND_ENABLED = el.checked;
+			// Play a test sound when turned on so the streamer knows it's working
+			if (el.checked) playSfx('deal');
+		}
+		
 		function adjMaxPlayers(delta) {
             let n = CONFIG.MAX_PLAYERS + delta;
             if(n < 2) n = 2; if(n > 99) n = 99;
@@ -2226,6 +2234,13 @@ function nextTurn() {
         <div class="setting-row">
             <span>SHOW LOGO</span>
             <label class="switch"><input type="checkbox" checked onchange="toggleLogo(this)"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <span>SOUND FX</span>
+            <label class="switch">
+                <input type="checkbox" checked onchange="toggleSound(this)">
+                <span class="slider"></span>
+            </label>
         </div>
         <div class="setting-row">
             <span>TRANSPARENT BG (OBS)</span>
