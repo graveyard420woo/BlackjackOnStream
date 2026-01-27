@@ -1240,6 +1240,11 @@
       function startLobby() {
 			State.phase = 'LOBBY'; 
 			console.log("--- LOBBY STARTING ---");
+			
+			// 1. CRITICAL RESET: Stop all game-play pointers and timers
+			clearInterval(State.timers.turn);
+			State.activeIdx = -1; 
+			State.firstTurnAnnounced = false;
 		
 			while(State.leaveQueue.length > 0) { removePlayer(State.leaveQueue.shift(), true); }
 		
@@ -1353,6 +1358,7 @@
         function startGame() {
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
             State.firstTurnAnnounced = false; 
+			State.activeIdx = -1;
 			
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
 
@@ -1389,7 +1395,7 @@
                 }
             });
             State.dealer.score = calculateScore(State.dealer.hand);
-            State.activeIdx = -1;
+            //State.activeIdx = -1;
             nextTurn();
         }
 		
@@ -1926,7 +1932,6 @@ function nextTurn() {
     if (idx !== -1) {
         const p = State.players[idx];
         
-        // Save history
         chipHistory.set(p.name.toLowerCase(), { 
             chips: p.chips, 
             time: Date.now(), 
@@ -1936,21 +1941,17 @@ function nextTurn() {
         
         if(!skipCooldown) cooldowns.delete(p.name.toLowerCase());
 
-        // Remove from UI immediately
         if(p.dom) {
             p.dom.classList.add('leaving'); 
-            // We use a small timeout for the animation, but we set dom to null 
-            // to prevent the bot from finding it during turns.
             const tempDom = p.dom;
             setTimeout(() => tempDom.remove(), 1000);
         } 
 
-        // Handle Active Turn logic
         if (State.phase === 'PLAYING') {
             if (idx === State.activeIdx) {
-                console.log("Active player leaving. Clearing turn timers.");
                 clearInterval(State.timers.turn);
                 State.activeIdx--; 
+                // This timeout is safe now because nextTurn checks State.phase
                 setTimeout(nextTurn, 500); 
             } 
             else if (idx < State.activeIdx) {
@@ -1958,14 +1959,13 @@ function nextTurn() {
             }
         }
 
-        // Actually remove from the data array
         State.players.splice(idx, 1); 
         updateUI();
         
-        // Reset to BOOT if empty
         if (State.players.length === 0) {
             clearInterval(State.timers.lobby);
             clearInterval(State.timers.turn);
+            State.activeIdx = -1;
             State.phase = 'BOOT';
             updateTopMsg("LOBBY OPEN");
             startSubMessage();
