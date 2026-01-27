@@ -946,9 +946,16 @@
         class Floater {
             constructor(el, player) {
                 this.el = el; this.player = player;
-                this.x = CONFIG.MARGIN + Math.random() * (window.innerWidth - CONFIG.MARGIN*2 - CONFIG.UNIT_W);
-                this.y = 80 + Math.random() * (window.innerHeight - 350 - CONFIG.UNIT_H);
-                this.vx = (Math.random()-0.5) * 0.5; this.vy = (Math.random()-0.5) * 0.5;
+				const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--unit-scale')) || 1.5;
+				const effectiveW = CONFIG.UNIT_W * scale; 
+				const effectiveH = CONFIG.UNIT_H * scale;
+		
+				// Allow spawning anywhere from top header to absolute bottom
+				this.x = CONFIG.MARGIN + Math.random() * (window.innerWidth - CONFIG.MARGIN*2 - effectiveW);
+				this.y = 80 + Math.random() * (window.innerHeight - 80 - effectiveH);
+				
+				this.vx = (Math.random()-0.5) * 0.5; 
+				this.vy = (Math.random()-0.5) * 0.5;
             }
 
             update(others) {
@@ -1005,7 +1012,7 @@
                 }
 
                 const rEdge = window.innerWidth - CONFIG.MARGIN - effectiveW;
-                const bEdge = window.innerHeight - CONFIG.MARGIN - effectiveH;
+                const bEdge = window.innerHeight - effectiveH;
                 if (this.x < CONFIG.MARGIN) { this.x = CONFIG.MARGIN; this.vx = Math.abs(this.vx); }
                 if (this.x > rEdge) { this.x = rEdge; this.vx = -Math.abs(this.vx); }
                 if (this.y < 80) { this.y = 80; this.vy = Math.abs(this.vy); }
@@ -1244,137 +1251,130 @@
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
       function startLobby() {
-			State.phase = 'LOBBY'; 
-			console.log("--- LOBBY STARTING ---");
-			
-			// 1. CRITICAL RESET: Stop all game-play pointers and timers
-			clearInterval(State.timers.turn);
-			State.activeIdx = -1; 
-			State.firstTurnAnnounced = false;
-		
-			while(State.leaveQueue.length > 0) { removePlayer(State.leaveQueue.shift(), true); }
-		
-			for (let i = State.players.length - 1; i >= 0; i--) {
-			const p = State.players[i];
-			
-			// Check if player reached the 5-strike limit
-			if (p.afkCount >= 5) {
-				console.log(`[AFK KICK] ${p.name} removed.`);
-				
-				// RE-ADD THIS LINE:
-				sendTwitchChatMessage(`@${p.name} removed for inactivity`);
-				p.afkCount = 0;
-				removePlayer(p.name, true); // true skips the debt cooldown
-			} else { 
-				p.hasActed = false; // Reset for the new round
-			}
-		}
-		
-			while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
-				const p = State.joinQueue.shift();
-				addPlayer(p.userId, p.name, p.color, p.badgeData);
-			}
-			updateQueueUI();
-		
-			State.players.forEach(p => {
-				p.currentBet = 0;
-				let ante = Math.min(10, p.chips);
-				p.chips -= ante;
-				p.currentBet = ante;
-				p.hands = [{ cards: [], bet: ante, score: 0, status: 'playing' }];
-			});
-		
-			State.timers.lobbyVal = CONFIG.LOBBY_TIME;
-			startSubMessage();
-			updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
-			
-			clearInterval(State.timers.lobby);
-			State.timers.lobby = setInterval(() => {
-				if(State.paused) return;
-				
-				// If everyone left mid-countdown, stop immediately and reset to BOOT
-				if (State.players.length === 0) {
-					clearInterval(State.timers.lobby);
-					State.phase = 'BOOT';
-					updateTopMsg("WAITING FOR PLAYERS...");
-					return;
-				}
-		
-				State.timers.lobbyVal--;
-				updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
-				updateUI();
-				
-				if(State.timers.lobbyVal <= 0) {
-					clearInterval(State.timers.lobby);
-					stopSubMessage();
-					
-					if (State.players.length > 0) {
-						startGame();
-					} else {
-						State.phase = 'BOOT';
-						updateTopMsg("WAITING FOR PLAYERS...");
-					}
-				}
-			}, 1000);
-		}
+    State.phase = 'LOBBY'; 
+    console.log("--- LOBBY STARTING ---");
+
+    // 1. HARD RESET
+    clearInterval(State.timers.turn);
+    State.activeIdx = -1; 
+    State.firstTurnAnnounced = false;
+
+    // 2. Process Queues
+    while(State.leaveQueue.length > 0) { removePlayer(State.leaveQueue.shift(), true); }
+
+    for (let i = State.players.length - 1; i >= 0; i--) {
+        const p = State.players[i];
+        if (p.afkCount >= 5) {
+            sendTwitchChatMessage(`@${p.name} was removed for inactivity. (5 rounds no action)`);
+            p.afkCount = 0; 
+            removePlayer(p.name, true); 
+        } else {
+            p.hasActed = false; 
+        }
+    }
+
+    while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
+        const p = State.joinQueue.shift();
+        addPlayer(p.userId, p.name, p.color, p.badgeData);
+    }
+    updateQueueUI();
+
+    // 3. Reset Bets and Deduct Ante
+    State.players.forEach(p => {
+        p.currentBet = 0;
+        let ante = Math.min(10, p.chips);
+        p.chips -= ante;
+        p.currentBet = ante;
+        p.hands = [{ cards: [], bet: ante, score: 0, status: 'playing' }];
+        p.timerPct = 0;
+    });
+
+    State.timers.lobbyVal = CONFIG.LOBBY_TIME;
+    startSubMessage();
+    updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
+    
+    clearInterval(State.timers.lobby);
+    State.timers.lobby = setInterval(() => {
+        if(State.paused) return;
+
+        // Reset to BOOT if empty
+        if (State.players.length === 0) {
+            clearInterval(State.timers.lobby);
+            State.phase = 'BOOT';
+            updateTopMsg("LOBBY OPEN");
+            return;
+        }
+
+        State.timers.lobbyVal--;
+        updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
+        updateUI();
+        
+        if(State.timers.lobbyVal <= 0) {
+            clearInterval(State.timers.lobby);
+            stopSubMessage();
+            if (State.players.length > 0) startGame();
+            else {
+                State.phase = 'BOOT';
+                updateTopMsg("LOBBY OPEN");
+            }
+        }
+    }, 1000);
+}
 
         function showLeaderboard() {
-            if (!CONFIG.SHOW_LEADERBOARD) return; 
+    if (!CONFIG.SHOW_LEADERBOARD) return; 
 
-            const pnl = document.getElementById('leaderboard-panel');
-            const list = document.getElementById('lb-list');
-            const overlay = document.getElementById('blur-overlay');
-			
-			const rainbowColors = [
-				'#ff0055', // Neon Pink
-				'#851f83', // Purple
-				'#ed1b2f', // Red
-				'#92278f', // Magenta
-				'#00a99d', // Teal
-				'#faa61a', // Orange
-				'#ed0c6e'  // Deep Pink
-			];
-			const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
-			if (lbHeaderSpan) {
-				lbHeaderSpan.style.color = randomColor;
-				lbHeaderSpan.style.textShadow = `0 0 15px ${randomColor}66`; // Adding a subtle glow matching the color
-			}
-            
-            State.players.forEach(p => {
-				chipHistory.set(p.name.toLowerCase(), { 
-					chips: p.chips, 
-					time: Date.now(), 
-					flair: p.flair, 
-					afkCount: p.afkCount || 0 
-				});
-			});
+    const pnl = document.getElementById('leaderboard-panel');
+    const list = document.getElementById('lb-list');
+    const overlay = document.getElementById('blur-overlay');
+    const lbHeaderSpan = document.querySelector('.lb-header span');
+    
+    // Random Static Color Selection
+    const rainbowColors = ['#ff0055', '#851f83', '#ed1b2f', '#92278f', '#00a99d', '#faa61a', '#ed0c6e'];
+    const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+    if (lbHeaderSpan) {
+        lbHeaderSpan.style.color = randomColor;
+        lbHeaderSpan.style.textShadow = `0 0 15px ${randomColor}66`;
+    }
 
-            const allPlayers = Array.from(chipHistory.entries()).map(([k,v]) => ({name:k, ...v})).sort((a,b) => b.chips - a.chips);
-            
-            list.innerHTML = allPlayers.slice(0, 15).map((p, i) => {
-                const flairHTML = p.flair.slice(0, 3).map(f => {
-                     const isObj = typeof f === 'object' && f !== null;
-                     const content = isObj ? (f.content || f.emoji) : f;
-                     const isImg = isObj ? f.isImage : false;
-                     return isImg ? `<img src="${content}" class="lb-flair-icon">` : `<span class="lb-flair-text">${content}</span>`;
-                }).join('');
-                
-                return `
-                <div class="lb-item ${i===0?'lb-top-1':(i===1?'lb-top-2':(i===2?'lb-top-3':''))}">
-                    <div class="lb-rank">#${i+1}</div>
-                    <div class="lb-name">${p.name.toUpperCase()} ${flairHTML}</div>
-                    <div class="lb-chips">🪙${p.chips}</div>
-                </div>
-            `}).join('');
-            
-            pnl.classList.add('visible');
-            overlay.classList.add('active'); 
-            
-            setTimeout(() => {
-                pnl.classList.remove('visible');
-                overlay.classList.remove('active'); 
-            }, 5000); 
-        }
+    // Sync History
+    State.players.forEach(p => {
+        chipHistory.set(p.name.toLowerCase(), { 
+            chips: p.chips, 
+            time: Date.now(), 
+            flair: p.flair,
+            afkCount: p.afkCount || 0
+        });
+    });
+
+    const allPlayers = Array.from(chipHistory.entries())
+        .map(([k,v]) => ({name:k, ...v}))
+        .sort((a,b) => b.chips - a.chips);
+    
+    list.innerHTML = allPlayers.slice(0, 15).map((p, i) => {
+        const flairHTML = p.flair.slice(0, 3).map(f => {
+             const isObj = typeof f === 'object' && f !== null;
+             const content = isObj ? (f.content || f.emoji) : f;
+             const isImg = isObj ? f.isImage : false;
+             return isImg ? `<img src="${content}" class="lb-flair-icon">` : `<span class="lb-flair-text">${content}</span>`;
+        }).join('');
+        
+        return `
+        <div class="lb-item ${i===0?'lb-top-1':(i===1?'lb-top-2':(i===2?'lb-top-3':''))}">
+            <div class="lb-rank">#${i+1}</div>
+            <div class="lb-name">${p.name.toUpperCase()} ${flairHTML}</div>
+            <div class="lb-chips">🪙${p.chips}</div>
+        </div>`
+    }).join('');
+    
+    pnl.classList.add('visible');
+    overlay.classList.add('active'); 
+    
+    setTimeout(() => {
+        pnl.classList.remove('visible');
+        overlay.classList.remove('active'); 
+    }, 5000); 
+}
 
         function startGame() {
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
@@ -1687,13 +1687,14 @@ function nextTurn() {
 		}
 
         function payouts() {
-    // 1. PHASE LOCK: Ensure we don't run payouts twice or if the room is empty
-    if (State.phase !== 'RESULT' || State.players.length === 0) return;
+    // 1. PHASE LOCK: Ensure we only run this once
+    if (State.phase !== 'RESULT') return;
+    console.log("Starting Payouts Sequence...");
 
     const ds = State.dealer.score; 
     const db = ds > 21;
     
-    // 2. AFK Strike Processing (with safety zero)
+    // Process AFK Strikes
     State.players.forEach(p => {
         if (!p.hasActed) {
             p.afkCount = (p.afkCount || 0) + 1;
@@ -1707,9 +1708,8 @@ function nextTurn() {
     const notificationQueue = [];
     let chatReport = "";
 
-    // 3. Winning Calculation
+    // Calculate Winners
     State.players.forEach(p => {
-        // VALIDITY CHECK: Only pay players who actually have a DOM element in the arena
         if (!p.dom || !document.body.contains(p.dom)) return;
 
         let totalWin = 0;
@@ -1731,14 +1731,14 @@ function nextTurn() {
         if(hist) hist.chips = p.chips;
         
         if(totalWin > 0) {
-            notificationQueue.push({ type: 'win', text: `PAYING ${totalWin} TO ${p.name}`, amt: totalWin, dom: p.dom, name: p.name });
+            notificationQueue.push({ type: 'win', text: `PAYING ${totalWin} TO ${p.name}`, amt: totalWin, dom: p.dom });
             chatReport += `${p.name} won ${totalWin}. `;
         }
     });
     
     if(chatReport) sendTwitchChatMessage(chatReport);
 
-    // 4. Clean up broken players
+    // Filter out bankrupt players
     State.players = State.players.filter(p => { 
         if(p.chips <= 0) {
             const safeName = p.name.toLowerCase();
@@ -1753,16 +1753,18 @@ function nextTurn() {
 
     updateUI();
     
-    // 5. Sequence Animations
+    // SEQUENCE HANDLER
     if(notificationQueue.length === 0) {
         updateTopMsg("HOUSE WINS ALL");
-        setTimeout(showLeaderboard, 2000);
-        setTimeout(startLobby, 8000);
+        setTimeout(() => {
+            showLeaderboard();
+            setTimeout(startLobby, 6000);
+        }, 2000);
     } else {
         let i = 0;
         const payCycle = setInterval(() => {
-            // Safety: if the game was reset or shifted during this interval, stop.
-            if(i >= notificationQueue.length || State.phase !== 'RESULT') { 
+            // Check if we finished the queue OR if everyone left
+            if(i >= notificationQueue.length || State.players.length === 0 && notificationQueue.length > 0 && i >= notificationQueue.length) { 
                 clearInterval(payCycle); 
                 showLeaderboard();
                 setTimeout(startLobby, 6000); 
@@ -1772,13 +1774,21 @@ function nextTurn() {
             const item = notificationQueue[i];
             updateTopMsg(item.text);
 
-            // Double check player DOM still exists before spawning particles
             if(item.type === 'win' && item.dom && document.body.contains(item.dom)) {
                 const r = item.dom.getBoundingClientRect();
                 const pCount = Math.min(item.amt, 150); 
                 for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
             }
             i++;
+            
+            // Final safety catch: if we just showed the last item, clear and move on next tick
+            if (i === notificationQueue.length) {
+                clearInterval(payCycle);
+                setTimeout(() => {
+                    showLeaderboard();
+                    setTimeout(startLobby, 6000);
+                }, 2000);
+            }
         }, 2000);
     }
 }
