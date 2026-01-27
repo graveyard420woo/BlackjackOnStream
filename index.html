@@ -1252,7 +1252,7 @@
 				
 				// RE-ADD THIS LINE:
 				sendTwitchChatMessage(`@${p.name} removed for inactivity`);
-				
+				p.afkCount = 0;
 				removePlayer(p.name, true); // true skips the debt cooldown
 			} else { 
 				p.hasActed = false; // Reset for the new round
