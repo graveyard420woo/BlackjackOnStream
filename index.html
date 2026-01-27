@@ -1227,35 +1227,39 @@
 
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
-        function startLobby() {
+      function startLobby() {
 			State.phase = 'LOBBY'; 
 			console.log("--- LOBBY STARTING ---");
 		
 			while(State.leaveQueue.length > 0) { removePlayer(State.leaveQueue.shift(), true); }
 		
+			// Clean up AFK players
 			for (let i = State.players.length - 1; i >= 0; i--) {
 				const p = State.players[i];
 				if (p.afkCount >= 5) {
-					sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
 					removePlayer(p.name, true);
 				} else { p.hasActed = false; }
 			}
 		
+			// Process Join Queue
 			while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
 				const p = State.joinQueue.shift();
 				addPlayer(p.userId, p.name, p.color, p.badgeData);
 			}
 			updateQueueUI();
 		
-			// Reset bets for the new round
+			// Reset/Initialize bets for the new round
 			State.players.forEach(p => {
-				 // Return current bet to chips so it's not lost
-				 p.chips += p.currentBet;
+				 // Reset hand for the new round
+				 // If they already have a currentBet (from addPlayer or !bet), keep it. 
+				 // Otherwise, take the 10 chip ante.
+				 if (p.currentBet === 0) {
+					 let ante = Math.min(10, p.chips);
+					 p.chips -= ante;
+					 p.currentBet = ante;
+				 }
 				 
-				 let ante = Math.min(10, p.chips);
-				 p.chips -= ante;
-				 p.currentBet = ante;
-				 p.hands = [{ cards: [], bet: ante, score: 0, status: 'playing' }];
+				 p.hands = [{ cards: [], bet: p.currentBet, score: 0, status: 'playing' }];
 			});
 		
 			State.timers.lobbyVal = CONFIG.LOBBY_TIME;
@@ -1267,7 +1271,7 @@
 				if(State.paused) return;
 				State.timers.lobbyVal--;
 				updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
-				updateUI();
+				updateUI(); // This will now show the correct currentBet
 				
 				if(State.timers.lobbyVal <= 0) {
 					clearInterval(State.timers.lobby);
@@ -1321,18 +1325,20 @@
 			
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
 
-            State.players.forEach(p => {
-                let incomingBet = p.currentBet; 
-                
-                if (incomingBet === 0 && p.chips === 0) {
-                     p.hands = [{ cards: [], bet: 0, score: 0, status: 'bust' }];
-                } else {
-                     State.house += incomingBet;
-                     p.hands = [{ cards: [], bet: incomingBet, score: 0, status: 'playing' }];
-                }
-                p.activeHandIndex = 0;
-                p.timerPct = 0;
-            });
+			State.players.forEach(p => {
+				// Carry the currentBet established in the Lobby into the actual game hand
+				let finalBet = p.currentBet; 
+				
+				if (finalBet === 0 && p.chips === 0) {
+					 p.hands = [{ cards: [], bet: 0, score: 0, status: 'bust' }];
+				} else {
+					 State.house += finalBet;
+					 p.hands = [{ cards: [], bet: finalBet, score: 0, status: 'playing' }];
+				}
+				
+				p.activeHandIndex = 0;
+				p.timerPct = 0;
+			});
             
             playSfx('shuffle');
             for(let i=0; i<2; i++) {
@@ -1452,25 +1458,34 @@
              }
         }
 		
-		function placeBet(player, amountStr) {
-            if (State.phase !== 'LOBBY') return; 
-            let val = parseInt(amountStr);
-            if (isNaN(val) || val < 1) return;
-            if (val > CONFIG.MAX_BET) val = CONFIG.MAX_BET;
-            
-            const currentBet = player.hands[0].bet;
-            player.chips += currentBet;
-            State.house -= currentBet;
-
-            if (player.chips < val) val = player.chips; 
-            
-            player.chips -= val;
-            State.house += val;
-            player.hands[0].bet = val;
-            
-            spawnAction(player, `🪙 BET ${val}`);
-            updateUI();
-        }
+		function placeBet(player, amtStr) {
+			if (!player || State.phase !== 'LOBBY') return;
+		
+			let amount;
+			if (amtStr.toLowerCase() === 'all') {
+				amount = player.chips + player.currentBet;
+			} else {
+				amount = parseInt(amtStr);
+			}
+		
+			if (isNaN(amount) || amount <= 0) return;
+			if (amount > CONFIG.MAX_BET) amount = CONFIG.MAX_BET;
+		
+			const totalPool = player.chips + player.currentBet;
+			if (amount > totalPool) amount = totalPool;
+		
+			// Return current bet to chips first, then subtract the new amount
+			player.chips = totalPool - amount;
+			player.currentBet = amount;
+			
+			// Update the hand bet so the UI shows it correctly immediately
+			if (player.hands && player.hands[0]) {
+				player.hands[0].bet = amount;
+			}
+		
+			spawnAction(player, `🪙${amount}`);
+			updateUI();
+		}
 
         function doubleDown() {
             clearInterval(State.timers.turn);
