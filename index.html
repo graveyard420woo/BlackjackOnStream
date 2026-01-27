@@ -1451,6 +1451,26 @@
                  nextTurn();
              }
         }
+		
+		function placeBet(player, amountStr) {
+            if (State.phase !== 'LOBBY') return; 
+            let val = parseInt(amountStr);
+            if (isNaN(val) || val < 1) return;
+            if (val > CONFIG.MAX_BET) val = CONFIG.MAX_BET;
+            
+            const currentBet = player.hands[0].bet;
+            player.chips += currentBet;
+            State.house -= currentBet;
+
+            if (player.chips < val) val = player.chips; 
+            
+            player.chips -= val;
+            State.house += val;
+            player.hands[0].bet = val;
+            
+            spawnAction(player, `🪙 BET ${val}`);
+            updateUI();
+        }
 
         function doubleDown() {
             clearInterval(State.timers.turn);
