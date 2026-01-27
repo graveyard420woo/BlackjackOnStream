@@ -1822,7 +1822,7 @@
                 else if (rawCmd === 'bet') {
                     const activePlayer = State.players.find(p => p.name.toLowerCase() === safeUser.toLowerCase());
                     if(activePlayer) {
-                        activePlayer.afkCount = 0; // RESET AFK
+                        //activePlayer.afkCount = 0; // RESET AFK
                         if(cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                     }
                 }
@@ -1838,7 +1838,7 @@
                 if (State.activeIdx > -1 && State.activeIdx < State.players.length) {
                     const activePlayer = State.players[State.activeIdx];
                     if (activePlayer.name.toLowerCase() === safeUser.toLowerCase()) {
-                        activePlayer.afkCount = 0; // RESET AFK
+                        //activePlayer.afkCount = 0; // RESET AFK
                         if (rawCmd === 'hit' || rawCmd === 'h' || rawCmd === 'hitme') hit();
                         else if (rawCmd === 'stand' || rawCmd === 'stay' || rawCmd === 's') stand();
                         else if (rawCmd === 'dd' || rawCmd === 'doubledown') doubleDown();
