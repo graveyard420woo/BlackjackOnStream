@@ -12,7 +12,7 @@
             --neon-blue: #00cef3;
             --neon-pink: #ff0055;
             --neon-green: #0aff68;
-			--neon-gold: rgba(255, 100, 50, 0.2);
+			--neon-gold: rgba(255, 100, 50, 0.3);
             --gold: #ffcc00;
             --warm-light: rgba(255, 200, 150, 0.15);
             --font-display: 'Righteous', cursive;
@@ -232,8 +232,8 @@
         .flair-item {
             position: absolute;
             font-size: 3rem;
-            filter: drop-shadow(2px 0 0 rgba(255, 255, 255, 0.6)) 
-                    drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            filter: drop-shadow(1px 0 0 rgba(255, 255, 255, 0.6)) 
+                    drop-shadow(0 2px 4px rgba(0,0,0,0.5));
             user-select: none;
         }
         
@@ -1214,7 +1214,7 @@
 			fetchUserProfile(userId, div);
 			
 			const history = chipHistory.get(name.toLowerCase());
-			let savedChips = (history && (Date.now() - history.time) < 180000000000) ? (history.chips <= 0 ? 69 : history.chips) : CONFIG.START_CHIPS;
+			let savedChips = (history && (Date.now() - history.time) < 180000000000) ? (history.chips <= 0 ? 79 : history.chips) : CONFIG.START_CHIPS;
 			
 			const pObj = { 
 				userId, name, chips: savedChips, currentBet: 0,
@@ -1978,6 +1978,7 @@ function nextTurn() {
 		
 			if(p.chips >= State.activeStoreItem.price) {
 				p.afkCount = 0; // RESET AFK COUNT ON PURCHASE
+				playSfx('deal');
 				const itemData = State.activeStoreItem; 
 				p.chips -= itemData.price; State.house += itemData.price;
 				
@@ -2118,12 +2119,12 @@ function nextTurn() {
             }
         };
 
-        function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
-        function toggleLogo(el) { document.body.classList.toggle('hide-logo', !el.checked); }
-        function toggleTransparent(el) { document.body.classList.toggle('transparent-mode', el.checked); }
-        function toggleShadows(el) { document.body.classList.toggle('high-contrast', el.checked); }
-        function toggleDealerChat(el) { CONFIG.DEALER_CHAT = el.checked; }
-        function toggleLeaderboard(el) { CONFIG.SHOW_LEADERBOARD = el.checked; }
+        function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); playSfx('deal'); }
+        function toggleLogo(el) { document.body.classList.toggle('hide-logo', !el.checked); playSfx('deal'); }
+        function toggleTransparent(el) { document.body.classList.toggle('transparent-mode', el.checked); playSfx('deal'); }
+        function toggleShadows(el) { document.body.classList.toggle('high-contrast', el.checked); playSfx('deal'); }
+        function toggleDealerChat(el) { CONFIG.DEALER_CHAT = el.checked; playSfx('deal'); }
+        function toggleLeaderboard(el) { CONFIG.SHOW_LEADERBOARD = el.checked; playSfx('deal'); }
         
         function toggleStreamerZone(el) {
              CONFIG.STREAMER_ZONE.active = el.checked;
@@ -2139,6 +2140,7 @@ function nextTurn() {
              } else {
                  zone.classList.remove('visible');
              }
+			 playSfx('deal');
         }
         
         function updateStreamerZone() {
@@ -2154,6 +2156,7 @@ function nextTurn() {
             let n = CONFIG.MAX_BET + delta;
             if(n < 100) n = 100; if(n > 10000) n = 10000;
             CONFIG.MAX_BET = n; document.getElementById('disp-max-bet').innerText = n;
+			playSfx('deal');
         }
         function adjScale(delta) {
             let cs = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--unit-scale')) || 1.5;
@@ -2161,6 +2164,7 @@ function nextTurn() {
             if(n < 0.5) n = 0.5; if(n > 2.5) n = 2.5;
             document.documentElement.style.setProperty('--unit-scale', n);
             document.getElementById('disp-scale').innerText = n.toFixed(1) + 'x';
+			playSfx('deal');
         }
 
         const dragger = document.getElementById('house-bank');
@@ -2202,6 +2206,7 @@ function nextTurn() {
             if(State.phase === 'LOBBY') {
                 State.timers.lobbyVal = (State.timers.lobbyVal + delta < 5) ? 5 : State.timers.lobbyVal + delta;
             }
+			playSfx('deal');
         }
 
         function adjTurnTime(delta) {
@@ -2209,6 +2214,7 @@ function nextTurn() {
             if(n < 5) n = 5;
             CONFIG.TURN_TIME = n;
             document.getElementById('disp-turn-time').innerText = `${n}s`;
+			playSfx('deal');
         }
 		
 		function toggleSound(el) {
@@ -2221,6 +2227,7 @@ function nextTurn() {
             let n = CONFIG.MAX_PLAYERS + delta;
             if(n < 2) n = 2; if(n > 99) n = 99;
             CONFIG.MAX_PLAYERS = n; document.getElementById('disp-max-players').innerText = n;
+			playSfx('deal');
         }
         startLobby();
     </script>
