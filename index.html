@@ -12,7 +12,7 @@
             --neon-blue: #00cef3;
             --neon-pink: #ff0055;
             --neon-green: #0aff68;
-			--neon-gold: #e28f26;
+			--neon-gold: #ffa200;
             --gold: #ffcc00;
             --warm-light: rgba(255, 200, 150, 0.15);
             --font-display: 'Righteous', cursive;
@@ -299,7 +299,7 @@
                  1px -1px 1px var(--neon-gold),
                 -1px  1px 1px var(--neon-gold),
                  1px  1px 1px var(--neon-gold),
-                 0 0 4px var(--neon-blue);
+                 0 0 2px var(--neon-gold);
             animation: softPulse 2s infinite ease-in-out;
         }
 		
@@ -565,7 +565,13 @@
         }
         .step-btn:hover { color: var(--neon-blue); transform: none; background: none; }
 
-        body.hide-logo h1 { display: none !important; }
+        body.hide-logo header h1 { display: none !important; }
+		
+		.lb-header span { 
+			animation: none !important; 
+			background: none;
+			-webkit-text-fill-color: initial; 
+		}
 
         body.transparent-mode .bg-plaid, 
         body.transparent-mode .bg-light, 
@@ -1318,6 +1324,21 @@
             const pnl = document.getElementById('leaderboard-panel');
             const list = document.getElementById('lb-list');
             const overlay = document.getElementById('blur-overlay');
+			
+			const rainbowColors = [
+				'#ff0055', // Neon Pink
+				'#851f83', // Purple
+				'#ed1b2f', // Red
+				'#92278f', // Magenta
+				'#00a99d', // Teal
+				'#faa61a', // Orange
+				'#ed0c6e'  // Deep Pink
+			];
+			const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+			if (lbHeaderSpan) {
+				lbHeaderSpan.style.color = randomColor;
+				lbHeaderSpan.style.textShadow = `0 0 15px ${randomColor}66`; // Adding a subtle glow matching the color
+			}
             
             State.players.forEach(p => {
 				chipHistory.set(p.name.toLowerCase(), { 
