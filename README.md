@@ -4,7 +4,7 @@
 
 https://graveyard420woo.github.io/BlackjackOnStream/
  
-This is an interactive Blackjack overlay for Twitch that can be played by everyone in chat on your stream!
+Blackjack On Stream is an interactive overlay for Twitch that can be played by everyone in chat on your stream! Connect your twitch account and add the resulting URL as a full screen browser source. 1920 x 1080 works great.
 
 Simply add it as a browser source by copying the URL from the address bar after you connect your Twitch!
 
@@ -18,9 +18,13 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
  <li>!leave</li>
  <li>!hit (!hitme !h)</li>
  <li>!stand (!stay !s)</li>
+ <li>!doubledown (!dd)</li>
+ <li>!split (then hit or stay on each hand)</li>
  <li>!bet [amount]</li>
  <li>Look out for !buy items!</li>
 </ul>
+
+Command exclamation points (!) are always optional. Players may simply type join or hit or h or dd etc...
 
 I am a humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (;
 <br>-graveyard
