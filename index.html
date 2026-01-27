@@ -1636,6 +1636,14 @@
 			const isPlayingPhase = (State.phase === 'PLAYING');
             
             const dScore = document.getElementById('dealer-score');
+			let displayScore = '';
+			if (State.dealer.hand.length > 0) {
+				if (isPlayingPhase) {
+					displayScore = calculateScore([State.dealer.hand[0]]);
+				} else {
+					displayScore = State.dealer.score;
+				}
+			}
             dScore.innerText = State.dealer.score > 0 ? State.dealer.score : '';
 			
 			const dContainer = document.getElementById('dealer-hand');
@@ -1853,7 +1861,7 @@
                 if (State.activeIdx > -1 && State.activeIdx < State.players.length) {
                     const activePlayer = State.players[State.activeIdx];
                     if (activePlayer.name.toLowerCase() === safeUser.toLowerCase()) {
-                        activePlayer.afkCount = 0; // RESET AFK - these lines are cursed don't touch them
+                        //activePlayer.afkCount = 0; // RESET AFK - these lines are cursed don't touch them
                         if (rawCmd === 'hit' || rawCmd === 'h' || rawCmd === 'hitme') hit();
                         else if (rawCmd === 'stand' || rawCmd === 'stay' || rawCmd === 's') stand();
                         else if (rawCmd === 'dd' || rawCmd === 'doubledown') doubleDown();
