@@ -12,7 +12,7 @@
             --neon-blue: #00cef3;
             --neon-pink: #ff0055;
             --neon-green: #0aff68;
-			--neon-gold: #ffa200;
+			--neon-gold: #ff7800;
             --gold: #ffcc00;
             --warm-light: rgba(255, 200, 150, 0.15);
             --font-display: 'Righteous', cursive;
@@ -1218,7 +1218,8 @@
 				hands: [{ cards: [], bet: 0, score: 0, status: 'waiting' }], 
 				activeHandIndex: 0, dom: div, timerPct: 0, 
 				flair: (history ? history.flair : []),
-				afkCount: (history && typeof history.afkCount === 'number') ? history.afkCount : 0,
+				afkCount: 0,
+				//afkCount: (history && typeof history.afkCount === 'number') ? history.afkCount : 0,
 				hasActed: false
 			};
 		
@@ -1289,8 +1290,10 @@
     for (let i = State.players.length - 1; i >= 0; i--) {
         const p = State.players[i];
         if (p.afkCount >= 5) {
-            sendTwitchChatMessage(`@${p.name} was removed for inactivity. (5 rounds no action)`);
+            sendTwitchChatMessage(`@${p.name} was removed for inactivity`);
             p.afkCount = 0; 
+			const hist = chipHistory.get(p.name.toLowerCase());
+            if(hist) hist.afkCount = 0;
             removePlayer(p.name, true); 
         } else {
             p.hasActed = false; 
