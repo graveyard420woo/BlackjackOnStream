@@ -775,8 +775,9 @@
 			try {
 				if (type === 'shuffle') {
 					// Play the single shuffle file
-					const shuffleAudio = new Audio('shuffle.mp3');
-					shuffleAudio.volume = 0.6; // Adjust volume as needed (0.0 to 1.0)
+					const randNumb = Math.floor(Math.random() * 6) + 1;
+					const shuffleAudio = new Audio(`shuffle${randNumb}.mp3`);
+					shuffleAudio.volume = 0.5; // Adjust volume as needed (0.0 to 1.0)
 					shuffleAudio.play().catch(e => console.warn("Shuffle audio play blocked:", e));
 					
 				} else if (type === 'deal') {
