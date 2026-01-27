@@ -4,7 +4,7 @@
 
 https://graveyard420woo.github.io/BlackjackOnStream/
  
-Blackjack On Stream is an interactive overlay for Twitch that can be played by everyone in chat on your stream! Connect your twitch account and add the resulting URL as a full screen browser source. 1920 x 1080 works great.
+Blackjack On Stream is an interactive overlay for Twitch that can be played by everyone in chat on your stream! Connect your twitch account and add the resulting URL as a full screen browser source. 1280 x 720 (720p), 1920 x 1080 (1080p), 2560 x 1440 (1440p), 3840 x 2160 (4k) will all work.
 
 Simply add it as a browser source by copying the URL from the address bar after you connect your Twitch!
 
@@ -26,7 +26,7 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
 
 Command exclamation points (!) are always optional. Players may simply type join or hit or h or dd etc...
 
-I am a humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (;
-<br>-graveyard
+I am a humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (; 
 
-<img width="1912" height="943" alt="Screenshot 2026-01-21 203400" src="https://github.com/user-attachments/assets/5258913d-21d8-4253-9eac-baceaa655b9c" />
+This thing is a labor of love.. 
+<br>-graveyard
