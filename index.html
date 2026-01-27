@@ -704,6 +704,7 @@
                     Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!<br></span>
                     <br>
                     <span class="description-main description">Commands: !join !leave !hit !stand !bet[amt] !buy</span>
+                    <span class="description-main description">!split and !doubledown</span>
                     <br>
                     <a id="authorize" class="login-box" target="">
                      <img id="twitch-logo" src="tlogo.png">
@@ -771,26 +772,25 @@
         // Audio Context for Procedural SFX
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(type) {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            
-            if(type === 'deal') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'shuffle') {
-                osc.type = 'sawtooth';
-                osc.frequency.value = 100;
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-            }
-        }
+			try {
+				if (type === 'shuffle') {
+					// Play the single shuffle file
+					const shuffleAudio = new Audio('shuffle.mp3');
+					shuffleAudio.volume = 0.6; // Adjust volume as needed (0.0 to 1.0)
+					shuffleAudio.play().catch(e => console.warn("Shuffle audio play blocked:", e));
+					
+				} else if (type === 'deal') {
+					// Pick a random number between 1 and 8
+					const randNum = Math.floor(Math.random() * 8) + 1;
+					// Play the corresponding cardX.mp3 file
+					const cardAudio = new Audio(`card${randNum}.mp3`);
+					cardAudio.volume = 0.6; // Adjust volume as needed
+					cardAudio.play().catch(e => console.warn("Card audio play blocked:", e));
+				}
+			} catch (err) {
+				console.error("Audio playback error:", err);
+			}
+		}
 
         if (document.location.hash && document.location.hash != '') {
             log('Checking for token');
