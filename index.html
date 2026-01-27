@@ -953,7 +953,7 @@
 
         const SUITS = ['♠', '♥', '♦', '♣'];
         const VALUE_MAP = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 11 };
-        const EMOJIS = ['🔥','💎','👑','🍀','💸','🌶️','🍕','🦄','👽','🚀','🌈','🎸','🍄','🎲','🧿','🦁','🐲','🧊','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','🎈','🎀','✨','💀','👻','🤖','🧸','🪐','🌞','🌊','🍭','🌭','🍟','🍺'];
+        const EMOJIS = ['🔥','💎','👑','🍀','🌶️','🍕','🦄','👽','🌈','🎸','🍄','🎲','🧿','⚡','🍒','🥨','🍣','🍦','🍔','🍩','🌮','✨','💀','👻','🌞','🌊','🍭','🌭','🍟','🍺','💾','☠','🌭','👀','🪩','🦋','🥤'];
 		const EMOTE_SOURCES = ['738259432', '589929957', '835308705', '564254398']; 
 		let EMOTES_POOL = []; 
 		
@@ -1028,8 +1028,8 @@
                 
                 // Repel from Top Right (Queue/Status Area)
                 if (this.x > window.innerWidth - 300 && this.y < 150) {
-                     this.vx -= 0.05;
-                     this.vy += 0.05;
+                     this.vx -= 0.95;
+                     this.vy += 0.95;
                 }
 
                 const speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
@@ -1146,7 +1146,7 @@
             existing.forEach(el => el.remove());
 
             const el = document.createElement('div');
-            el.className = `action-popup ${type==='HIT'?'pop-hit':(type==='STAND'?'pop-stand':(type==='DOUBLE'?'pop-dd':(type==='SPLIT'?'pop-split':(type==='BOUGHT'?'pop-bought':(type==='❌'?'pop-no':'pop-bet')))))}`;
+            el.className = `action-popup ${type==='HIT'?'pop-hit':(type==='STAND'?'pop-stand':(type==='DOUBLE DOWN'?'pop-dd':(type==='SPLIT'?'pop-split':(type==='BOUGHT'?'pop-bought':(type==='❌'?'pop-no':'pop-bet')))))}`;
             el.innerText = type;
             player.dom.appendChild(el);
             setTimeout(() => el.remove(), 1500);
