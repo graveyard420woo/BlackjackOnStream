@@ -295,11 +295,11 @@
             color: var(--neon-blue);
             /* Tight outline + small fuzz */
             text-shadow: 
-                -1px -1px 1px var(--neon-gold),  
-                 1px -1px 1px var(--neon-gold),
-                -1px  1px 1px var(--neon-gold),
-                 1px  1px 1px var(--neon-gold),
-                 0 0 .5px var(--neon-gold);
+                -.2px -.3px .3px var(--neon-gold),  
+                 .2px -.2px .2px var(--neon-gold),
+                -.3px  .2px .2px var(--neon-gold),
+                 .3px  .2px .2px var(--neon-gold),
+                 0 0 4px var(--neon-gold);
             animation: softPulse 2s infinite ease-in-out;
         }
 		
@@ -477,13 +477,32 @@
       #blur-overlay.active { opacity: 1; pointer-events: auto; }
 
       #leaderboard-panel {
-          position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-          width: 600px; background: rgba(5, 5, 10, 0.95);
-          border: 2px solid var(--neon-blue); box-shadow: 0 0 40px rgba(0, 206, 243, 0.2);
-          border-radius: 10px; padding: 20px; z-index: 5000;
-          display: none; 
-          perspective: 1000px;
-      }
+    position: fixed; top: 50%; left: 50%;
+    /* Start centered but tilted back and invisible */
+    transform: translate(-50%, -50%) rotateX(-20deg) scale(0.9);
+    width: 600px; 
+    background: rgba(5, 5, 10, 0.98); /* Slightly more opaque to prevent card bleed-through */
+    border: 2px solid var(--neon-blue); 
+    box-shadow: 0 0 40px rgba(0, 206, 243, 0.3);
+    border-radius: 10px; padding: 20px; 
+    z-index: 5000;
+    display: none; /* Controlled by JS display:block */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    perspective: 1000px;
+}
+
+/* Class to trigger the entrance */
+#leaderboard-panel.panel-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) rotateX(0deg) scale(1);
+}
+
+/* Ensure names are always bright white/gold inside the dark panel */
+.lb-name { color: #fff; text-shadow: 0 2px 4px #000; }
+.lb-chips { color: var(--neon-green); font-weight: 800; }
       #leaderboard-panel.visible { 
           display: block; 
           animation: spinIn3D 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -1334,7 +1353,7 @@
     const overlay = document.getElementById('blur-overlay');
     const lbHeaderSpan = document.querySelector('.lb-header span');
     
-    // 1. Sync current players to history immediately
+    // 1. Prepare Data & History Sync
     State.players.forEach(p => {
         chipHistory.set(p.name.toLowerCase(), { 
             chips: p.chips, 
@@ -1344,13 +1363,12 @@
         });
     });
 
-    // 2. Prepare the Data
     const allPlayers = Array.from(chipHistory.entries())
         .map(([k,v]) => ({name:k, ...v}))
         .sort((a,b) => b.chips - a.chips);
     
-    // 3. Build HTML Content FIRST
-    const htmlContent = allPlayers.slice(0, 15).map((p, i) => {
+    // 2. Build HTML Content FIRST (Offline)
+    const content = allPlayers.slice(0, 15).map((p, i) => {
         const flairHTML = p.flair.slice(0, 3).map(f => {
              const isObj = typeof f === 'object' && f !== null;
              const content = isObj ? (f.content || f.emoji) : f;
@@ -1366,10 +1384,7 @@
         </div>`
     }).join('');
 
-    // 4. Inject HTML while the panel is still hidden
-    list.innerHTML = htmlContent;
-
-    // 5. Random Color Selection
+    // 3. Update Random Color
     const rainbowColors = ['#ff0055', '#851f83', '#ed1b2f', '#92278f', '#00a99d', '#faa61a', '#ed0c6e'];
     const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
     if (lbHeaderSpan) {
@@ -1377,21 +1392,39 @@
         lbHeaderSpan.style.textShadow = `0 0 15px ${randomColor}66`;
     }
 
-    // 6. Force a DOM reflow and Show
-    // This ensures the browser has painted the list.innerHTML before adding the 'visible' class
-    pnl.style.display = 'block'; 
-    void pnl.offsetHeight; // The "magic" line that forces the browser to render the content now
+    // 4. PRE-RENDER PHASE
+    // Inject content while display is none or opacity is 0
+    list.innerHTML = content;
     
-    pnl.classList.add('visible');
-    overlay.classList.add('active'); 
+    // Set to display:block so the browser can calculate the height, 
+    // but keep it invisible (opacity 0)
+    pnl.style.display = 'block';
+    overlay.style.display = 'block';
     
-    // 7. Auto-hide after 5 seconds
+    // Force a "Reflow" - This makes the browser render the player list now
+    void pnl.offsetWidth;
+
+    // 5. ENTRANCE
+    // Use requestAnimationFrame to ensure the next paint cycle includes the content
+    requestAnimationFrame(() => {
+        pnl.classList.add('panel-visible');
+        overlay.classList.add('active');
+    });
+
+    // 6. FADE OUT SEQUENCE
     setTimeout(() => {
-        pnl.classList.remove('visible');
-        overlay.classList.remove('active'); 
-        // Delay setting display:none so the out-animation (if any) can finish
-        setTimeout(() => { pnl.style.display = 'none'; }, 500);
-    }, 5000); 
+        // Transition opacity back to 0
+        pnl.classList.remove('panel-visible');
+        overlay.classList.remove('active');
+
+        // Wait for the CSS transition (0.8s) to finish before setting display:none
+        setTimeout(() => {
+            if (!pnl.classList.contains('panel-visible')) {
+                pnl.style.display = 'none';
+                overlay.style.display = 'none';
+            }
+        }, 850);
+    }, 5500); // Display for 5.5 seconds
 }
 
         function startGame() {
