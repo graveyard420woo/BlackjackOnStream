@@ -1401,7 +1401,10 @@
 
         function hit() {
             clearInterval(State.timers.turn); 
+            // SAFETY FIX: Check if player exists
             const p = State.players[State.activeIdx];
+            if (!p) return;
+
             const hand = p.hands[p.activeHandIndex];
             if(hand.score >= 21) return;
             
@@ -1413,11 +1416,11 @@
             if(hand.score > 21) {
                 hand.status = 'bust'; updateUI(); 
                 setTimeout(() => {
-                    if(p.activeHandIndex < p.hands.length - 1) {
+                    // Check existence again before accessing properties in timeout
+                    if(p && p.activeHandIndex < p.hands.length - 1) {
                          p.activeHandIndex++;
                          startTurnTimer(p);
                     } else {
-
                         nextTurn();
                     }
                 }, 1500);
@@ -1431,7 +1434,10 @@
 
         function stand() {
             clearInterval(State.timers.turn); 
+            // SAFETY FIX: Check if player exists
             const p = State.players[State.activeIdx];
+            if (!p) return;
+
             const hand = p.hands[p.activeHandIndex];
             if(hand.score > 21) return;
             spawnAction(p, 'STAND');
@@ -1446,27 +1452,12 @@
              }
         }
 
-        function placeBet(player, amountStr) {
-            if (State.phase !== 'LOBBY') return; 
-            let val = parseInt(amountStr);
-            if (isNaN(val) || val < 1) return;
-            if (val > CONFIG.MAX_BET) val = CONFIG.MAX_BET;
-            
-            // Logic: Refund current bet to check total capacity
-            player.chips += player.currentBet;
-            
-            if (player.chips < val) val = player.chips; // Cap at max
-            
-            player.chips -= val;
-            player.currentBet = val;
-            
-            spawnAction(player, `🪙 BET ${val}`);
-            updateUI();
-        }
-
         function doubleDown() {
             clearInterval(State.timers.turn);
+            // SAFETY FIX: Check if player exists
             const p = State.players[State.activeIdx];
+            if (!p) return;
+
             const hand = p.hands[p.activeHandIndex];
             if(hand.cards.length !== 2) return; 
             if(p.chips < hand.bet) return; 
@@ -1494,7 +1485,10 @@
 
         function splitPair() {
             clearInterval(State.timers.turn); 
+            // SAFETY FIX: Check if player exists
             const p = State.players[State.activeIdx];
+            if (!p) return;
+
             const hand = p.hands[p.activeHandIndex];
             
             if(p.hands.length >= 2 || hand.cards.length !== 2 || hand.cards[0].value !== hand.cards[1].value || p.chips < hand.bet) {
@@ -1793,6 +1787,27 @@
                     p.dom.classList.add('leaving'); 
                     setTimeout(() => p.dom.remove(), 1000);
                 } 
+
+                // --- FIX START: Handle In-Game Leave Logic ---
+                if (State.phase === 'PLAYING') {
+                    // If the active player is leaving
+                    if (idx === State.activeIdx) {
+                        clearInterval(State.timers.turn); // Stop their timer
+                        // Decrement activeIdx because the array is about to shrink. 
+                        // The player who was at [idx + 1] will shift down to [idx].
+                        // Since nextTurn() increments activeIdx, we set it back one step 
+                        // so nextTurn() lands on the correct next player.
+                        State.activeIdx--; 
+                        setTimeout(nextTurn, 500); // Trigger next turn logic
+                    } 
+                    // If a player EARLIER in the list leaves, we must decrement 
+                    // to keep pointing at the current active player (who shifted left)
+                    else if (idx < State.activeIdx) {
+                        State.activeIdx--;
+                    }
+                }
+                // --- FIX END ---
+
                 State.players.splice(idx, 1); 
                 updateUI();
                 
@@ -1822,7 +1837,7 @@
                 else if (rawCmd === 'bet') {
                     const activePlayer = State.players.find(p => p.name.toLowerCase() === safeUser.toLowerCase());
                     if(activePlayer) {
-                        //activePlayer.afkCount = 0; // RESET AFK
+                        //activePlayer.afkCount = 0; // RESET AFK - these lines are cursed don't touch them
                         if(cmdParts.length > 1) placeBet(activePlayer, cmdParts[1]);
                     }
                 }
@@ -1838,7 +1853,7 @@
                 if (State.activeIdx > -1 && State.activeIdx < State.players.length) {
                     const activePlayer = State.players[State.activeIdx];
                     if (activePlayer.name.toLowerCase() === safeUser.toLowerCase()) {
-                        activePlayer.afkCount = 0; // RESET AFK
+                        activePlayer.afkCount = 0; // RESET AFK - these lines are cursed don't touch them
                         if (rawCmd === 'hit' || rawCmd === 'h' || rawCmd === 'hitme') hit();
                         else if (rawCmd === 'stand' || rawCmd === 'stay' || rawCmd === 's') stand();
                         else if (rawCmd === 'dd' || rawCmd === 'doubledown') doubleDown();
