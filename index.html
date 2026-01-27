@@ -1393,20 +1393,24 @@
             nextTurn();
         }
 		
- function nextTurn() {
+function nextTurn() {
     clearInterval(State.timers.turn);
     
-    // GUARD: If no players left in the game, abort and reset to lobby
+    // 1. PHASE CHECK: If we aren't in PLAYING phase, stop all turn logic immediately
+    if (State.phase !== 'PLAYING') {
+        console.log("NextTurn called but phase is not PLAYING. Aborting.");
+        return;
+    }
+
+    // 2. EMPTY ROOM CHECK
     if (State.players.length === 0) {
-        console.log("No players left. Aborting game.");
-        clearInterval(State.timers.lobby);
         State.phase = 'BOOT';
         updateTopMsg("LOBBY OPEN");
         startLobby();
         return;
     }
 
-    // Check if the current player has more hands (for splits)
+    // Handle Split hands
     if(State.activeIdx !== -1) {
         const currentP = State.players[State.activeIdx];
         if(currentP && currentP.activeHandIndex < currentP.hands.length - 1) {
@@ -1418,10 +1422,9 @@
         }
     }
 
-    // Move to next player
     State.activeIdx++;
     
-    // If we've gone through everyone, dealer plays
+    // 3. DEALER TRANSITION
     if(State.activeIdx >= State.players.length) { 
         runDealer(); 
         return; 
@@ -1429,21 +1432,22 @@
     
     const p = State.players[State.activeIdx];
     
-    // SAFETY: If the player disappeared or is invalid, skip to next
-    if (!p) {
+    // 4. VALIDITY CHECK: If player is missing or was removed, skip to next index
+    if (!p || !p.dom || !document.body.contains(p.dom)) {
+        console.log("Encountered ghost player at index " + State.activeIdx + ". Skipping...");
         nextTurn();
         return;
     }
 
     p.activeHandIndex = 0; 
     
-    // If the player is already bust/blackjack, skip them
+    // Skip if not playing (Bust/Blackjack)
     if(p.hands[0].status !== 'playing') { 
         nextTurn(); 
         return; 
     }
     
-    // ANNOUNCE TURN: Only happens if the player is valid
+    // 5. CHAT ANNOUNCEMENT: Only happens if player is 100% verified
     const currentScore = p.hands[0].score;
     let msg = `@${p.name} it is your turn! Showing a ${currentScore}`;
     if(!State.firstTurnAnnounced) {
@@ -1656,91 +1660,101 @@
 		}
 
         function payouts() {
-			
-            const ds = State.dealer.score; const db = ds > 21;
-			
-			 // 1. Process AFK Strikes BEFORE payouts
-				State.players.forEach(p => {
-					if (!p.hasActed) {
-						p.afkCount = (p.afkCount || 0) + 1;
-						console.log(`[AFK STRIKE] ${p.name} did not act. Total Strikes: ${p.afkCount}`);
-					} else {
-						p.afkCount = 0;
-					}
-					// Sync to history
-					const hist = chipHistory.get(p.name.toLowerCase());
-					if (hist) hist.afkCount = p.afkCount;
-				});
-			
-            const notificationQueue = [];
-            let chatReport = "";
+    // 1. PHASE LOCK: Ensure we don't run payouts twice or if the room is empty
+    if (State.phase !== 'RESULT' || State.players.length === 0) return;
 
-            State.players.forEach(p => {
-                let totalWin = 0;
-                p.hands.forEach(h => {
-                    if(h.status === 'bust') return;
-                    let w = 0;
-                    if(h.status === 'blackjack') w = Math.floor(h.bet * 2.5);
-                    else if(db || h.score > ds) w = h.bet * 2;
-                    else if(h.score === ds) w = h.bet; 
-                    if(w > 0) {
-                        p.chips += w; State.house -= w;
-                        totalWin += w;
-                    }
-                });
-                
-                const hist = chipHistory.get(p.name.toLowerCase());
-                if(hist) hist.chips = p.chips;
-                
-                if(totalWin > 0) notificationQueue.push({ type: 'win', text: `PAYING ${totalWin} TO ${p.name}`, amt: totalWin, dom: p.dom });
-                if(totalWin > 0) chatReport += `${p.name} won ${totalWin}. `;
-            });
-            
-            if(chatReport) sendTwitchChatMessage(chatReport);
-
-            State.players = State.players.filter(p => { 
-                if(p.chips <= 0) {
-                    const safeName = p.name.toLowerCase();
-                    notificationQueue.push({ type: 'bust', text: `${p.name} goes bust 😭` });
-                    cooldowns.set(safeName, Date.now() + 30000); 
-                    chipHistory.set(safeName, { chips: 0, time: Date.now(), flair: p.flair });
-                    p.dom.classList.add('leaving');
-                    setTimeout(() => p.dom.remove(), 2000);
-                    return false;
-                } 
-                return true; 
-            });
-            updateUI();
-            
-            if(notificationQueue.length === 0) {
-                updateTopMsg("HOUSE WINS ALL");
-                // Check if anyone left
-                if (State.players.length === 0) {
-                    setTimeout(startLobby, 2000);
-                } else {
-                    setTimeout(showLeaderboard, 2000);
-                    setTimeout(startLobby, 8000);
-                }
-            } else {
-                let i = 0;
-                const payCycle = setInterval(() => {
-                    if(i >= notificationQueue.length) { 
-                        clearInterval(payCycle); 
-                        showLeaderboard();
-                        setTimeout(startLobby, 6000); 
-                        return; 
-                    }
-                    const item = notificationQueue[i];
-                    updateTopMsg(item.text);
-                    if(item.type === 'win') {
-                        const r = item.dom.getBoundingClientRect();
-                        const pCount = Math.min(item.amt, 350); 
-                        for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
-                    }
-                    i++;
-                }, 2000);
-            }
+    const ds = State.dealer.score; 
+    const db = ds > 21;
+    
+    // 2. AFK Strike Processing (with safety zero)
+    State.players.forEach(p => {
+        if (!p.hasActed) {
+            p.afkCount = (p.afkCount || 0) + 1;
+        } else {
+            p.afkCount = 0;
         }
+        const hist = chipHistory.get(p.name.toLowerCase());
+        if (hist) hist.afkCount = p.afkCount;
+    });
+
+    const notificationQueue = [];
+    let chatReport = "";
+
+    // 3. Winning Calculation
+    State.players.forEach(p => {
+        // VALIDITY CHECK: Only pay players who actually have a DOM element in the arena
+        if (!p.dom || !document.body.contains(p.dom)) return;
+
+        let totalWin = 0;
+        p.hands.forEach(h => {
+            if(h.status === 'bust') return;
+            let w = 0;
+            if(h.status === 'blackjack') w = Math.floor(h.bet * 2.5);
+            else if(db || h.score > ds) w = h.bet * 2;
+            else if(h.score === ds) w = h.bet; 
+            
+            if(w > 0) {
+                p.chips += w; 
+                State.house -= w;
+                totalWin += w;
+            }
+        });
+        
+        const hist = chipHistory.get(p.name.toLowerCase());
+        if(hist) hist.chips = p.chips;
+        
+        if(totalWin > 0) {
+            notificationQueue.push({ type: 'win', text: `PAYING ${totalWin} TO ${p.name}`, amt: totalWin, dom: p.dom, name: p.name });
+            chatReport += `${p.name} won ${totalWin}. `;
+        }
+    });
+    
+    if(chatReport) sendTwitchChatMessage(chatReport);
+
+    // 4. Clean up broken players
+    State.players = State.players.filter(p => { 
+        if(p.chips <= 0) {
+            const safeName = p.name.toLowerCase();
+            notificationQueue.push({ type: 'bust', text: `${p.name} goes bust 😭` });
+            cooldowns.set(safeName, Date.now() + 30000); 
+            if (p.dom) p.dom.classList.add('leaving');
+            setTimeout(() => { if(p.dom) p.dom.remove(); }, 2000);
+            return false;
+        } 
+        return true; 
+    });
+
+    updateUI();
+    
+    // 5. Sequence Animations
+    if(notificationQueue.length === 0) {
+        updateTopMsg("HOUSE WINS ALL");
+        setTimeout(showLeaderboard, 2000);
+        setTimeout(startLobby, 8000);
+    } else {
+        let i = 0;
+        const payCycle = setInterval(() => {
+            // Safety: if the game was reset or shifted during this interval, stop.
+            if(i >= notificationQueue.length || State.phase !== 'RESULT') { 
+                clearInterval(payCycle); 
+                showLeaderboard();
+                setTimeout(startLobby, 6000); 
+                return; 
+            }
+
+            const item = notificationQueue[i];
+            updateTopMsg(item.text);
+
+            // Double check player DOM still exists before spawning particles
+            if(item.type === 'win' && item.dom && document.body.contains(item.dom)) {
+                const r = item.dom.getBoundingClientRect();
+                const pCount = Math.min(item.amt, 150); 
+                for(let k=0; k<pCount; k++) particles.push(new Particle(r.left + 100, r.top + 50));
+            }
+            i++;
+        }, 2000);
+    }
+}
 
         function updateTopMsg(t) {
             const el = document.getElementById('top-message');
@@ -1912,7 +1926,7 @@
     if (idx !== -1) {
         const p = State.players[idx];
         
-        // Save current progress to history
+        // Save history
         chipHistory.set(p.name.toLowerCase(), { 
             chips: p.chips, 
             time: Date.now(), 
@@ -1922,32 +1936,34 @@
         
         if(!skipCooldown) cooldowns.delete(p.name.toLowerCase());
 
-        // Remove from UI
+        // Remove from UI immediately
         if(p.dom) {
             p.dom.classList.add('leaving'); 
-            setTimeout(() => p.dom.remove(), 1000);
+            // We use a small timeout for the animation, but we set dom to null 
+            // to prevent the bot from finding it during turns.
+            const tempDom = p.dom;
+            setTimeout(() => tempDom.remove(), 1000);
         } 
 
-        // logic to handle turn switching if the active player leaves
+        // Handle Active Turn logic
         if (State.phase === 'PLAYING') {
             if (idx === State.activeIdx) {
-                clearInterval(State.timers.turn); // Stop the physical timer bar
+                console.log("Active player leaving. Clearing turn timers.");
+                clearInterval(State.timers.turn);
                 State.activeIdx--; 
-                // Wait slightly for the animation before moving to the next turn
                 setTimeout(nextTurn, 500); 
             } 
             else if (idx < State.activeIdx) {
-                // Adjust index so the "active" highlight doesn't jump to the wrong person
                 State.activeIdx--;
             }
         }
 
+        // Actually remove from the data array
         State.players.splice(idx, 1); 
         updateUI();
         
-        // CRITICAL FIX: If no players left, reset EVERYTHING to prevent "ghost" turn messages
+        // Reset to BOOT if empty
         if (State.players.length === 0) {
-            console.log("Last player left. Resetting system.");
             clearInterval(State.timers.lobby);
             clearInterval(State.timers.turn);
             State.phase = 'BOOT';
