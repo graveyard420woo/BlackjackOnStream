@@ -1175,15 +1175,13 @@
 				savedAFK = history.afkCount || 0; // Load saved AFK
             }
             
-            let defaultBet = 10;
-            if (savedChips < 10) defaultBet = savedChips;
-            savedChips -= defaultBet;
+            
             
             const pObj = { 
 				userId: userId, // Store this for tracking
 				name: name, 
 				chips: savedChips, 
-				currentBet: defaultBet,
+				currentBet: 0,
 				hands: [{ cards: [], bet: defaultBet, score: 0, status: 'waiting' }], 
 				activeHandIndex: 0,
 				dom: div, 
@@ -1195,6 +1193,14 @@
 
             pObj.floater = new Floater(div, pObj);
             State.players.push(pObj);
+			
+			if (State.phase === 'LOBBY') {
+				let ante = Math.min(10, pObj.chips);
+				pObj.chips -= ante;
+				pObj.currentBet = ante;
+				pObj.hands[0].bet = ante;
+			}
+			
             updateUI();
 
             if(State.players.length === 1 && State.phase === 'LOBBY') { startLobby(); }
@@ -1268,11 +1274,15 @@
 		
 			// 3. INITIALIZE PLAYER BETS FOR THIS ROUND
 			State.players.forEach(p => {
+         // Return current bet to chips before resetting (prevents losing chips to the void)
+				 p.chips += p.currentBet;
 				 p.currentBet = 0;
+		
+				 // Take standard 10 chip ante
 				 let defaultBet = Math.min(10, p.chips);
 				 p.chips -= defaultBet;
 				 p.currentBet = defaultBet;
-				 p.hands[0].bet = defaultBet; 
+				 p.hands[0] = { cards: [], bet: defaultBet, score: 0, status: 'playing' };
 			});
 		
 			State.phase = 'LOBBY'; 
