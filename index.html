@@ -1098,113 +1098,97 @@
         }
 
 		function addPlayer(userId, name, color, badgeData = []) {
-					
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
 					sendTwitchChatMessage(`@${name} is out paying off their debts for ${remaining} more seconds.`);
 					return;
-				} else {
-                    cooldowns.delete(name.toLowerCase());
-                }
+				} else { cooldowns.delete(name.toLowerCase()); }
 			}
-            
-            if(State.phase === 'PLAYING' || State.players.length >= CONFIG.MAX_PLAYERS) {
-                if(!State.joinQueue.some(q => q.name === name) && !State.players.some(p => p.name === name)) {
-                    State.joinQueue.push({ userId, name, color, badgeData });
-                    updateQueueUI();
-                }
-                return;
-            }
-
-            if(State.players.some(p => p.name === name)) return;
-
-            const glowColor = color || '#ff0055';
-            const div = document.createElement('div');
-            div.className = 'player-unit joining'; 
-            div.style.setProperty('--player-glow', glowColor);
-            
-            let badgeHTML = '';
-            if(badgeData && badgeData.length) {
-                const totalBadges = badgeData.length;
-                const startAngle = -60; 
-                const endAngle = 60;
-                const radius = 35; 
-                
-                badgeData.forEach((b, idx) => {
-                    const set = badgeCache.get(b.set_id);
-                    if(set) {
-                        const version = set.find(v => v.id === b.id);
-                        if(version) {
-                            let angle = 0;
-                            if (totalBadges > 1) {
-                                angle = startAngle + (idx * ((endAngle - startAngle) / (totalBadges - 1)));
-                            }
-                            badgeHTML += `<img class="twitch-badge" src="${version.image_url_2x}" style="transform: rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg);">`;
-                        }
-                    }
-                });
-            }
-
-            div.innerHTML = `
-                <div class="player-header">
-                    <div class="flair-container"></div>
-                    <div class="avatar-wrapper">
-                        <div class="badge-container">${badgeHTML}</div>
-                        <img class="player-avatar" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
-                    </div>
-                </div>
-                <div class="chip-box">
-                    <div class="chip-display"></div>
-                    <div class="bet-display"></div>
-                </div>
-                <div class="player-name" style="color:${glowColor}">${name}</div>
-                <div class="hand-wrapper"></div>
-                <div class="timer-container"><div class="timer-fill"></div></div>
-            `;
-            document.getElementById('arena').appendChild(div);
-            fetchUserProfile(userId, div);
+			
+			if(State.phase === 'PLAYING' || State.players.length >= CONFIG.MAX_PLAYERS) {
+				if(!State.joinQueue.some(q => q.name === name) && !State.players.some(p => p.name === name)) {
+					State.joinQueue.push({ userId, name, color, badgeData });
+					updateQueueUI();
+				}
+				return;
+			}
+		
+			if(State.players.some(p => p.name === name)) return;
+		
+			const glowColor = color || '#ff0055';
+			const div = document.createElement('div');
+			div.className = 'player-unit joining'; 
+			div.style.setProperty('--player-glow', glowColor);
+			
+			// ... [Keep the Badge HTML generation logic here] ...
+			let badgeHTML = '';
+			if(badgeData && badgeData.length) {
+				const totalBadges = badgeData.length;
+				const startAngle = -60; const endAngle = 60; const radius = 35; 
+				badgeData.forEach((b, idx) => {
+					const set = badgeCache.get(b.set_id);
+					if(set) {
+						const version = set.find(v => v.id === b.id);
+						if(version) {
+							let angle = (totalBadges > 1) ? startAngle + (idx * ((endAngle - startAngle) / (totalBadges - 1))) : 0;
+							badgeHTML += `<img class="twitch-badge" src="${version.image_url_2x}" style="transform: rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg);">`;
+						}
+					}
+				});
+			}
+		
+			div.innerHTML = `
+				<div class="player-header">
+					<div class="flair-container"></div>
+					<div class="avatar-wrapper">
+						<div class="badge-container">${badgeHTML}</div>
+						<img class="player-avatar" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
+					</div>
+				</div>
+				<div class="chip-box">
+					<div class="chip-display"></div>
+					<div class="bet-display"></div>
+				</div>
+				<div class="player-name" style="color:${glowColor}">${name}</div>
+				<div class="hand-wrapper"></div>
+				<div class="timer-container"><div class="timer-fill"></div></div>
+			`;
+			
+			document.getElementById('arena').appendChild(div);
+			fetchUserProfile(userId, div);
 			
 			const history = chipHistory.get(name.toLowerCase());
-			let savedChips = CONFIG.START_CHIPS;
-            let savedFlair = [];
-			let savedAFK = 0;
-            if (history && (Date.now() - history.time) < 180000000000) {
-                savedChips = history.chips <= 0 ? 69 : history.chips;
-                savedFlair = history.flair || [];
-				savedAFK = history.afkCount || 0; // Load saved AFK
-            }
-            
-            
-            
-            const pObj = { 
-				userId: userId, // Store this for tracking
-				name: name, 
-				chips: savedChips, 
-				currentBet: 0,
-				hands: [{ cards: [], bet: defaultBet, score: 0, status: 'waiting' }], 
-				activeHandIndex: 0,
-				dom: div, 
-				timerPct: 0, 
-				flair: savedFlair,
-				afkCount: savedAFK, // Use saved value
-        		hasActed: false     // We will use this flag to check activity
-			};
-
-            pObj.floater = new Floater(div, pObj);
-            State.players.push(pObj);
+			let savedChips = (history && (Date.now() - history.time) < 180000000000) ? (history.chips <= 0 ? 69 : history.chips) : CONFIG.START_CHIPS;
 			
+			const pObj = { 
+				userId, name, chips: savedChips, currentBet: 0,
+				hands: [{ cards: [], bet: 0, score: 0, status: 'waiting' }], 
+				activeHandIndex: 0, dom: div, timerPct: 0, 
+				flair: (history ? history.flair : []),
+				afkCount: (history ? history.afkCount : 0),
+				hasActed: false
+			};
+		
+			pObj.floater = new Floater(div, pObj);
+			State.players.push(pObj);
+		
+			// Take ante immediately if we are already in lobby
 			if (State.phase === 'LOBBY') {
 				let ante = Math.min(10, pObj.chips);
 				pObj.chips -= ante;
 				pObj.currentBet = ante;
 				pObj.hands[0].bet = ante;
+				pObj.hands[0].status = 'playing';
 			}
+		
+			updateUI();
 			
-            updateUI();
-
-            if(State.players.length === 1 && State.phase === 'LOBBY') { startLobby(); }
-        }
+			// Crucial fix: Trigger startLobby ONLY if it's the very first player joining a fresh room
+			if(State.players.length === 1 && State.phase === 'BOOT') { 
+				startLobby(); 
+			}
+		}
 
         function updateQueueUI() {
             const el = document.getElementById('queue-display');
@@ -1244,48 +1228,36 @@
         function stopSubMessage() { clearInterval(subMsgInterval); document.getElementById('sub-message').classList.remove('visible'); }
 
         function startLobby() {
+			State.phase = 'LOBBY'; 
 			console.log("--- LOBBY STARTING ---");
-			
-			while(State.leaveQueue.length > 0) {
-				const nameToRemove = State.leaveQueue.shift();
-				removePlayer(nameToRemove, true);
-			}
-
-			// 1. Remove players who hit the limit in the round that just ended
+		
+			while(State.leaveQueue.length > 0) { removePlayer(State.leaveQueue.shift(), true); }
+		
 			for (let i = State.players.length - 1; i >= 0; i--) {
 				const p = State.players[i];
 				if (p.afkCount >= 5) {
-					console.log(`[AFK KICK] ${p.name} removed.`);
 					sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
 					removePlayer(p.name, true);
-				} else {
-					// Very important: reset this for the NEW round
-					p.hasActed = false; 
-				}
+				} else { p.hasActed = false; }
 			}
-
 		
-			// 2. PROCESS JOIN QUEUE
 			while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
 				const p = State.joinQueue.shift();
 				addPlayer(p.userId, p.name, p.color, p.badgeData);
 			}
 			updateQueueUI();
 		
-			// 3. INITIALIZE PLAYER BETS FOR THIS ROUND
+			// Reset bets for the new round
 			State.players.forEach(p => {
-         // Return current bet to chips before resetting (prevents losing chips to the void)
+				 // Return current bet to chips so it's not lost
 				 p.chips += p.currentBet;
-				 p.currentBet = 0;
-		
-				 // Take standard 10 chip ante
-				 let defaultBet = Math.min(10, p.chips);
-				 p.chips -= defaultBet;
-				 p.currentBet = defaultBet;
-				 p.hands[0] = { cards: [], bet: defaultBet, score: 0, status: 'playing' };
+				 
+				 let ante = Math.min(10, p.chips);
+				 p.chips -= ante;
+				 p.currentBet = ante;
+				 p.hands = [{ cards: [], bet: ante, score: 0, status: 'playing' }];
 			});
 		
-			State.phase = 'LOBBY'; 
 			State.timers.lobbyVal = CONFIG.LOBBY_TIME;
 			startSubMessage();
 			updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`); 
