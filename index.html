@@ -709,17 +709,35 @@
 		const chipHistory = new Map();
         const afkTracker = new Map(); // Track consecutive games without action
         const badgeCache = new Map(); // Store badge URL maps
-		
-		const myBigAssDiv = document.getElementById('bigcontainer1');
-		  setTimeout(() => {
-			myBigAssDiv.classList.remove('initial-fade');
-			myBigAssDiv.classList.add('visible-fade');
-			document.getElementById("arena").style.display = "none";
-			document.getElementById("ui-layer").style.display = "none";
-		  }, 1000);
 
 		  document.getElementById('authorize').setAttribute('href', 'https://id.twitch.tv/oauth2/authorize?client_id=' + client_id + '&redirect_uri=' + encodeURIComponent(redirect) + '&response_type=token&scope=moderator:read:chatters+moderator:read:followers+user:read:chat+user:write:chat+bits:read');
 
+
+		function toggleGameView(showGame) {
+			const landingPage = document.getElementById('bigcontainer1');
+			const gameArena = document.getElementById('arena');
+			const uiLayer = document.getElementById('ui-layer');
+		
+			if (showGame) {
+				landingPage.style.display = "none";
+				gameArena.style.display = "block";
+				uiLayer.style.display = "block";
+			} else {
+				landingPage.style.display = "block";
+				landingPage.classList.add('visible-fade');
+				gameArena.style.display = "none";
+				uiLayer.style.display = "none";
+			}
+		}
+		
+		// Check on page load: If no token in URL, show landing page immediately.
+		// If there IS a token, keep it hidden (loading state) until socket connects.
+		window.addEventListener('DOMContentLoaded', () => {
+			if (!window.location.hash || !window.location.hash.includes('access_token')) {
+				toggleGameView(false);
+			}
+		});
+		
         // Audio Context for Procedural SFX
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(type) {
@@ -776,6 +794,7 @@
                         log(`Connected to WebSocket with ${id}`);
                         session_id = id;
                         my_user_id = resp.data[0].id;
+						toggleGameView(true);
 						fetchEmotes(my_user_id);
                         fetchGlobalBadges();
                         fetchChannelBadges(my_user_id);
@@ -859,11 +878,6 @@
                     if (resp.error) log(`Error ${type}: ${resp.message}`);
                     else {
                         log(`Created ${type}`);
-                        // Force transition on hook creation
-						document.getElementById("bigcontainer").style.display = "none";
-						document.getElementById("bigcontainer1").style.display = "none";
-						document.getElementById("arena").style.display = "block";
-						document.getElementById("ui-layer").style.display = "block";
                     }
                 })
                 .catch(err => { console.log(err); });
@@ -1237,7 +1251,7 @@
 				console.log(`[AFK KICK] ${p.name} removed.`);
 				
 				// RE-ADD THIS LINE:
-				sendTwitchChatMessage(`@${p.name} was removed for inactivity. (5 rounds no action)`);
+				sendTwitchChatMessage(`@${p.name} removed for inactivity`);
 				
 				removePlayer(p.name, true); // true skips the debt cooldown
 			} else { 
