@@ -1071,11 +1071,14 @@
                 <div class="card-corner bottom">${card.face}<br>${card.suit}</div></div>`;
         }
 		
-		function markPlayerActive(username) {
+		function humanActivityDetected(username) {
 			const p = State.players.find(player => player.name.toLowerCase() === username.toLowerCase());
 			if (p) {
-				p.hasActed = true; // They did something!
-				p.afkCount = 0;    // Clear their strikes
+				p.hasActed = true; 
+				p.afkCount = 0;
+				// Update history immediately
+				const hist = chipHistory.get(username.toLowerCase());
+				if (hist) hist.afkCount = 0;
 			}
 		}
 
@@ -1224,14 +1227,16 @@
         function startLobby() {
 			console.log("--- LOBBY STARTING ---");
 
-			// 1. CLEAR STRIKE OUTS
+			// 1. Remove players who hit the limit in the round that just ended
 			for (let i = State.players.length - 1; i >= 0; i--) {
 				const p = State.players[i];
 				if (p.afkCount >= 5) {
+					console.log(`[AFK KICK] ${p.name} removed.`);
 					sendTwitchChatMessage(`@${p.name} removed for inactivity.`);
 					removePlayer(p.name, true);
 				} else {
-					p.hasActed = false; // Reset the flag for the new round
+					// Very important: reset this for the NEW round
+					p.hasActed = false; 
 				}
 			}
 
@@ -1313,11 +1318,6 @@
         function startGame() {
             State.phase = 'PLAYING'; State.deck = createDeck(); State.dealer = { hand: [], score: 0 };
             State.firstTurnAnnounced = false; 
-			
-			State.players.forEach(p => {
-			p.afkCount = (p.afkCount || 0) + 1;
-			console.log(`[AFK Check] ${p.name} is now at ${p.afkCount}`);
-		});
 			
 			setTimeout(() => { updateTopMsg(" "); stopSubMessage(); }, 2000);
 
@@ -1545,18 +1545,22 @@
         }
 
         function payouts() {
-			State.players.forEach(p => {
-				if (!p.hasActed) {
-					p.afkCount = (p.afkCount || 0) + 1;
-					console.log(`[AFK Strike] ${p.name} now has ${p.afkCount} strikes.`);
-				} else {
-					p.afkCount = 0; // Reset
-				}
-				// Save to history so it persists across refreshes/leaves
-				const hist = chipHistory.get(p.name.toLowerCase());
-				if (hist) hist.afkCount = p.afkCount;
-			});
+			
             const ds = State.dealer.score; const db = ds > 21;
+			
+			 // 1. Process AFK Strikes BEFORE payouts
+				State.players.forEach(p => {
+					if (!p.hasActed) {
+						p.afkCount++;
+						console.log(`[AFK STRIKE] ${p.name} did not act. Total Strikes: ${p.afkCount}`);
+					} else {
+						p.afkCount = 0;
+					}
+					// Sync to history
+					const hist = chipHistory.get(p.name.toLowerCase());
+					if (hist) hist.afkCount = p.afkCount;
+				});
+			
             const notificationQueue = [];
             let chatReport = "";
 
@@ -1807,9 +1811,9 @@
             
             const safeUser = username.trim();
 			
-			const manualCommands = ['join', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
-			if (manualCommands.includes(rawCmd)) {
-				markPlayerActive(safeUser);
+			const validCmds = ['join', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
+			if (validCmds.includes(rawCmd)) {
+				humanActivityDetected(safeUser);
 			}
 
             if (State.phase === 'LOBBY') {
