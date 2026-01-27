@@ -1380,38 +1380,66 @@
         }
 		
  function nextTurn() {
-            clearInterval(State.timers.turn);
-            
-            if(State.activeIdx !== -1) {
-                const currentP = State.players[State.activeIdx];
-                if(currentP && currentP.activeHandIndex < currentP.hands.length - 1) {
-                    currentP.activeHandIndex++;
-                    if(currentP.hands[currentP.activeHandIndex].status === 'playing') {
-                         startTurnTimer(currentP);
-                         return;
-                    }
-                }
-            }
+    clearInterval(State.timers.turn);
+    
+    // GUARD: If no players left in the game, abort and reset to lobby
+    if (State.players.length === 0) {
+        console.log("No players left. Aborting game.");
+        clearInterval(State.timers.lobby);
+        State.phase = 'BOOT';
+        updateTopMsg("LOBBY OPEN");
+        startLobby();
+        return;
+    }
 
-            State.activeIdx++;
-            if(State.activeIdx >= State.players.length) { runDealer(); return; }
-            
-            const p = State.players[State.activeIdx];
-            p.activeHandIndex = 0; 
-            
-            if(p.hands[0].status !== 'playing') { nextTurn(); return; }
-            
-            // Dealer Chat Logic Updated
-            const currentScore = p.hands[0].score;
-            let msg = `@${p.name} it is your turn! Showing a ${currentScore}`;
-            if(!State.firstTurnAnnounced) {
-                msg += " hit, stand, dd, or split.";
-                State.firstTurnAnnounced = true;
+    // Check if the current player has more hands (for splits)
+    if(State.activeIdx !== -1) {
+        const currentP = State.players[State.activeIdx];
+        if(currentP && currentP.activeHandIndex < currentP.hands.length - 1) {
+            currentP.activeHandIndex++;
+            if(currentP.hands[currentP.activeHandIndex].status === 'playing') {
+                 startTurnTimer(currentP);
+                 return;
             }
-            sendTwitchChatMessage(msg);
-            
-            startTurnTimer(p);
         }
+    }
+
+    // Move to next player
+    State.activeIdx++;
+    
+    // If we've gone through everyone, dealer plays
+    if(State.activeIdx >= State.players.length) { 
+        runDealer(); 
+        return; 
+    }
+    
+    const p = State.players[State.activeIdx];
+    
+    // SAFETY: If the player disappeared or is invalid, skip to next
+    if (!p) {
+        nextTurn();
+        return;
+    }
+
+    p.activeHandIndex = 0; 
+    
+    // If the player is already bust/blackjack, skip them
+    if(p.hands[0].status !== 'playing') { 
+        nextTurn(); 
+        return; 
+    }
+    
+    // ANNOUNCE TURN: Only happens if the player is valid
+    const currentScore = p.hands[0].score;
+    let msg = `@${p.name} it is your turn! Showing a ${currentScore}`;
+    if(!State.firstTurnAnnounced) {
+        msg += " hit, stand, dd, or split.";
+        State.firstTurnAnnounced = true;
+    }
+    sendTwitchChatMessage(msg);
+    
+    startTurnTimer(p);
+}
 
         function startTurnTimer(p) {
             let ticks = 0; const max = CONFIG.TURN_TIME * 20; updateUI(); 
@@ -1571,24 +1599,47 @@
         }
 
 		async function runDealer() {
-            State.phase = 'RESULT'; updateUI(); await new Promise(r => setTimeout(r, 1000));
-            
-            while(true) {
-                let activeHands = [];
-                State.players.forEach(p => p.hands.forEach(h => { if(h.status !== 'bust') activeHands.push(h); }));
-                const topScore = Math.max(...activeHands.map(h => h.score), 0);
-                
-                if (State.dealer.score >= 17) break;
-                if (activeHands.length > 0 && State.dealer.score > topScore) break;
-                
-                State.dealer.hand.push(State.deck.pop()); 
-                State.dealer.score = calculateScore(State.dealer.hand);
-                playSfx('deal');
-                updateUI(); 
-                await new Promise(r => setTimeout(r, 1000));
-            }
-            payouts();
-        }
+			// If no one is in the game, don't even start dealer logic
+			if (State.players.length === 0) {
+				State.phase = 'BOOT';
+				startLobby();
+				return;
+			}
+		
+			State.phase = 'RESULT'; 
+			updateUI(); 
+			await new Promise(r => setTimeout(r, 1000));
+			
+			while(true) {
+				// Double check room status during dealer loops
+				if (State.players.length === 0) break;
+		
+				let activeHands = [];
+				State.players.forEach(p => p.hands.forEach(h => { 
+					if(h.status !== 'bust') activeHands.push(h); 
+				}));
+		
+				const topScore = Math.max(...activeHands.map(h => h.score), 0);
+				
+				// Dealer stops if over 17 or beats everyone
+				if (State.dealer.score >= 17) break;
+				if (activeHands.length > 0 && State.dealer.score > topScore) break;
+				
+				State.dealer.hand.push(State.deck.pop()); 
+				State.dealer.score = calculateScore(State.dealer.hand);
+				playSfx('deal');
+				updateUI(); 
+				await new Promise(r => setTimeout(r, 1000));
+			}
+			
+			// Only proceed to payouts if there are still players
+			if (State.players.length > 0) {
+				payouts();
+			} else {
+				State.phase = 'BOOT';
+				startLobby();
+			}
+		}
 
         function payouts() {
 			
@@ -1843,47 +1894,54 @@
         animate();
 		
 		function removePlayer(name, skipCooldown = false) {
-			const idx = State.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
-			if (idx !== -1) {
-				const p = State.players[idx];
-				 chipHistory.set(p.name.toLowerCase(), { 
-					chips: p.chips, 
-					time: Date.now(), 
-					flair: p.flair, 
-					afkCount: p.afkCount || 0 
-				});
-				
-				if(!skipCooldown) cooldowns.delete(p.name.toLowerCase());
-		
-				if(p.dom) {
-					p.dom.classList.add('leaving'); 
-					setTimeout(() => p.dom.remove(), 1000);
-				} 
-		
-				if (State.phase === 'PLAYING') {
-					if (idx === State.activeIdx) {
-						clearInterval(State.timers.turn);
-						State.activeIdx--; 
-						setTimeout(nextTurn, 500);
-					} 
-					else if (idx < State.activeIdx) {
-						State.activeIdx--;
-					}
-				}
-		
-				State.players.splice(idx, 1); 
-				updateUI();
-				
-				// If the room is now empty, reset to BOOT so the next !join works instantly
-				if (State.players.length === 0) {
-					clearInterval(State.timers.lobby);
-					clearInterval(State.timers.turn);
-					State.phase = 'BOOT';
-					updateTopMsg("LOBBY OPEN");
-					startSubMessage();
-				}
-			}
-		}
+    const idx = State.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+    if (idx !== -1) {
+        const p = State.players[idx];
+        
+        // Save current progress to history
+        chipHistory.set(p.name.toLowerCase(), { 
+            chips: p.chips, 
+            time: Date.now(), 
+            flair: p.flair,
+            afkCount: p.afkCount || 0
+        });
+        
+        if(!skipCooldown) cooldowns.delete(p.name.toLowerCase());
+
+        // Remove from UI
+        if(p.dom) {
+            p.dom.classList.add('leaving'); 
+            setTimeout(() => p.dom.remove(), 1000);
+        } 
+
+        // logic to handle turn switching if the active player leaves
+        if (State.phase === 'PLAYING') {
+            if (idx === State.activeIdx) {
+                clearInterval(State.timers.turn); // Stop the physical timer bar
+                State.activeIdx--; 
+                // Wait slightly for the animation before moving to the next turn
+                setTimeout(nextTurn, 500); 
+            } 
+            else if (idx < State.activeIdx) {
+                // Adjust index so the "active" highlight doesn't jump to the wrong person
+                State.activeIdx--;
+            }
+        }
+
+        State.players.splice(idx, 1); 
+        updateUI();
+        
+        // CRITICAL FIX: If no players left, reset EVERYTHING to prevent "ghost" turn messages
+        if (State.players.length === 0) {
+            console.log("Last player left. Resetting system.");
+            clearInterval(State.timers.lobby);
+            clearInterval(State.timers.turn);
+            State.phase = 'BOOT';
+            updateTopMsg("LOBBY OPEN");
+            startSubMessage();
+        }
+    }
+}
 
         window.twitchCommand = (userId, username, command, color, badges) => {
             const cmdParts = command.trim().split(' ');
