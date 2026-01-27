@@ -1,5 +1,5 @@
+<img width="635" height="103" alt="logotag2" src="https://github.com/user-attachments/assets/beee31dc-5433-432a-af64-75d41fbfa48d" />
 
-<img width="622" height="115" alt="logotag" src="https://github.com/user-attachments/assets/ef2804c5-9815-4413-8c9c-f23fe727267b" />
 <h2>Blackjack On Stream</h2><h3> by graveyard420woo</h3>
 
 https://graveyard420woo.github.io/BlackjackOnStream/
@@ -14,14 +14,14 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
 
 <h3>Commands</h3>
 <ul>
- <li>!join</li>
- <li>!leave</li>
- <li>!hit (!hitme !h)</li>
- <li>!stand (!stay !s)</li>
- <li>!doubledown (!dd)</li>
- <li>!split (then hit or stay on each hand)</li>
- <li>!bet [amount]</li>
- <li>Look out for !buy items!</li>
+ <li><strong>!join</strong></li>
+ <li><strong>!leave</strong></li>
+ <li><strong>!hit</strong> (!hitme !h)</li>
+ <li><strong>!stand</strong> (!stay !s)</li>
+ <li><strong>!doubledown</strong> (!dd)</li>
+ <li><strong>!split</strong> (then hit or stay on each hand)</li>
+ <li><strong>!bet</strong> [amount]</li>
+ <li>Look out for <strong>!buy</strong> items! <br>Emotes will be drawn in from your connected twitch channel and added to the buy items pool in addition to some other emoji and emotes.. (; See how many you and your chatters can collect!</li>
 </ul>
 
 Command exclamation points (!) are always optional. Players may simply type join or hit or h or dd etc...
