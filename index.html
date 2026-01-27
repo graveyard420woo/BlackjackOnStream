@@ -1167,7 +1167,7 @@
 				hands: [{ cards: [], bet: 0, score: 0, status: 'waiting' }], 
 				activeHandIndex: 0, dom: div, timerPct: 0, 
 				flair: (history ? history.flair : []),
-				afkCount: (history ? history.afkCount : 0),
+				afkCount: (history && typeof history.afkCount === 'number') ? history.afkCount : 0,
 				hasActed: false
 			};
 		
@@ -1202,7 +1202,7 @@
 				el.innerHTML = text; // Changed to innerHTML to support the <br>
 			}
 
-        const subMsgs = [ "USE !JOIN TO ENTER", "USE !BET [AMT] IN LOBBY", "USE !HIT OR !STAND", "USE !DD TO DOUBLE DOWN", "!SPLIT PAIRS" ];
+        const subMsgs = [ "USE !JOIN TO ENTER", "USE !BET [AMT] IN LOBBY", "USE !HIT OR !STAND", "USE !DD TO DOUBLE DOWN", "!SPLIT PAIRS", "! NEVER NEEDED", "USE !LEAVE TO LEAVE" ];
         let subMsgIdx = 0;
         let subMsgInterval = null;
 
@@ -1291,8 +1291,13 @@
             const overlay = document.getElementById('blur-overlay');
             
             State.players.forEach(p => {
-                chipHistory.set(p.name.toLowerCase(), { chips: p.chips, time: Date.now(), flair: p.flair });
-            });
+				chipHistory.set(p.name.toLowerCase(), { 
+					chips: p.chips, 
+					time: Date.now(), 
+					flair: p.flair, 
+					afkCount: p.afkCount || 0 
+				});
+			});
 
             const allPlayers = Array.from(chipHistory.entries()).map(([k,v]) => ({name:k, ...v})).sort((a,b) => b.chips - a.chips);
             
@@ -1582,7 +1587,7 @@
 			 // 1. Process AFK Strikes BEFORE payouts
 				State.players.forEach(p => {
 					if (!p.hasActed) {
-						p.afkCount++;
+						p.afkCount = (p.afkCount || 0) + 1;
 						console.log(`[AFK STRIKE] ${p.name} did not act. Total Strikes: ${p.afkCount}`);
 					} else {
 						p.afkCount = 0;
@@ -1831,7 +1836,12 @@
 			const idx = State.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
 			if (idx !== -1) {
 				const p = State.players[idx];
-				chipHistory.set(p.name.toLowerCase(), { chips: p.chips, time: Date.now(), flair: p.flair });
+				 chipHistory.set(p.name.toLowerCase(), { 
+					chips: p.chips, 
+					time: Date.now(), 
+					flair: p.flair, 
+					afkCount: p.afkCount || 0 
+				});
 				
 				if(!skipCooldown) cooldowns.delete(p.name.toLowerCase());
 		
