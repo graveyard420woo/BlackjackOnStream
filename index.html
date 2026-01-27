@@ -299,7 +299,7 @@
                  1px -1px 1px var(--neon-gold),
                 -1px  1px 1px var(--neon-gold),
                  1px  1px 1px var(--neon-gold),
-                 0 0 2px var(--neon-gold);
+                 0 0 .5px var(--neon-gold);
             animation: softPulse 2s infinite ease-in-out;
         }
 		
@@ -488,10 +488,15 @@
           display: block; 
           animation: spinIn3D 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
+	  #lb-list {
+			min-height: 100px;
+			opacity: 1 !important;
+		}
       @keyframes spinIn3D {
-          from { opacity: 0; transform: translate(-50%, -50%) rotateX(-90deg); }
-          to { opacity: 1; transform: translate(-50%, -50%) rotateX(0deg); }
-      }
+			0% { opacity: 0; transform: translate(-50%, -50%) rotateX(-90deg); }
+			1% { opacity: 1; } /* Snap opacity to 1 almost immediately so names are visible during the rotation */
+			100% { opacity: 1; transform: translate(-50%, -50%) rotateX(0deg); }
+		}
       
       .lb-header { text-align: center; font-family: var(--font-display); font-size: 2rem; color: var(--gold); margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 10px rgba(255,200,0,0.5); }
       .lb-list { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; }
@@ -1012,7 +1017,7 @@
                 }
 
                 const rEdge = window.innerWidth - CONFIG.MARGIN - effectiveW;
-                const bEdge = window.innerHeight - effectiveH;
+                const bEdge = window.innerHeight - effectiveH + 35;
                 if (this.x < CONFIG.MARGIN) { this.x = CONFIG.MARGIN; this.vx = Math.abs(this.vx); }
                 if (this.x > rEdge) { this.x = rEdge; this.vx = -Math.abs(this.vx); }
                 if (this.y < 80) { this.y = 80; this.vy = Math.abs(this.vy); }
@@ -1329,15 +1334,7 @@
     const overlay = document.getElementById('blur-overlay');
     const lbHeaderSpan = document.querySelector('.lb-header span');
     
-    // Random Static Color Selection
-    const rainbowColors = ['#ff0055', '#851f83', '#ed1b2f', '#92278f', '#00a99d', '#faa61a', '#ed0c6e'];
-    const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
-    if (lbHeaderSpan) {
-        lbHeaderSpan.style.color = randomColor;
-        lbHeaderSpan.style.textShadow = `0 0 15px ${randomColor}66`;
-    }
-
-    // Sync History
+    // 1. Sync current players to history immediately
     State.players.forEach(p => {
         chipHistory.set(p.name.toLowerCase(), { 
             chips: p.chips, 
@@ -1347,11 +1344,13 @@
         });
     });
 
+    // 2. Prepare the Data
     const allPlayers = Array.from(chipHistory.entries())
         .map(([k,v]) => ({name:k, ...v}))
         .sort((a,b) => b.chips - a.chips);
     
-    list.innerHTML = allPlayers.slice(0, 15).map((p, i) => {
+    // 3. Build HTML Content FIRST
+    const htmlContent = allPlayers.slice(0, 15).map((p, i) => {
         const flairHTML = p.flair.slice(0, 3).map(f => {
              const isObj = typeof f === 'object' && f !== null;
              const content = isObj ? (f.content || f.emoji) : f;
@@ -1366,13 +1365,32 @@
             <div class="lb-chips">🪙${p.chips}</div>
         </div>`
     }).join('');
+
+    // 4. Inject HTML while the panel is still hidden
+    list.innerHTML = htmlContent;
+
+    // 5. Random Color Selection
+    const rainbowColors = ['#ff0055', '#851f83', '#ed1b2f', '#92278f', '#00a99d', '#faa61a', '#ed0c6e'];
+    const randomColor = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
+    if (lbHeaderSpan) {
+        lbHeaderSpan.style.color = randomColor;
+        lbHeaderSpan.style.textShadow = `0 0 15px ${randomColor}66`;
+    }
+
+    // 6. Force a DOM reflow and Show
+    // This ensures the browser has painted the list.innerHTML before adding the 'visible' class
+    pnl.style.display = 'block'; 
+    void pnl.offsetHeight; // The "magic" line that forces the browser to render the content now
     
     pnl.classList.add('visible');
     overlay.classList.add('active'); 
     
+    // 7. Auto-hide after 5 seconds
     setTimeout(() => {
         pnl.classList.remove('visible');
         overlay.classList.remove('active'); 
+        // Delay setting display:none so the out-animation (if any) can finish
+        setTimeout(() => { pnl.style.display = 'none'; }, 500);
     }, 5000); 
 }
 
