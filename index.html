@@ -1632,69 +1632,76 @@
         }
 
         function updateUI() {
-			document.getElementById('house-bank').innerText = `🪙${State.house}`;
-			const isPlayingPhase = (State.phase === 'PLAYING');
-            
-            const dScore = document.getElementById('dealer-score');
-			let displayScore = '';
-			if (State.dealer.hand.length > 0) {
-				if (isPlayingPhase) {
-					displayScore = calculateScore([State.dealer.hand[0]]);
-				} else {
-					displayScore = State.dealer.score;
-				}
-			}
-            dScore.innerText = State.dealer.score > 0 ? State.dealer.score : '';
-			
-			const dContainer = document.getElementById('dealer-hand');
-			const newDHTML = State.dealer.hand.map((c,i) => getCardHTML(c, i, (i===1 && isPlayingPhase))).join('');
-			if(dContainer.innerHTML !== newDHTML) dContainer.innerHTML = newDHTML;
-			
-			if(State.dealer.score > 21) { dContainer.classList.add('bust'); dScore.classList.add('bust'); } 
-            else { dContainer.classList.remove('bust'); dScore.classList.remove('bust'); }
-		
-			State.players.forEach((p, idx) => {
-				const isActive = (idx === State.activeIdx && State.phase === 'PLAYING');
-				p.dom.classList.toggle('active', isActive);
-				p.dom.classList.toggle('bust', p.hands.every(h => h.status === 'bust'));
-				
-				p.dom.querySelector('.chip-display').innerText = `🪙${p.chips}`;
-                
-                // Show currentBet in Lobby, total bet in Game
-                const displayBet = (State.phase === 'LOBBY') ? p.currentBet : p.hands.reduce((sum, h) => sum + h.bet, 0);
-				p.dom.querySelector('.bet-display').innerText = displayBet > 0 ? `BET ${displayBet}` : '';
-		
-				const fc = p.dom.querySelector('.flair-container');
-				if (fc) {
-					fc.innerHTML = p.flair.map(f => {
-						const isObj = typeof f === 'object' && f !== null;
-						const content = isObj ? (f.content || f.emoji) : f;
-						const isImg = isObj ? f.isImage : false;
-						const top = isObj ? (f.top ?? 0) : 0;
-						const left = isObj ? (f.left ?? 50) : 50;
-						const rot = isObj ? (f.rot ?? 0) : 0;
-						const display = isImg ? `<img src="${content}" style="width:40px; height:40px; object-fit:contain;">` : content;
-						return `<span class="flair-item" style="top:${top}px; left:${left}px; transform:rotate(${rot}deg);">${display}</span>`;
-					}).join('');
-				}
-		
-				const hw = p.dom.querySelector('.hand-wrapper');
-				if (hw) {
-                    const handsHTML = p.hands.map((h, hIdx) => {
-                        const isHandActive = isActive && (p.activeHandIndex === hIdx);
-                        const cardsHTML = h.cards.map((c, i) => getCardHTML(c, i)).join('');
-                        const opacityClass = (p.hands.length > 1 && !isHandActive && State.phase === 'PLAYING') ? 'inactive' : 'active-hand';
-                        const splitClass = p.hands.length > 1 ? 'split-mode' : '';
-                        
-                        const scoreDisplay = h.score > 0 ? `<div class="hand-score">${h.score}</div>` : '';
+    document.getElementById('house-bank').innerText = `🪙${State.house}`;
+    const isPlayingPhase = (State.phase === 'PLAYING');
+    
+    const dScore = document.getElementById('dealer-score');
+    
+    // logic to only show the first card's value during the PLAYING phase
+    let displayScore = '';
+    if (State.dealer.hand.length > 0) {
+        if (isPlayingPhase) {
+            displayScore = calculateScore([State.dealer.hand[0]]);
+        } else {
+            displayScore = State.dealer.score;
+        }
+    }
+    dScore.innerText = displayScore > 0 ? displayScore : '';
+    
+    const dContainer = document.getElementById('dealer-hand');
+    const newDHTML = State.dealer.hand.map((c,i) => getCardHTML(c, i, (i===1 && isPlayingPhase))).join('');
+    if(dContainer.innerHTML !== newDHTML) dContainer.innerHTML = newDHTML;
+    
+    if(State.phase === 'RESULT' && State.dealer.score > 21) { 
+        dContainer.classList.add('bust'); 
+        dScore.classList.add('bust'); 
+    } else { 
+        dContainer.classList.remove('bust'); 
+        dScore.classList.remove('vocals'); 
+        dScore.classList.remove('bust'); 
+    }
 
-                        return `<div class="sub-hand ${opacityClass} ${splitClass}">${scoreDisplay}${cardsHTML}</div>`;
-                    }).join('');
-                    
-                    if(hw.innerHTML !== handsHTML) hw.innerHTML = handsHTML;
-				}
-			});
-		}
+    State.players.forEach((p, idx) => {
+        const isActive = (idx === State.activeIdx && State.phase === 'PLAYING');
+        p.dom.classList.toggle('active', isActive);
+        p.dom.classList.toggle('bust', p.hands.every(h => h.status === 'bust'));
+        
+        p.dom.querySelector('.chip-display').innerText = `🪙${p.chips}`;
+        
+        const displayBet = (State.phase === 'LOBBY') ? p.currentBet : p.hands.reduce((sum, h) => sum + h.bet, 0);
+        p.dom.querySelector('.bet-display').innerText = displayBet > 0 ? `BET ${displayBet}` : '';
+
+        const fc = p.dom.querySelector('.flair-container');
+        if (fc) {
+            fc.innerHTML = p.flair.map(f => {
+                const isObj = typeof f === 'object' && f !== null;
+                const content = isObj ? (f.content || f.emoji) : f;
+                const isImg = isObj ? f.isImage : false;
+                const top = isObj ? (f.top ?? 0) : 0;
+                const left = isObj ? (f.left ?? 50) : 50;
+                const rot = isObj ? (f.rot ?? 0) : 0;
+                const display = isImg ? `<img src="${content}" style="width:40px; height:40px; object-fit:contain;">` : content;
+                return `<span class="flair-item" style="top:${top}px; left:${left}px; transform:rotate(${rot}deg);">${display}</span>`;
+            }).join('');
+        }
+
+        const hw = p.dom.querySelector('.hand-wrapper');
+        if (hw) {
+            const handsHTML = p.hands.map((h, hIdx) => {
+                const isHandActive = isActive && (p.activeHandIndex === hIdx);
+                const cardsHTML = h.cards.map((c, i) => getCardHTML(c, i)).join('');
+                const opacityClass = (p.hands.length > 1 && !isHandActive && State.phase === 'PLAYING') ? 'inactive' : 'active-hand';
+                const splitClass = p.hands.length > 1 ? 'split-mode' : '';
+                
+                const scoreDisplay = h.score > 0 ? `<div class="hand-score">${h.score}</div>` : '';
+
+                return `<div class="sub-hand ${opacityClass} ${splitClass}">${scoreDisplay}${cardsHTML}</div>`;
+            }).join('');
+            
+            if(hw.innerHTML !== handsHTML) hw.innerHTML = handsHTML;
+        }
+    });
+}
 		
 		function resetPlayerAFK(username) {
 			const p = State.players.find(player => player.name.toLowerCase() === username.toLowerCase());
