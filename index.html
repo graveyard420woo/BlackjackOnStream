@@ -149,6 +149,7 @@
             position: absolute; top: 120px; left: 50%; transform: translateX(-50%) scale(1.3);
             display: flex; flex-direction: column; align-items: center; z-index: 20;
             width: 250px;
+			z-index: 5;
         }
         
 		#house-bank {
@@ -185,6 +186,7 @@
             transform: scale(var(--unit-scale)); 
             transform-origin: center center;
             transition: transform 0.2s ease-out;
+			z-index: 50;
         }
         
         @keyframes slideInDown {
@@ -998,6 +1000,7 @@
             activeIdx: -1, timers: { lobby: null, turn: null, lobbyVal: CONFIG.LOBBY_TIME }, house: 100,
             dealerPos: { x: window.innerWidth / 2, y: 190, radius: 250 },
             joinQueue: [],
+			leaveQueue: [],
             activeStoreItem: null,
             firstTurnAnnounced: false
         };
@@ -1199,9 +1202,19 @@
 
         function updateQueueUI() {
             const el = document.getElementById('queue-display');
-            if(State.joinQueue.length > 0) el.innerText = `JOIN QUEUE: ${State.joinQueue.map(p=>p.name).join(', ')}`;
-            else el.innerText = '';
-        }
+				let text = '';
+				
+				if(State.joinQueue.length > 0) {
+					text += `JOIN QUEUE: ${State.joinQueue.map(p=>p.name).join(', ')}`;
+				}
+				
+				if(State.leaveQueue.length > 0) {
+					if (text !== '') text += '<br>'; // Add line break if both queues have people
+					text += `LEAVE QUEUE: ${State.leaveQueue.map(name=>name).join(', ')}`;
+				}
+				
+				el.innerHTML = text; // Changed to innerHTML to support the <br>
+			}
 
         const subMsgs = [ "USE !JOIN TO ENTER", "USE !BET [AMT] IN LOBBY", "USE !HIT OR !STAND", "USE !DD TO DOUBLE DOWN", "!SPLIT PAIRS" ];
         let subMsgIdx = 0;
@@ -1226,6 +1239,11 @@
 
         function startLobby() {
 			console.log("--- LOBBY STARTING ---");
+			
+			while(State.leaveQueue.length > 0) {
+				const nameToRemove = State.leaveQueue.shift();
+				removePlayer(nameToRemove, true);
+			}
 
 			// 1. Remove players who hit the limit in the round that just ended
 			for (let i = State.players.length - 1; i >= 0; i--) {
@@ -1860,6 +1878,19 @@
             if(rawCmd.startsWith('!')) rawCmd = rawCmd.substring(1);
             
             const safeUser = username.trim();
+			
+			if (rawCmd === 'leave') {
+				if (State.phase === 'RESULT') {
+					if (!State.leaveQueue.includes(safeUser)) {
+						State.leaveQueue.push(safeUser);
+						updateQueueUI();
+						// Optional: feedback to chat
+						// sendTwitchChatMessage(`@${safeUser} will be removed after this round.`);
+					}
+				} else {
+					removePlayer(safeUser);
+				}
+			}
 			
 			const validCmds = ['join', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
 			if (validCmds.includes(rawCmd)) {
