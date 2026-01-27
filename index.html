@@ -1174,21 +1174,16 @@
 			pObj.floater = new Floater(div, pObj);
 			State.players.push(pObj);
 		
-			// Take ante immediately if we are already in lobby
+			// TAKE ANTE IMMEDIATELY IF JOINING DURING LOBBY
 			if (State.phase === 'LOBBY') {
 				let ante = Math.min(10, pObj.chips);
 				pObj.chips -= ante;
 				pObj.currentBet = ante;
-				pObj.hands[0].bet = ante;
-				pObj.hands[0].status = 'playing';
+				pObj.hands[0] = { cards: [], bet: ante, score: 0, status: 'playing' };
 			}
 		
 			updateUI();
-			
-			// Crucial fix: Trigger startLobby ONLY if it's the very first player joining a fresh room
-			if(State.players.length === 1 && State.phase === 'BOOT') { 
-				startLobby(); 
-			}
+			if(State.players.length === 1 && State.phase === 'BOOT') { startLobby(); }
 		}
 
         function updateQueueUI() {
@@ -1232,9 +1227,10 @@
 			State.phase = 'LOBBY'; 
 			console.log("--- LOBBY STARTING ---");
 		
+			// 1. Clear Leave Queue
 			while(State.leaveQueue.length > 0) { removePlayer(State.leaveQueue.shift(), true); }
 		
-			// Clean up AFK players
+			// 2. Clear AFK players
 			for (let i = State.players.length - 1; i >= 0; i--) {
 				const p = State.players[i];
 				if (p.afkCount >= 5) {
@@ -1242,25 +1238,20 @@
 				} else { p.hasActed = false; }
 			}
 		
-			// Process Join Queue
+			// 3. Process Join Queue
 			while(State.joinQueue.length > 0 && State.players.length < CONFIG.MAX_PLAYERS) {
 				const p = State.joinQueue.shift();
 				addPlayer(p.userId, p.name, p.color, p.badgeData);
 			}
 			updateQueueUI();
 		
-			// Reset/Initialize bets for the new round
+			// 4. FORCE RESET AND DEDUCT ANTE
 			State.players.forEach(p => {
-				 // Reset hand for the new round
-				 // If they already have a currentBet (from addPlayer or !bet), keep it. 
-				 // Otherwise, take the 10 chip ante.
-				 if (p.currentBet === 0) {
-					 let ante = Math.min(10, p.chips);
-					 p.chips -= ante;
-					 p.currentBet = ante;
-				 }
-				 
-				 p.hands = [{ cards: [], bet: p.currentBet, score: 0, status: 'playing' }];
+				p.currentBet = 0; // Clear any old reference
+				let ante = Math.min(10, p.chips); // Take 10 or whatever is left
+				p.chips -= ante;
+				p.currentBet = ante;
+				p.hands = [{ cards: [], bet: ante, score: 0, status: 'playing' }];
 			});
 		
 			State.timers.lobbyVal = CONFIG.LOBBY_TIME;
@@ -1272,7 +1263,7 @@
 				if(State.paused) return;
 				State.timers.lobbyVal--;
 				updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
-				updateUI(); // This will now show the correct currentBet
+				updateUI();
 				
 				if(State.timers.lobbyVal <= 0) {
 					clearInterval(State.timers.lobby);
@@ -1472,14 +1463,14 @@
 			if (isNaN(amount) || amount <= 0) return;
 			if (amount > CONFIG.MAX_BET) amount = CONFIG.MAX_BET;
 		
+			// The pool is whatever they have in bank + what they already "paid" for the ante
 			const totalPool = player.chips + player.currentBet;
 			if (amount > totalPool) amount = totalPool;
 		
-			// Return current bet to chips first, then subtract the new amount
+			// Recalculate: Deduct the new amount from the total combined pool
 			player.chips = totalPool - amount;
 			player.currentBet = amount;
 			
-			// Update the hand bet so the UI shows it correctly immediately
 			if (player.hands && player.hands[0]) {
 				player.hands[0].bet = amount;
 			}
