@@ -28,8 +28,9 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
 <ul>
  <li>Command exclamation points (!) are always optional. Players may simply type join or hit or h or dd etc...</li>
  <li>Click the dealer's chip icon and drag to position the dealer anywhere you like on screen</li>
+</ul>
 
-I am your humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (; 
+I am your humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends in chat! (; 
 
 This thing is a labor of love.. 
 <br>-graveyard
