@@ -857,6 +857,7 @@
         }
 
         function processToken(token) {
+			playSfx('shuffle');
             access_token = token;
             fetch('https://api.twitch.tv/helix/users', { "headers": { "Client-ID": client_id, "Authorization": "Bearer " + access_token } })
                 .then(resp => resp.json())
