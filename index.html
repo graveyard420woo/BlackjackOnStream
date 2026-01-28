@@ -174,7 +174,7 @@
             margin-bottom: 5px; 
         }
         
-        .dealer-label { font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 5px; opacity: 0.5; text-align: center; }
+        .dealer-label { font-size: 0.9rem; letter-spacing: 4px; margin-bottom: 5px; opacity: 0.5; text-align: center; }
 
         #dealer-hand.bust { filter: grayscale(1) opacity(0.6); transition: all 0.5s; }
         
@@ -183,6 +183,8 @@
             font-size: 2rem; font-weight: 900; 
             color: white; text-shadow: 0 2px 5px black;
             margin-bottom: 10px;
+			min-height: 38px; /* Reserves space so it doesn't collapse */
+    		line-height: 38px; /* Keeps the text vertically centered in that space */
         }
         #dealer-score.bust { color: #555; }
 
@@ -586,7 +588,10 @@
         .settings-header { 
             display: flex; justify-content: space-between; align-items: center; 
             margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;
-        }
+			cursor: grab;
+				user-select: none;
+			}
+		.settings-header:active { cursor: grabbing; }
         .settings-header h2 { margin: 0; font-family: var(--font-display); color: var(--neon-blue); }
         .close-settings { cursor: pointer; font-weight: bold; font-size: 1.2rem; color: var(--neon-pink); }
         
@@ -743,7 +748,7 @@
                     Simply add it as a browser source by copying the URL from the address bar after connecting your Twitch!<br></span>
                     <br>
                     <span class="description-main description">Commands: !join !leave !hit !stand !bet[amt] !buy</span><br>
-                    <span class="description-main description">!split and !doubledown</span><br>
+                    <span class="description-main description"> !split and !doubledown</span><br>
                     <a id="authorize" class="login-box" target="">
                      <img id="twitch-logo" src="tlogo.png">
                         <span id="twitch-text">Connect Your Twitch!</span>
@@ -2332,6 +2337,49 @@ function nextTurn() {
         window.addEventListener('mouseup', () => {
             if(isDragging) { isDragging = false; dragger.style.cursor = 'grab'; }
         });
+		
+		// --- SETTINGS DRAG LOGIC ---
+		const settingsPanel = document.getElementById('settings-panel');
+		const settingsHeader = document.querySelector('.settings-header');
+		let isDraggingSettings = false;
+		let settingsDragOffset = { x: 0, y: 0 };
+		
+		settingsHeader.addEventListener('mousedown', (e) => {
+			// Don't start dragging if the user actually clicked the "X" close button
+			if(e.target.classList.contains('close-settings')) return;
+		
+			isDraggingSettings = true;
+			
+			// 1. Get current visual position
+			const rect = settingsPanel.getBoundingClientRect();
+			
+			// 2. Remove the CSS centering transform and switch to absolute pixel coordinates
+			// This prevents the panel from jumping when we start moving it
+			settingsPanel.style.transform = 'none';
+			settingsPanel.style.left = `${rect.left}px`;
+			settingsPanel.style.top = `${rect.top}px`;
+			
+			// 3. Calculate offset of mouse relative to the top-left of the panel
+			settingsDragOffset.x = e.clientX - rect.left;
+			settingsDragOffset.y = e.clientY - rect.top;
+			
+			settingsHeader.style.cursor = 'grabbing';
+		});
+		
+		// We can reuse the global window listeners, or just add specific ones here for safety
+		window.addEventListener('mousemove', (e) => {
+			if (!isDraggingSettings) return;
+			e.preventDefault();
+			settingsPanel.style.left = `${e.clientX - settingsDragOffset.x}px`;
+			settingsPanel.style.top = `${e.clientY - settingsDragOffset.y}px`;
+		});
+		
+		window.addEventListener('mouseup', () => {
+			if (isDraggingSettings) {
+				isDraggingSettings = false;
+				settingsHeader.style.cursor = 'grab';
+			}
+		});
 
         function adjLobbyTime(delta) {
             let n = CONFIG.LOBBY_TIME + delta;
