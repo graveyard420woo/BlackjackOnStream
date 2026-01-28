@@ -28,6 +28,7 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
 <ul>
  <li>Command exclamation points (!) are always optional. Players may simply type join or hit or h or dd etc...</li>
  <li>Click the dealer's chip icon and drag to position the dealer anywhere you like on screen</li>
+ <li>Currently, players are not allowed to spend all of their chips on buy items because then they would have zero and be kicked right away. so if you have 90 chips and a buy item is 90 you must have at least 91 chips to buy it</li>
 </ul>
 
 I am your humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends in chat! (; 
