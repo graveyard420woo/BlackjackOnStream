@@ -1,4 +1,4 @@
-![BJOSlogocomp](https://github.com/user-attachments/assets/9a165040-3564-4e3e-b311-594a62418da6)
+![BJOSlogocompHD](https://github.com/user-attachments/assets/f8dd5404-e081-47aa-af0c-efe3d0b4edfd)
 
 <h2>Blackjack On Stream</h2><h3> by graveyard420woo</h3>
 
@@ -34,3 +34,5 @@ I am your humble artist/tech/streamer. if you would like to suggest edits, pleas
 
 This thing is a labor of love.. 
 <br>-graveyard
+
+![BJOSlogotag](https://github.com/user-attachments/assets/b7859d8d-1512-4414-80ba-e6e7a293002d)
