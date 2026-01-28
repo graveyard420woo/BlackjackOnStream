@@ -1683,35 +1683,45 @@ function nextTurn() {
 		}
 
         function doubleDown() {
-            clearInterval(State.timers.turn);
-            // SAFETY FIX: Check if player exists
-            const p = State.players[State.activeIdx];
-            if (!p) return;
-
-            const hand = p.hands[p.activeHandIndex];
-            if(hand.cards.length !== 2) return; 
-            if(p.chips < hand.bet) return; 
-
-            p.chips -= hand.bet;
-            State.house += hand.bet;
-            hand.bet *= 2;
-            
-            spawnAction(p, 'DOUBLE-DOWN');
-            playSfx('deal');
-            hand.cards.push(State.deck.pop());
-            hand.score = calculateScore(hand.cards);
-            
-            if(hand.score > 21) hand.status = 'bust';
-            else hand.status = 'stand'; 
-            
-            updateUI();
-             if(p.activeHandIndex < p.hands.length - 1) {
-                 p.activeHandIndex++;
-                 startTurnTimer(p);
-             } else {
-                 setTimeout(nextTurn, 1500);
-             }
-        }
+			clearInterval(State.timers.turn);
+			// SAFETY FIX: Check if player exists
+			const p = State.players[State.activeIdx];
+			if (!p) return;
+		
+			const hand = p.hands[p.activeHandIndex];
+			
+			// VALIDATION BLOCK
+			// 1. Must have exactly 2 cards
+			// 2. Must have enough chips to match the current bet
+			if(hand.cards.length !== 2 || p.chips < hand.bet) {
+				spawnAction(p, '❌'); // Show Red X
+				startTurnTimer(p);    // RESTART TIMER so game doesn't freeze
+				return; 
+			}
+		
+			// SUCCESS BLOCK
+			p.chips -= hand.bet;
+			State.house += hand.bet;
+			hand.bet *= 2;
+			
+			spawnAction(p, 'DOUBLE-DOWN');
+			playSfx('deal');
+			hand.cards.push(State.deck.pop());
+			hand.score = calculateScore(hand.cards);
+			
+			if(hand.score > 21) hand.status = 'bust';
+			else hand.status = 'stand'; 
+			
+			updateUI();
+			
+			// Move to next hand or next player
+			 if(p.activeHandIndex < p.hands.length - 1) {
+				 p.activeHandIndex++;
+				 startTurnTimer(p);
+			 } else {
+				 setTimeout(nextTurn, 1500);
+			 }
+		}
 
         function splitPair() {
             clearInterval(State.timers.turn); 
