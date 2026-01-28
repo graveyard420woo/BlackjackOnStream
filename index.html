@@ -817,7 +817,7 @@
 				if (type === 'shuffle') {
 					// Play the single shuffle file
 					const randNumb = Math.floor(Math.random() * 6) + 1;
-					const shuffleAudio = new Audio(`shuffle${randNumb}.mp3`);
+					const shuffleAudio = new Audio(`sfx/shuffle${randNumb}.mp3`);
 					shuffleAudio.volume = 0.5; // Adjust volume as needed (0.0 to 1.0)
 					shuffleAudio.play().catch(e => console.warn("Shuffle audio play blocked:", e));
 					
@@ -825,7 +825,7 @@
 					// Pick a random number between 1 and 8
 					const randNum = Math.floor(Math.random() * 8) + 1;
 					// Play the corresponding cardX.mp3 file
-					const cardAudio = new Audio(`card${randNum}.mp3`);
+					const cardAudio = new Audio(`sfx/card${randNum}.mp3`);
 					cardAudio.volume = 0.6; // Adjust volume as needed
 					cardAudio.play().catch(e => console.warn("Card audio play blocked:", e));
 				}
