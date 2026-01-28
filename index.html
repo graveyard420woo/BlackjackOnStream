@@ -589,7 +589,7 @@
             display: flex; justify-content: space-between; align-items: center; 
             margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;
 			cursor: grab;
-				user-select: none;
+			user-select: none;
 			}
 		.settings-header:active { cursor: grabbing; }
         .settings-header h2 { margin: 0; font-family: var(--font-display); color: var(--neon-blue); }
@@ -2307,79 +2307,80 @@ function nextTurn() {
 			playSfx('deal');
         }
 
-        const dragger = document.getElementById('house-bank');
+        // --- UNIFIED DRAG SYSTEM (Dealer & Settings) ---
+        const dragState = {
+            active: null, // 'DEALER' or 'SETTINGS'
+            offsetX: 0,
+            offsetY: 0
+        };
+
         const dealerSpot = document.getElementById('dealer-spot');
-        let isDragging = false;
-        let dragOffset = { x: 0, y: 0 };
+        const houseBank = document.getElementById('house-bank');
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsHeader = document.querySelector('.settings-header');
 
-        dragger.addEventListener('mousedown', (e) => {
-            isDragging = true;
+        // 1. Setup Dealer Drag Start
+        houseBank.addEventListener('mousedown', (e) => {
+            dragState.active = 'DEALER';
             const rect = dealerSpot.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-            dragger.style.cursor = 'grabbing';
+            dragState.offsetX = e.clientX - rect.left;
+            dragState.offsetY = e.clientY - rect.top;
+            houseBank.style.cursor = 'grabbing';
         });
 
+        // 2. Setup Settings Drag Start
+        settingsHeader.addEventListener('mousedown', (e) => {
+            // Ignore if clicking the Close button
+            if(e.target.classList.contains('close-settings')) return;
+
+            dragState.active = 'SETTINGS';
+            const rect = settingsPanel.getBoundingClientRect();
+            
+            // Switch from Centered CSS to Absolute Position
+            settingsPanel.style.transform = 'none';
+            settingsPanel.style.left = `${rect.left}px`;
+            settingsPanel.style.top = `${rect.top}px`;
+
+            dragState.offsetX = e.clientX - rect.left;
+            dragState.offsetY = e.clientY - rect.top;
+            settingsHeader.style.cursor = 'grabbing';
+        });
+
+        // 3. Global Move Logic
         window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
+            if (!dragState.active) return;
             e.preventDefault();
-            let newX = e.clientX - dragOffset.x;
-            let newY = e.clientY - dragOffset.y;
-            dealerSpot.style.transform = 'none'; 
-            dealerSpot.style.left = `${newX}px`;
-            dealerSpot.style.top = `${newY}px`;
-            State.dealerPos.x = newX + 125; 
-            State.dealerPos.y = newY + 70;
-            // Fix: Keep scale when dragging
-            dealerSpot.style.transform = 'scale(1.3)';
+
+            if (dragState.active === 'DEALER') {
+                const newX = e.clientX - dragState.offsetX;
+                const newY = e.clientY - dragState.offsetY;
+                
+                // Dealer needs specific transforms maintained
+                dealerSpot.style.left = `${newX}px`;
+                dealerSpot.style.top = `${newY}px`;
+                dealerSpot.style.transform = 'scale(1.3)'; // Keep the scale, remove the translate
+                
+                State.dealerPos.x = newX + 125; 
+                State.dealerPos.y = newY + 70;
+            } 
+            else if (dragState.active === 'SETTINGS') {
+                const newX = e.clientX - dragState.offsetX;
+                const newY = e.clientY - dragState.offsetY;
+                
+                settingsPanel.style.left = `${newX}px`;
+                settingsPanel.style.top = `${newY}px`;
+            }
         });
 
+        // 4. Global Drop Logic
         window.addEventListener('mouseup', () => {
-            if(isDragging) { isDragging = false; dragger.style.cursor = 'grab'; }
+            if (dragState.active === 'DEALER') {
+                houseBank.style.cursor = 'grab';
+            } else if (dragState.active === 'SETTINGS') {
+                settingsHeader.style.cursor = 'grab';
+            }
+            dragState.active = null;
         });
-		
-		// --- SETTINGS DRAG LOGIC ---
-		const settingsPanel = document.getElementById('settings-panel');
-		const settingsHeader = document.querySelector('.settings-header');
-		let isDraggingSettings = false;
-		let settingsDragOffset = { x: 0, y: 0 };
-		
-		settingsHeader.addEventListener('mousedown', (e) => {
-			// Don't start dragging if the user actually clicked the "X" close button
-			if(e.target.classList.contains('close-settings')) return;
-		
-			isDraggingSettings = true;
-			
-			// 1. Get current visual position
-			const rect = settingsPanel.getBoundingClientRect();
-			
-			// 2. Remove the CSS centering transform and switch to absolute pixel coordinates
-			// This prevents the panel from jumping when we start moving it
-			settingsPanel.style.transform = 'none';
-			settingsPanel.style.left = `${rect.left}px`;
-			settingsPanel.style.top = `${rect.top}px`;
-			
-			// 3. Calculate offset of mouse relative to the top-left of the panel
-			settingsDragOffset.x = e.clientX - rect.left;
-			settingsDragOffset.y = e.clientY - rect.top;
-			
-			settingsHeader.style.cursor = 'grabbing';
-		});
-		
-		// We can reuse the global window listeners, or just add specific ones here for safety
-		window.addEventListener('mousemove', (e) => {
-			if (!isDraggingSettings) return;
-			e.preventDefault();
-			settingsPanel.style.left = `${e.clientX - settingsDragOffset.x}px`;
-			settingsPanel.style.top = `${e.clientY - settingsDragOffset.y}px`;
-		});
-		
-		window.addEventListener('mouseup', () => {
-			if (isDraggingSettings) {
-				isDraggingSettings = false;
-				settingsHeader.style.cursor = 'grab';
-			}
-		});
 
         function adjLobbyTime(delta) {
             let n = CONFIG.LOBBY_TIME + delta;
