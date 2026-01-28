@@ -1028,8 +1028,8 @@
                 
                 // Repel from Top Right (Queue/Status Area)
                 if (this.x > window.innerWidth - 300 && this.y < 150) {
-                     this.vx -= 0.95;
-                     this.vy += 0.95;
+                     this.vx -= 0.05;
+                     this.vy += 0.05;
                 }
 
                 const speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
@@ -2082,7 +2082,7 @@ function nextTurn() {
 				}
 			}
 			
-			const validCmds = ['join', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
+			const validCmds = ['join', 'gravey34howdy', 'bet', 'hit', 'h', 'stand', 's', 'stay', 'dd', 'split', 'buy'];
 			if (validCmds.includes(rawCmd)) {
 				humanActivityDetected(safeUser);
 			}
@@ -2099,6 +2099,9 @@ function nextTurn() {
                 }
             }
             else if(rawCmd === 'join') {
+                 addPlayer(userId, safeUser, color, badges);
+            }
+			else if(rawCmd === 'gravey34howdy') {
                  addPlayer(userId, safeUser, color, badges);
             }
             
