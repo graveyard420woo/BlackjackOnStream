@@ -947,8 +947,7 @@
             DEALER_CHAT: true,
             SHOW_LEADERBOARD: true,
 			SOUND_ENABLED: true,
-            // Streamer Zone Left Default
-            STREAMER_ZONE: { active: false, x: 0, y: 0, w: 420, h: 380, alignX: 'left', alignY: 'bottom' }
+            STREAMER_ZONE: { active: false, x: 0, y: 0, w: 520, h: 420, alignX: 'left', alignY: 'bottom' }
         };
 
         const SUITS = ['♠', '♥', '♦', '♣'];
@@ -1732,6 +1731,8 @@ function nextTurn() {
 				State.players.forEach(p => p.hands.forEach(h => { 
 					if(h.status !== 'bust') activeHands.push(h); 
 				}));
+				
+				if (activeHands.length === 0 && State.dealer.score > 17) break;
 		
 				const topScore = Math.max(...activeHands.map(h => h.score), 0);
 				
@@ -1989,7 +1990,9 @@ function nextTurn() {
 			const p = State.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
 			if(!p) return;
 		
-			if(p.chips >= State.activeStoreItem.price) {
+			//if(p.chips >= State.activeStoreItem.price) {
+			//(Require at least 1 chip remaining after purchase):
+			if(p.chips > State.activeStoreItem.price) {
 				p.afkCount = 0; // RESET AFK COUNT ON PURCHASE
 				playSfx('deal');
 				const itemData = State.activeStoreItem; 
