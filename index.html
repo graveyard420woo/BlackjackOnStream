@@ -609,7 +609,7 @@
         body.high-contrast h1 span { 
             text-shadow: 2px 2px 0px black, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 5px 15px black !important; 
         }
-		body.high-contrast h1 { 
+		body.high-contrast header h1 { 
 			margin: 0; font-family: var(--font-display);
             font-size: 2.8rem; text-transform: uppercase; letter-spacing: 2px;
             background: linear-gradient(to bottom, #fff 40%, #ccc 100%);
@@ -1027,10 +1027,10 @@
                 }
                 
                 // Repel from Top Right (Queue/Status Area)
-                if (this.x > window.innerWidth - 300 && this.y < 150) {
-                     this.vx -= 0.05;
-                     this.vy += 0.05;
-                }
+                if (this.x > window.innerWidth - 320 && this.y < 175) {
+					 this.vx -= 0.8; // Increased force
+					 this.vy += 0.8; // Increased force
+				}
 
                 const speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
                 if(speed > CONFIG.MAX_SPEED) {
@@ -1057,7 +1057,8 @@
             joinQueue: [],
 			leaveQueue: [],
             activeStoreItem: null,
-            firstTurnAnnounced: false
+            firstTurnAnnounced: false,
+			lastFullAlert: 0
         };
 
         const ctx = document.getElementById('fx-canvas').getContext('2d');
@@ -1146,7 +1147,7 @@
             existing.forEach(el => el.remove());
 
             const el = document.createElement('div');
-            el.className = `action-popup ${type==='HIT'?'pop-hit':(type==='STAND'?'pop-stand':(type==='DOUBLE DOWN'?'pop-dd':(type==='SPLIT'?'pop-split':(type==='BOUGHT'?'pop-bought':(type==='❌'?'pop-no':'pop-bet')))))}`;
+            el.className = `action-popup ${type==='HIT'?'pop-hit':(type==='STAND'?'pop-stand':(type==='DOUBLE-DOWN'?'pop-dd':(type==='SPLIT'?'pop-split':(type==='BOUGHT'?'pop-bought':(type==='❌'?'pop-no':'pop-bet')))))}`;
             el.innerText = type;
             player.dom.appendChild(el);
             setTimeout(() => el.remove(), 1500);
@@ -1165,6 +1166,17 @@
 				if(!State.joinQueue.some(q => q.name === name) && !State.players.some(p => p.name === name)) {
 					State.joinQueue.push({ userId, name, color, badgeData });
 					updateQueueUI();
+					
+					if (Date.now() - State.lastFullAlert > 120000) {
+					const alertDiv = document.createElement('div');
+					alertDiv.className = 'action-popup pop-no'; 
+					alertDiv.style.cssText = 'position:fixed; top:20%; left:50%; transform:translateX(-50%); font-size:2rem; text-align:center; z-index:9999;';
+					alertDiv.innerHTML = "LOBBY FULL<br>MAX PLAYERS REACHED";
+					document.body.appendChild(alertDiv);
+					setTimeout(() => alertDiv.remove(), 2500);
+					
+					State.lastFullAlert = Date.now();
+					}
 				}
 				return;
 			}
@@ -1724,7 +1736,8 @@ function nextTurn() {
 				const topScore = Math.max(...activeHands.map(h => h.score), 0);
 				
 				// Dealer stops if over 17 or beats everyone
-				if (State.dealer.score >= 17) break;
+				//if (State.dealer.score >= 17) break;
+				if (State.dealer.score === 17 && Math.random() > 0.05) break; // 95% chance to Stand, 5% to Hit
 				if (activeHands.length > 0 && State.dealer.score > topScore) break;
 				
 				State.dealer.hand.push(State.deck.pop()); 
@@ -2244,6 +2257,20 @@ function nextTurn() {
 			if (el.checked) playSfx('deal');
 		}
 		
+		function toggleZoneSide(el) {
+			 CONFIG.STREAMER_ZONE.alignX = el.checked ? 'right' : 'left';
+			 const zone = document.getElementById('streamer-zone');
+			 updateStreamerZone();
+			 // Flash the zone so user sees the change
+			 if(CONFIG.STREAMER_ZONE.active) {
+				 zone.classList.remove('visible'); 
+				 void zone.offsetWidth; 
+				 zone.classList.add('visible'); 
+				 setTimeout(() => zone.classList.remove('visible'), 3000);
+			 }
+			 playSfx('deal');
+		}
+		
 		function adjMaxPlayers(delta) {
             let n = CONFIG.MAX_PLAYERS + delta;
             if(n < 2) n = 2; if(n > 99) n = 99;
@@ -2287,8 +2314,12 @@ function nextTurn() {
             <label class="switch"><input type="checkbox" checked onchange="toggleLeaderboard(this)"><span class="slider"></span></label>
         </div>
         <div class="setting-row">
-            <span>STREAMER ZONE (LEFT)</span>
+            <span>STREAMER ZONE (ON/OFF)</span>
             <label class="switch"><input type="checkbox" onchange="toggleStreamerZone(this)"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+            <span style="margin-left:16px;">ZONE SIDE (LEFT/RIGHT)</span>
+            <label class="switch"><input type="checkbox" onchange="toggleZoneSide(this)"><span class="slider"></span></label>
         </div>
         <div class="setting-row">
             <span>PLAYER SCALE</span>
