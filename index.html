@@ -2132,6 +2132,25 @@ function nextTurn() {
             
             const safeUser = username.trim();
 			
+			if (rawCmd === 'kick') {
+				// Check permissions (Broadcaster, Moderator, OR VIP)
+				const isAuthorized = badges && badges.some(b => 
+					b.set_id === 'moderator' || 
+					b.set_id === 'broadcaster' || 
+					b.set_id === 'vip'
+				);
+				
+				if (isAuthorized && cmdParts.length > 1) {
+					const targetName = cmdParts[1].replace('@', '');
+					
+					removePlayer(targetName, true);
+					cooldowns.set(targetName.toLowerCase(), Date.now() + 300000);
+					
+					sendTwitchChatMessage(`@${targetName} has been kicked for 5 minutes.`);
+					return; 
+				}
+    }
+			
 			if (rawCmd === 'leave') {
 				if (State.phase === 'RESULT') {
 					if (!State.leaveQueue.includes(safeUser)) {
