@@ -1,4 +1,4 @@
-<img width="635" height="103" alt="logotag2" src="https://github.com/user-attachments/assets/beee31dc-5433-432a-af64-75d41fbfa48d" />
+![BJOSlogocomp](https://github.com/user-attachments/assets/9a165040-3564-4e3e-b311-594a62418da6)
 
 <h2>Blackjack On Stream</h2><h3> by graveyard420woo</h3>
 
@@ -24,9 +24,12 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
  <li>Look out for <strong>!buy</strong> items! <br>Emotes will be drawn in from your connected twitch channel and added to the buy items pool in addition to some other emoji and emotes.. (; See how many you and your chatters can collect!</li>
 </ul>
 
-Command exclamation points (!) are always optional. Players may simply type join or hit or h or dd etc...
+<h3>Notes</h3>
+<ul>
+ <li>Command exclamation points (!) are always optional. Players may simply type join or hit or h or dd etc...</li>
+ <li>Click the dealer's chip icon and drag to position the dealer anywhere you like on screen</li>
 
-I am a humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (; 
+I am your humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends! (; 
 
 This thing is a labor of love.. 
 <br>-graveyard
