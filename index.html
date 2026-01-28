@@ -123,6 +123,12 @@
             transition: opacity 0.5s ease;
             min-width: 400px; 
         }
+		
+		.mono-num {
+			display: inline-block;
+			min-width: 1.8ch; /* Force a consistent width */
+			text-align: center;
+		}
 
         #sub-message {
             margin-top: 5px;
@@ -1403,7 +1409,8 @@
 					}
 		
 					State.timers.lobbyVal--;
-					updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
+					//updateTopMsg(`GAME STARTS IN ${State.timers.lobbyVal}s`);
+					updateTopMsg(`GAME STARTS IN <span class="mono-num">${State.timers.lobbyVal}</span>s`);
 					updateUI();
 					
 					if(State.timers.lobbyVal <= 0) {
@@ -1934,7 +1941,7 @@ function nextTurn() {
         function updateTopMsg(t) {
             const el = document.getElementById('top-message');
             if(!t) el.classList.add('hidden');
-            else { el.innerText = t; el.classList.remove('hidden'); }
+            else { el.innerHTML  = t; el.classList.remove('hidden'); }
         }
 
         function updateUI() {
