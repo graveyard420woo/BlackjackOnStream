@@ -524,9 +524,29 @@
       .lb-rank { font-weight: 900; font-size: 1.5rem; width: 40px; }
       .lb-name { flex-grow: 1; font-weight: 700; font-size: 1.2rem; text-align: left; margin-left: 10px; display:flex; align-items:center; gap:5px; }
       .lb-chips { font-family: var(--font-display); color: var(--neon-green); font-size: 1.3rem; }
-      .lb-top-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); border: 1px solid gold; }
+      /*
+	  .lb-top-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); border: 1px solid gold; }
       .lb-top-2 { border: 1px solid silver; }
       .lb-top-3 { border: 1px solid #cd7f32; }
+	  */
+	  .lb-top-1 { 
+          background: linear-gradient(90deg, rgba(255, 215, 0, 0.25), transparent); 
+          border: 2px solid gold; 
+          padding: 15px 10px; /* Extra padding for size */
+      }
+      .lb-top-1 .lb-rank, .lb-top-1 .lb-name, .lb-top-1 .lb-chips {
+          font-size: 1.8rem !important; /* Make text bigger */
+          text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      }
+
+      /* 2nd & 3rd Place: Bigger than normal, but smaller than 1st */
+      .lb-top-2 { border: 1px solid silver; padding: 12px 10px; }
+      .lb-top-3 { border: 1px solid #cd7f32; padding: 12px 10px; }
+      
+      .lb-top-2 .lb-rank, .lb-top-2 .lb-name, .lb-top-2 .lb-chips,
+      .lb-top-3 .lb-rank, .lb-top-3 .lb-name, .lb-top-3 .lb-chips {
+          font-size: 1.4rem !important; /* Moderate size boost */
+      }
       .lb-flair-icon { width: 24px; height: 24px; object-fit: contain; }
       .lb-flair-text { font-size: 1.2rem; }
 
