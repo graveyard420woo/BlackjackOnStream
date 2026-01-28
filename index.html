@@ -588,10 +588,7 @@
         .settings-header { 
             display: flex; justify-content: space-between; align-items: center; 
             margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;
-			cursor: grab;
-			user-select: none;
-			}
-		.settings-header:active { cursor: grabbing; }
+        }
         .settings-header h2 { margin: 0; font-family: var(--font-display); color: var(--neon-blue); }
         .close-settings { cursor: pointer; font-weight: bold; font-size: 1.2rem; color: var(--neon-pink); }
         
@@ -2307,79 +2304,35 @@ function nextTurn() {
 			playSfx('deal');
         }
 
-        // --- UNIFIED DRAG SYSTEM (Dealer & Settings) ---
-        const dragState = {
-            active: null, // 'DEALER' or 'SETTINGS'
-            offsetX: 0,
-            offsetY: 0
-        };
-
+        const dragger = document.getElementById('house-bank');
         const dealerSpot = document.getElementById('dealer-spot');
-        const houseBank = document.getElementById('house-bank');
-        const settingsPanel = document.getElementById('settings-panel');
-        const settingsHeader = document.querySelector('.settings-header');
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
 
-        // 1. Setup Dealer Drag Start
-        houseBank.addEventListener('mousedown', (e) => {
-            dragState.active = 'DEALER';
+        dragger.addEventListener('mousedown', (e) => {
+            isDragging = true;
             const rect = dealerSpot.getBoundingClientRect();
-            dragState.offsetX = e.clientX - rect.left;
-            dragState.offsetY = e.clientY - rect.top;
-            houseBank.style.cursor = 'grabbing';
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            dragger.style.cursor = 'grabbing';
         });
 
-        // 2. Setup Settings Drag Start
-        settingsHeader.addEventListener('mousedown', (e) => {
-            // Ignore if clicking the Close button
-            if(e.target.classList.contains('close-settings')) return;
-
-            dragState.active = 'SETTINGS';
-            const rect = settingsPanel.getBoundingClientRect();
-            
-            // Switch from Centered CSS to Absolute Position
-            settingsPanel.style.transform = 'none';
-            settingsPanel.style.left = `${rect.left}px`;
-            settingsPanel.style.top = `${rect.top}px`;
-
-            dragState.offsetX = e.clientX - rect.left;
-            dragState.offsetY = e.clientY - rect.top;
-            settingsHeader.style.cursor = 'grabbing';
-        });
-
-        // 3. Global Move Logic
         window.addEventListener('mousemove', (e) => {
-            if (!dragState.active) return;
+            if (!isDragging) return;
             e.preventDefault();
-
-            if (dragState.active === 'DEALER') {
-                const newX = e.clientX - dragState.offsetX;
-                const newY = e.clientY - dragState.offsetY;
-                
-                // Dealer needs specific transforms maintained
-                dealerSpot.style.left = `${newX}px`;
-                dealerSpot.style.top = `${newY}px`;
-                dealerSpot.style.transform = 'scale(1.3)'; // Keep the scale, remove the translate
-                
-                State.dealerPos.x = newX + 125; 
-                State.dealerPos.y = newY + 70;
-            } 
-            else if (dragState.active === 'SETTINGS') {
-                const newX = e.clientX - dragState.offsetX;
-                const newY = e.clientY - dragState.offsetY;
-                
-                settingsPanel.style.left = `${newX}px`;
-                settingsPanel.style.top = `${newY}px`;
-            }
+            let newX = e.clientX - dragOffset.x;
+            let newY = e.clientY - dragOffset.y;
+            dealerSpot.style.transform = 'none'; 
+            dealerSpot.style.left = `${newX}px`;
+            dealerSpot.style.top = `${newY}px`;
+            State.dealerPos.x = newX + 125; 
+            State.dealerPos.y = newY + 70;
+            // Fix: Keep scale when dragging
+            dealerSpot.style.transform = 'scale(1.3)';
         });
 
-        // 4. Global Drop Logic
         window.addEventListener('mouseup', () => {
-            if (dragState.active === 'DEALER') {
-                houseBank.style.cursor = 'grab';
-            } else if (dragState.active === 'SETTINGS') {
-                settingsHeader.style.cursor = 'grab';
-            }
-            dragState.active = null;
+            if(isDragging) { isDragging = false; dragger.style.cursor = 'grab'; }
         });
 
         function adjLobbyTime(delta) {
