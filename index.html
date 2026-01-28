@@ -1696,7 +1696,7 @@ function nextTurn() {
             State.house += hand.bet;
             hand.bet *= 2;
             
-            spawnAction(p, 'DOUBLE');
+            spawnAction(p, 'DOUBLE-DOWN');
             playSfx('deal');
             hand.cards.push(State.deck.pop());
             hand.score = calculateScore(hand.cards);
