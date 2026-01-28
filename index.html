@@ -638,8 +638,8 @@
 		
 		.card.dissolve {
 			opacity: 0 !important;
-			transform: translateY(-30px) scale(0.8) rotate(10deg) !important;
-			transition: all 0.5s ease-out !important;
+			transform: translateY(var(--end-y, -30px)) scale(0.8) rotate(var(--end-rot, 10deg)) !important;
+			transition: all 0.3s ease-out !important;
 			pointer-events: none;
 		}
         
@@ -1300,11 +1300,22 @@
 			// Check if there are cards to fade out
 			const existingCards = document.querySelectorAll('.card');
 			if (existingCards.length > 0) {
-				existingCards.forEach(c => c.classList.add('dissolve'));
-				// Wait 500ms for animation, then run the reset
+				existingCards.forEach(c => {
+					// Random Y: Upwards between -30px and -80px
+					const rY = -30 - Math.random() * 50; 
+					
+					// Random Rotation: Between -45deg and 45deg
+					const rRot = (Math.random() - 0.5) * 90; 
+		
+					// Set these values onto the specific card element
+					c.style.setProperty('--end-y', `${rY}px`);
+					c.style.setProperty('--end-rot', `${rRot}deg`);
+					
+					c.classList.add('dissolve');
+				});
+				
 				setTimeout(executeLobbyReset, 500); 
 			} else {
-				// If no cards (fresh boot), run immediately
 				executeLobbyReset(); 
 			}
 		
