@@ -1235,7 +1235,7 @@
 					
 					if (!isNaN(parsedChips)) {
 						// BUST RECOVERY: If DB says 0 or less, give them 79
-						chipsToUse = (parsedChips <= 0) ? 110 : parsedChips;
+						chipsToUse = (parsedChips <= 0) ? 79 : parsedChips;
 						flairToUse = dbData.flair || [];
 						console.log(`Loaded ${name} from DB: ${chipsToUse} chips`);
 					}
