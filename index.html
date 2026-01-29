@@ -1916,6 +1916,7 @@ function nextTurn() {
     });
     
     if(chatReport) sendTwitchChatMessage(chatReport);
+	setInterval(saveAllToDatabase, 1000);
 
     // Filter out bankrupt players
     State.players = State.players.filter(p => { 
@@ -2438,7 +2439,7 @@ function nextTurn() {
 			.catch(e => console.error("Database Sync Failed:", e));
 		}
 		
-		setInterval(saveAllToDatabase, 3000);
+		//setInterval(saveAllToDatabase, 300000); //save every 5 minutes
 		
 		// Also save when the results are calculated (best time to save)
 		// You can call saveAllToDatabase() at the end of your payouts() function!
