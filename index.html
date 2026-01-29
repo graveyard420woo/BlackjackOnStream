@@ -1194,7 +1194,7 @@
             setTimeout(() => el.remove(), 1500);
         }
 
-		function addPlayer(userId, name, color, badgeData = []) {
+		async function addPlayer(userId, name, color, badgeData = []) {
 			if (cooldowns.has(name.toLowerCase())) {
 				let remaining = Math.ceil((cooldowns.get(name.toLowerCase()) - Date.now()) / 1000);
 				if (remaining > 0) {
