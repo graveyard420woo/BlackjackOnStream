@@ -99,7 +99,7 @@
 			61% { color: #00a99d; }
             76% { color: #faa61a; }
 			84% { color: #ed0c6e; }
-			92% { color: #8eff0f; }
+			98% { color: #8eff0f; }
             100% { color: #ff0055; }
         }
         h1 span, .rainbow-text { 
@@ -858,7 +858,6 @@
         }
 
         function processToken(token) {
-			//playSfx('shuffle');
             access_token = token;
             fetch('https://api.twitch.tv/helix/users', { "headers": { "Client-ID": client_id, "Authorization": "Bearer " + access_token } })
                 .then(resp => resp.json())
@@ -869,6 +868,7 @@
                         session_id = id;
                         my_user_id = resp.data[0].id;
 						toggleGameView(true);
+						playSfx('shuffle');
 						fetchEmotes(my_user_id);
                         fetchGlobalBadges();
                         fetchChannelBadges(my_user_id);
@@ -2329,7 +2329,6 @@ function nextTurn() {
             dealerSpot.style.top = `${newY}px`;
             State.dealerPos.x = newX + 125; 
             State.dealerPos.y = newY + 70;
-            // Fix: Keep scale when dragging
             dealerSpot.style.transform = 'scale(1.3)';
         });
 
