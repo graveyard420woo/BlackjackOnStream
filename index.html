@@ -1229,12 +1229,19 @@
 			try {
 				const response = await fetch(`https://ericszollosy.com/strim/bjos/api.php?action=get_player&id=${userId}`);
 				const dbData = await response.json();
-				if (dbData) {
-					chipsToUse = parseInt(dbData.chips);
-					flairToUse = dbData.flair || [];
-					console.log(`Loaded ${name} from DB: ${chipsToUse} chips`);
+				
+				// Check if we got valid data AND that the chips field is a number
+				if (dbData && dbData.chips !== undefined && dbData.chips !== null) {
+					let parsedChips = parseInt(dbData.chips);
+					
+					// Only use the DB value if it's a real number
+					if (!isNaN(parsedChips)) {
+						chipsToUse = parsedChips;
+						flairToUse = dbData.flair || [];
+						console.log(`Loaded ${name} from DB: ${chipsToUse} chips`);
+					}
 				} else {
-					// Fallback to local history
+					// Fallback to local history if DB record is missing or new
 					const history = chipHistory.get(name.toLowerCase());
 					if (history) {
 						chipsToUse = (history.chips <= 0) ? 79 : history.chips;
