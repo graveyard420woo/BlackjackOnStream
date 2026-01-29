@@ -695,15 +695,6 @@
         .description{ color: #E0E0E0; font-size: 12px; font-weight: 600; white-space: pre-line; line-height: 19px; }
         #twitch-logo{ float: left; position: relative; top: 2px; height: 27px; }
         #gy-logo{ position: relative; margin-top: 15px; margin-left: -10px; height: 50px; }
-		.settings-header { 
-    display: flex; justify-content: space-between; align-items: center; 
-    margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;
-    
-    /* NEW LINES FOR DRAGGING */
-    cursor: grab;
-    user-select: none;
-}
-.settings-header:active { cursor: grabbing; }
     </style>
 </head>
 <body>
@@ -1232,6 +1223,26 @@
 			}
 		
 			if(State.players.some(p => p.name === name)) return;
+			
+			// NEW DB FETCH LOGIC
+			let savedChips = CONFIG.START_CHIPS;
+			let savedFlair = [];
+		
+			try {
+				const response = await fetch(`api.php?action=get_player&id=${userId}`);
+				const dbData = await response.json();
+				if (dbData) {
+					savedChips = parseInt(dbData.chips);
+					savedFlair = dbData.flair || [];
+					console.log(`Loaded ${name} from DB: ${savedChips} chips`);
+				} else {
+					// Fallback to local history if not in DB yet
+					const history = chipHistory.get(name.toLowerCase());
+					if (history) savedChips = history.chips;
+				}
+			} catch (e) {
+				console.error("DB Load error, using defaults", e);
+			}
 		
 			const glowColor = color || '#ff0055';
 			const div = document.createElement('div');
@@ -2391,48 +2402,58 @@ function nextTurn() {
 			playSfx('deal');
         }
         startLobby();
-		// --- SETTINGS DRAG LOGIC (Isolated) ---
-        const settingsPanel = document.getElementById('settings-panel');
-        const settingsHeader = document.querySelector('.settings-header');
-        let isSettingsDragging = false;
-        let settingsDragOffset = { x: 0, y: 0 };
-
-        if (settingsHeader && settingsPanel) {
-            settingsHeader.addEventListener('mousedown', (e2) => {
-                // Don't drag if clicking the 'X'
-                if(e.target.classList.contains('close-settings')) return;
-
-                isSettingsDragging = true;
-                
-                // 1. Get current on-screen position
-                const rect = settingsPanel.getBoundingClientRect();
-                
-                // 2. Disable the CSS centering transform so we can use absolute pixels
-                settingsPanel.style.transform = 'none';
-                settingsPanel.style.left = `${rect.left}px`;
-                settingsPanel.style.top = `${rect.top}px`;
-                
-                // 3. Calculate offset
-                settingsDragOffset.x = e.clientX - rect.left;
-                settingsDragOffset.y = e.clientY - rect.top;
-                
-                settingsHeader.style.cursor = 'grabbing';
-            });
-
-            window.addEventListener('mousemove', (e2) => {
-                if (!isSettingsDragging) return;
-                e.preventDefault();
-                settingsPanel.style.left = `${e2.clientX - settingsDragOffset.x}px`;
-                settingsPanel.style.top = `${e2.clientY - settingsDragOffset.y}px`;
-            });
-
-            window.addEventListener('mouseup', () => {
-                if (isSettingsDragging) {
-                    isSettingsDragging = false;
-                    settingsHeader.style.cursor = 'grab';
-                }
-            });
-        }
+		
+		function saveAllToDatabase() {
+			if (State.players.length === 0 && chipHistory.size === 0) return;
+		
+			// We want to save both active players and people who left during this session
+			const playersToSave = [];
+			
+			// Add active players
+			State.players.forEach(p => {
+				playersToSave.push({
+					userId: p.userId,
+					name: p.name,
+					chips: p.chips,
+					flair: p.flair
+				});
+			});
+		
+			// Add anyone in local chipHistory who isn't currently active
+			chipHistory.forEach((data, name) => {
+				if (!State.players.find(p => p.name.toLowerCase() === name)) {
+					// We need a userId to save to DB. 
+					// NOTE: Make sure chipHistory stores userId! 
+					// Update your payout/leave logic to include userId in chipHistory.
+					if(data.userId) {
+						playersToSave.push({
+							userId: data.userId,
+							name: name,
+							chips: data.chips,
+							flair: data.flair
+						});
+					}
+				}
+			});
+		
+			fetch('api.php?action=save_players', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					secret: "GY_BL4CKJACK_S3CURE_69", // MUST MATCH PHP
+					players: playersToSave
+				})
+			})
+			.then(r => r.json())
+			.then(d => console.log("Database Sync Complete", d))
+			.catch(e => console.error("Database Sync Failed", e));
+		}
+		
+		// Auto-save every 5 minutes
+		setInterval(saveAllToDatabase, 300000);
+		
+		// Also save when the results are calculated (best time to save)
+		// You can call saveAllToDatabase() at the end of your payouts() function!
     </script>
     <div id="settings-trigger" onclick="toggleSettings()"></div>
 
