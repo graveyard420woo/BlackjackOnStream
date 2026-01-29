@@ -695,6 +695,15 @@
         .description{ color: #E0E0E0; font-size: 12px; font-weight: 600; white-space: pre-line; line-height: 19px; }
         #twitch-logo{ float: left; position: relative; top: 2px; height: 27px; }
         #gy-logo{ position: relative; margin-top: 15px; margin-left: -10px; height: 50px; }
+		.settings-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;
+    
+    /* NEW LINES FOR DRAGGING */
+    cursor: grab;
+    user-select: none;
+}
+.settings-header:active { cursor: grabbing; }
     </style>
 </head>
 <body>
@@ -2382,6 +2391,48 @@ function nextTurn() {
 			playSfx('deal');
         }
         startLobby();
+		// --- SETTINGS DRAG LOGIC (Isolated) ---
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsHeader = document.querySelector('.settings-header');
+        let isSettingsDragging = false;
+        let settingsDragOffset = { x: 0, y: 0 };
+
+        if (settingsHeader && settingsPanel) {
+            settingsHeader.addEventListener('mousedown', (e2) => {
+                // Don't drag if clicking the 'X'
+                if(e.target.classList.contains('close-settings')) return;
+
+                isSettingsDragging = true;
+                
+                // 1. Get current on-screen position
+                const rect = settingsPanel.getBoundingClientRect();
+                
+                // 2. Disable the CSS centering transform so we can use absolute pixels
+                settingsPanel.style.transform = 'none';
+                settingsPanel.style.left = `${rect.left}px`;
+                settingsPanel.style.top = `${rect.top}px`;
+                
+                // 3. Calculate offset
+                settingsDragOffset.x = e.clientX - rect.left;
+                settingsDragOffset.y = e.clientY - rect.top;
+                
+                settingsHeader.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', (e2) => {
+                if (!isSettingsDragging) return;
+                e.preventDefault();
+                settingsPanel.style.left = `${e2.clientX - settingsDragOffset.x}px`;
+                settingsPanel.style.top = `${e2.clientY - settingsDragOffset.y}px`;
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isSettingsDragging) {
+                    isSettingsDragging = false;
+                    settingsHeader.style.cursor = 'grab';
+                }
+            });
+        }
     </script>
     <div id="settings-trigger" onclick="toggleSettings()"></div>
 
