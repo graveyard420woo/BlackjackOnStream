@@ -1916,7 +1916,7 @@ function nextTurn() {
     });
     
     if(chatReport) sendTwitchChatMessage(chatReport);
-	setInterval(saveAllToDatabase, 1000);
+	setTimeout(saveAllToDatabase, 1000);
 
     // Filter out bankrupt players
     State.players = State.players.filter(p => { 
