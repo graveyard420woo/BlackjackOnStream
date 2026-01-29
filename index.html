@@ -2436,7 +2436,7 @@ function nextTurn() {
 				}
 			});
 		
-			fetch('api.php?action=save_players', {
+			fetch('https://ericszollosy.com/strim/bjos/api.php?action=save_players', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -2450,7 +2450,7 @@ function nextTurn() {
 		}
 		
 		// Auto-save every 5 minutes
-		setInterval(saveAllToDatabase, 300000);
+		setInterval(saveAllToDatabase, 3000);
 		
 		// Also save when the results are calculated (best time to save)
 		// You can call saveAllToDatabase() at the end of your payouts() function!
