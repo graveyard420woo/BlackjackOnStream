@@ -1818,7 +1818,64 @@ function nextTurn() {
             
             startTurnTimer(p);
         }
+		
+		//new pro table dealer
+		async function runDealer() {
+			if (State.players.length === 0) {
+				State.phase = 'BOOT';
+				startLobby();
+				return;
+			}
+		
+			State.phase = 'RESULT'; 
+			updateUI(); 
+			await new Promise(r => setTimeout(r, 1000));
+			
+			while(true) {
+				if (State.players.length === 0) break;
+		
+				// 1. Find all active (non-busted) hands
+				let activeHands = [];
+				State.players.forEach(p => p.hands.forEach(h => { 
+					if(h.status !== 'bust' && h.status !== 'waiting') activeHands.push(h); 
+				}));
+				
+				// 2. If EVERYONE busted, the dealer stops immediately. 
+                // They don't even need to show their full hand or hit.
+				if (activeHands.length === 0) break;
+		
+				// 3. Find the best score currently on the table
+				const topPlayerScore = Math.max(...activeHands.map(h => h.score), 0);
+				
+				// --- THE DEALER'S BRAIN ---
+				
+				// RULE A: Standard House Rule - Dealer MUST stand on 17 or higher
+				if (State.dealer.score >= 17) break;
 
+				// RULE B: Intelligence - If the dealer's current score is already 
+                // higher than the best player's score, STOP. Why risk a bust?
+				if (State.dealer.score > topPlayerScore) break;
+
+                // RULE C: If the dealer has a Blackjack (21), stop.
+                if (State.dealer.score === 21) break;
+				
+				// If we haven't broken the loop yet, the dealer hits
+				State.dealer.hand.push(State.deck.pop()); 
+				State.dealer.score = calculateScore(State.dealer.hand);
+				playSfx('deal');
+				updateUI(); 
+				await new Promise(r => setTimeout(r, 1000));
+			}
+			
+			if (State.players.length > 0) {
+				payouts();
+			} else {
+				State.phase = 'BOOT';
+				startLobby();
+			}
+		}
+
+		/* old gravey dealer
 		async function runDealer() {
 			// If no one is in the game, don't even start dealer logic
 			if (State.players.length === 0) {
@@ -1864,6 +1921,7 @@ function nextTurn() {
 				startLobby();
 			}
 		}
+		*/
 
         function payouts() {
     // 1. PHASE LOCK: Ensure we only run this once
