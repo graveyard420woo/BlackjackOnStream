@@ -1172,7 +1172,8 @@
 			leaveQueue: [],
             activeStoreItem: null,
             firstTurnAnnounced: false,
-			lastFullAlert: 0
+			lastFullAlert: 0,
+			gamesCompleted: 0
         };
 
         const ctx = document.getElementById('fx-canvas').getContext('2d');
@@ -1481,10 +1482,11 @@
 				State.phase = 'LOBBY'; 
 				console.log("--- LOBBY STARTING ---");
 				
-				setTimeout(() => {
-					playSfx('deal'); // Optional: Add a sound when the alert pops
-					spawnGlobalAlert("⚠️ PLACE YOUR BETS! ⚠️<br><br>♠️♥️ LOBBY OPEN ♦️♣️<br><br>💎 !JOIN & !BET NOW 💎", "pop-bet");
-				}, 2000);
+				if (State.gamesCompleted > 0) {
+					setTimeout(() => {
+						spawnGlobalAlert("⚠️ PLACE YOUR BETS! ⚠️<br><br>♠️♥️ LOBBY IS OPEN ♦️♣️<br><br>💎 !JOIN & !BET NOW 💎", "pop-bet");
+					}, 1500);
+				}
 		
 				// 1. HARD RESET
 				clearInterval(State.timers.turn);
@@ -2099,6 +2101,7 @@ function nextTurn() {
     if(notificationQueue.length === 0) {
         updateTopMsg("HOUSE WINS ALL");
         setTimeout(() => {
+			State.gamesCompleted++;
             showLeaderboard();
             setTimeout(startLobby, 6000);
         }, 2000);
@@ -2107,7 +2110,8 @@ function nextTurn() {
         const payCycle = setInterval(() => {
             // Check if we finished the queue OR if everyone left
             if(i >= notificationQueue.length || State.players.length === 0 && notificationQueue.length > 0 && i >= notificationQueue.length) { 
-                clearInterval(payCycle); 
+                clearInterval(payCycle);
+				State.gamesCompleted++; 
                 showLeaderboard();
                 setTimeout(startLobby, 6000); 
                 return; 
