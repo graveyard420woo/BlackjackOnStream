@@ -8,9 +8,9 @@ Blackjack On Stream is an interactive overlay for Twitch that can be played by e
 
 Simply add it as a browser source by copying the URL from the address bar after you connect your Twitch!
 
-Check the top left corner for your handy stream config menu ;)
+Check the top left corner for the handy stream config menu ;) This is where you adjust your game & display settings.
 
-A 1920x1080 browser source works great! For smoother operation - Enable hardware acceleration for your browser sources in OBS! (Settings>Advanced>Sources)
+A 1920x1080 browser source works great! For smoother operation - Enable hardware acceleration for your browser sources in OBS (Settings>Advanced>Sources)
 
 <h3>Commands</h3>
 <ul>
@@ -28,7 +28,11 @@ A 1920x1080 browser source works great! For smoother operation - Enable hardware
 <ul>
  <li>Command exclamation points (!) are always optional. Players may simply type join or hit or h or dd etc...</li>
  <li>Click the dealer's chip icon and drag to position the dealer anywhere you like on screen</li>
+ <li>Players may only bet in the lobby prior to the game; before they have seen their cards</li>
+ <li>Players may only join in between games and will be queued to join in the next open lobby if they try to join mid-game</li>
+ <li>Players may leave at any time and will be removed automatically after 5 inactive games</li>
  <li>Currently, players are not allowed to spend all of their chips on buy items because then they would have zero and be kicked right away. so if you have 90 chips and a buy item is 90 you must have at least 91 chips to buy it</li>
+ <li>Everything is rendered in-browser to make it easy for users to add custom CSS in OBS for anything they want to tweak</li>
 </ul>
 
 I am your humble artist/tech/streamer. if you would like to suggest edits, please do! I hope you enjoy this game with your friends in chat! (; 
