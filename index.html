@@ -7,6 +7,26 @@
     <title>Blackjack On Stream</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Montserrat:wght@400;600;800;900&display=swap');
+		
+		/* --- SPLASH SCREEN --- */
+		#splash-overlay {
+			position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+			z-index: 30000; pointer-events: none; overflow: hidden;
+		}
+		
+		.splash-curtain {
+			position: absolute; top: 0; width: 100%; height: 100%;
+			background-size: cover; background-position: center;
+			transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1);
+			pointer-events: auto;
+		}
+		
+		#splash-left { left: 0; transform: translateX(0); }
+		#splash-right { left: 0; transform: translateX(0); }
+		
+		/* Animation state */
+		#splash-overlay.parted #splash-left { transform: translateX(-105%); }
+		#splash-overlay.parted #splash-right { transform: translateX(105%); }
 
         :root {
             --neon-blue: #00cef3;
@@ -240,7 +260,7 @@
 
         .flair-item {
             position: absolute;
-            font-size: 3rem;
+            font-size: 2rem;
             filter: drop-shadow(1px 0 0 rgba(255, 255, 255, 0.6)) 
                     drop-shadow(0 2px 4px rgba(0,0,0,0.5));
             user-select: none;
@@ -698,6 +718,11 @@
     </style>
 </head>
 <body>
+
+	<div id="splash-overlay">
+    	<div id="splash-left" class="splash-curtain"></div>
+    	<div id="splash-right" class="splash-curtain"></div>
+	</div>
     
     <div class="bg-plaid"></div>
     <div class="bg-light"></div>
@@ -767,6 +792,54 @@
     </div>
 	<script type="text/javascript" src="eventsub.js"></script>
     <script>
+	
+	(function() {
+    function initSplash() {
+        const overlay = document.getElementById('splash-overlay');
+        const left = document.getElementById('splash-left');
+        const right = document.getElementById('splash-right');
+        
+        // 1. Randomly select 1 of 3 images
+        const randNum = Math.floor(Math.random() * 3) + 1;
+        const imgPath = `img/splash/splash${randNum}.jpg`;
+        
+        left.style.backgroundImage = `url('${imgPath}')`;
+        right.style.backgroundImage = `url('${imgPath}')`;
+
+        // 2. Generate a random serpentine curve
+        let points = "";
+        const segments = 12; // Number of "wiggles"
+        for (let i = 0; i <= segments; i++) {
+            const y = (i / segments) * 100;
+            // Wiggle around the 50% mark by +/- 8%
+            const x = 50 + (Math.random() * 16 - 8); 
+            points += `${x}% ${y}%, `;
+        }
+
+        // 3. Apply clip-paths
+        // Left curtain: Start top-left, follow curve, go to bottom-left, close
+        const leftPath = `polygon(0% 0%, ${points} 0% 100%, 0% 100%)`;
+        // Right curtain: Start top-right, follow curve, go to bottom-right, close
+        const rightPath = `polygon(100% 0%, ${points} 100% 100%, 100% 100%)`;
+
+        left.style.clipPath = leftPath;
+        right.style.clipPath = rightPath;
+
+        // 4. Sequence: Show for 2s, then part
+        setTimeout(() => {
+            overlay.classList.add('parted');
+            // Play a "shuffle" or "deal" sound for the reveal
+            if (typeof playSfx === 'function') playSfx('shuffle');
+            
+            // Clean up DOM after animation finishes to save memory
+            setTimeout(() => overlay.remove(), 1500);
+        }, 2000);
+    }
+
+    // Run immediately if DOM is ready, otherwise wait
+    if (document.readyState === 'complete') initSplash();
+    else window.addEventListener('load', initSplash);
+})();
 	
 		var client_id = 'lzdwvvyvabvh8u8scdqr56naaeos7e';
         var redirect = 'https://graveyard420woo.github.io/BlackjackOnStream/';
@@ -982,10 +1055,10 @@
         }
 
         let CONFIG = {
-            START_CHIPS: 110, TURN_TIME: 14, LOBBY_TIME: 24, MAX_PLAYERS: 14,
+            START_CHIPS: 110, TURN_TIME: 20, LOBBY_TIME: 24, MAX_PLAYERS: 14,
             SPEED: 0.04, MAX_SPEED: 0.6, MARGIN: 20, 
             UNIT_W: 220, UNIT_H: 260, 
-            MAX_BET: 200,
+            MAX_BET: 400,
             DEALER_CHAT: true,
             SHOW_LEADERBOARD: true,
 			SOUND_ENABLED: true,
@@ -1181,6 +1254,25 @@
 				if (hist) hist.afkCount = 0;
 			}
 		}
+		
+		function spawnGlobalAlert(text, typeClass) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `action-popup ${typeClass}`; 
+            alertDiv.style.cssText = `
+                position: fixed; 
+                top: 25%; 
+                left: 50%; 
+                transform: translateX(-50%); 
+                font-size: 2.2rem; 
+                text-align: center; 
+                z-index: 10000;
+                white-space: nowrap;
+                pointer-events: none;
+            `;
+            alertDiv.innerHTML = text;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3500);
+        }
 
         function spawnAction(player, type) {
             // Remove existing popups to prevent stacking
@@ -1203,24 +1295,31 @@
 				} else { cooldowns.delete(name.toLowerCase()); }
 			}
 			
-			if(State.phase === 'PLAYING' || State.players.length >= CONFIG.MAX_PLAYERS) {
-				if(!State.joinQueue.some(q => q.name === name) && !State.players.some(p => p.name === name)) {
+			const isAlreadyInGame = State.players.some(p => p.name.toLowerCase() === name.toLowerCase());
+            const isAlreadyInQueue = State.joinQueue.some(q => q.name.toLowerCase() === name.toLowerCase());
+
+            // 1. IS THE ROOM ACTUALLY FULL?
+            if (State.players.length + State.joinQueue.length >= CONFIG.MAX_PLAYERS) {
+                if (!isAlreadyInGame && !isAlreadyInQueue) {
+                    if (Date.now() - State.lastFullAlert > 10000) { // Reduced cooldown to 10s for better feedback
+                        spawnGlobalAlert("LOBBY FULL<br>MAX PLAYERS REACHED", "pop-no");
+                        State.lastFullAlert = Date.now();
+                    }
+                }
+                return;
+            }
+
+            // 2. IS THE GAME IN PROGRESS? (Add to queue)
+			if(State.phase === 'PLAYING') {
+				if(!isAlreadyInQueue && !isAlreadyInGame) {
 					State.joinQueue.push({ userId, name, color, badgeData });
 					updateQueueUI();
-					if (Date.now() - State.lastFullAlert > 120000) {
-						const alertDiv = document.createElement('div');
-						alertDiv.className = 'action-popup pop-no'; 
-						alertDiv.style.cssText = 'position:fixed; top:20%; left:50%; transform:translateX(-50%); font-size:2rem; text-align:center; z-index:9999;';
-						alertDiv.innerHTML = "LOBBY FULL<br>MAX PLAYERS REACHED";
-						document.body.appendChild(alertDiv);
-						setTimeout(() => alertDiv.remove(), 2500);
-						State.lastFullAlert = Date.now();
-					}
+                    spawnGlobalAlert(`WELCOME ${name.toUpperCase()}!<br>DEALT IN NEXT HAND`, "pop-bought");
 				}
 				return;
 			}
 		
-			if(State.players.some(p => p.name === name)) return;
+			if(isAlreadyInGame) return;
 			
 			// --- PERSISTENCE LOGIC ---
 			let chipsToUse = CONFIG.START_CHIPS;
@@ -1381,6 +1480,8 @@
 			function executeLobbyReset() {
 				State.phase = 'LOBBY'; 
 				console.log("--- LOBBY STARTING ---");
+				
+				spawnGlobalAlert("PLACE YOUR BETS!<br>LOBBY OPEN<br>!JOIN & !BET NOW", "pop-bet");
 		
 				// 1. HARD RESET
 				clearInterval(State.timers.turn);
