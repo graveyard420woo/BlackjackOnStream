@@ -933,8 +933,10 @@
                         log(`Connected to WebSocket with ${id}`);
                         session_id = id;
                         my_user_id = resp.data[0].id;
-						toggleGameView(true);
 						runSplash();
+						setTimeout(() => {
+							toggleGameView(true);
+						}, 500);
 						playSfx('shuffle');
 						fetchEmotes(my_user_id);
                         fetchGlobalBadges();
