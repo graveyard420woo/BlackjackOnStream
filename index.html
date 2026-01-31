@@ -12,6 +12,7 @@
 		#splash-overlay {
 			position: fixed; top: 0; left: 0; width: 100%; height: 100%;
 			z-index: 30000; pointer-events: none; overflow: hidden;
+			display: none;
 		}
 		
 		.splash-curtain {
@@ -793,48 +794,45 @@
 	<script type="text/javascript" src="eventsub.js"></script>
     <script>
 	
-	(function() {
-    function initSplash() {
-        const overlay = document.getElementById('splash-overlay');
-        const left = document.getElementById('splash-left');
-        const right = document.getElementById('splash-right');
-        
-        // 1. Randomly select 1 of 3 images
-        const randNum = Math.floor(Math.random() * 3) + 1;
-        const imgPath = `img/splash/splash${randNum}.jpg`;
-        
-        left.style.backgroundImage = `url('${imgPath}')`;
-        right.style.backgroundImage = `url('${imgPath}')`;
-
-        // 2. Generate a random serpentine curve
-        let points = "";
-        const segments = 12; // Number of "wiggles"
-        for (let i = 0; i <= segments; i++) {
-            const y = (i / segments) * 100;
-            // Wiggle around the 50% mark by +/- 8%
-            const x = 50 + (Math.random() * 16 - 8); 
-            points += `${x}% ${y}%, `;
-        }
-
-        // 3. Apply clip-paths
-        // Left curtain: Start top-left, follow curve, go to bottom-left, close
-        const leftPath = `polygon(0% 0%, ${points} 0% 100%, 0% 100%)`;
-        // Right curtain: Start top-right, follow curve, go to bottom-right, close
-        const rightPath = `polygon(100% 0%, ${points} 100% 100%, 100% 100%)`;
-
-        left.style.clipPath = leftPath;
-        right.style.clipPath = rightPath;
-
-        // 4. Sequence: Show for 2s, then part
-        setTimeout(() => {
-            overlay.classList.add('parted');
-            // Play a "shuffle" or "deal" sound for the reveal
-            if (typeof playSfx === 'function') playSfx('shuffle');
-            
-            // Clean up DOM after animation finishes to save memory
-            setTimeout(() => overlay.remove(), 1500);
-        }, 2000);
-    }
+			function runSplash() {
+			const overlay = document.getElementById('splash-overlay');
+			const left = document.getElementById('splash-left');
+			const right = document.getElementById('splash-right');
+			
+			// 1. Randomly select 1 of 3 images
+			const randNum = Math.floor(Math.random() * 3) + 1;
+			const imgPath = `img/splash/splash${randNum}.jpg`;
+			
+			// Set display to block now that we are running it
+			overlay.style.display = "block";
+			
+			left.style.backgroundImage = `url('${imgPath}')`;
+			right.style.backgroundImage = `url('${imgPath}')`;
+		
+			// 2. Generate a random serpentine curve
+			let points = "";
+			const segments = 12; 
+			for (let i = 0; i <= segments; i++) {
+				const y = (i / segments) * 100;
+				const x = 50 + (Math.random() * 16 - 8); 
+				points += `${x}% ${y}%, `;
+			}
+		
+			// 3. Apply clip-paths
+			const leftPath = `polygon(0% 0%, ${points} 0% 100%, 0% 100%)`;
+			const rightPath = `polygon(100% 0%, ${points} 100% 100%, 100% 100%)`;
+		
+			left.style.clipPath = leftPath;
+			right.style.clipPath = rightPath;
+		
+			// 4. Sequence: Show for 2s, then part
+			setTimeout(() => {
+				overlay.classList.add('parted');
+				if (typeof playSfx === 'function') playSfx('shuffle');
+				
+				setTimeout(() => overlay.remove(), 1500);
+			}, 2000);
+		}
 
     // Run immediately if DOM is ready, otherwise wait
     if (document.readyState === 'complete') initSplash();
@@ -941,6 +939,7 @@
                         session_id = id;
                         my_user_id = resp.data[0].id;
 						toggleGameView(true);
+						runSplash();
 						playSfx('shuffle');
 						fetchEmotes(my_user_id);
                         fetchGlobalBadges();
