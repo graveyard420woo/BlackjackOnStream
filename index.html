@@ -1478,7 +1478,7 @@
 				
 				if (State.gamesCompleted > 0) {
 					setTimeout(() => {
-						spawnGlobalAlert("⚠️ PLACE YOUR BETS! ⚠️<br><br>♠️♥️ LOBBY IS OPEN ♦️♣️<br><br>💎 !JOIN & !BET NOW 💎", "pop-bet");
+						spawnGlobalAlert("♠️♥️ LOBBY IS OPEN! ♦️♣️<br>⚠️ JOIN & PLACE YOUR BETS! ⚠️", "pop-bet");
 					}, 1500);
 				}
 		
@@ -2281,7 +2281,7 @@ function nextTurn() {
 		
 				const startX = itemData.x; const startY = itemData.y;
 				const rect = p.dom.getBoundingClientRect();
-				const targetX = rect.left + 100; const targetY = rect.top + 10;
+				const targetX = rect.left + 100; const targetY = rect.top + 5;
 				const travelDuration = 1500; const animStart = Date.now();
 		
 				const fly = () => {
