@@ -2240,7 +2240,7 @@ function nextTurn() {
 			div.innerHTML = `<div class="store-label">!BUY</div>${displayHTML}<div class="store-label">🪙${price}</div>`;
 			document.getElementById('arena').appendChild(div);
 		
-			const item = { el: div, content: visualContent, isImage: isImage, price: price, x: -150, y: 200 + Math.random() * (window.innerHeight - 400), vx: 2 + Math.random() * 2, vy: (Math.random() - 0.5) * 2, startTime: Date.now() };
+			const item = { el: div, content: visualContent, isImage: isImage, price: price, x: -150, y: 200 + Math.random() * (window.innerHeight - 400), vx: 1.1 + Math.random() * 1.1, vy: (Math.random() - 0.5) * 2, startTime: Date.now() };
 			State.activeStoreItem = item;
 		
 			const duration = 60000;
@@ -2283,8 +2283,8 @@ function nextTurn() {
 		
 				const startX = itemData.x; const startY = itemData.y;
 				const rect = p.dom.getBoundingClientRect();
-				const targetX = rect.left + 100; const targetY = rect.top + 5;
-				const travelDuration = 1500; const animStart = Date.now();
+				const targetX = rect.left + 100; const targetY = rect.top + 20;
+				const travelDuration = 1100; const animStart = Date.now();
 		
 				const fly = () => {
 					const now = Date.now();
