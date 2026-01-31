@@ -1481,7 +1481,10 @@
 				State.phase = 'LOBBY'; 
 				console.log("--- LOBBY STARTING ---");
 				
-				spawnGlobalAlert("PLACE YOUR BETS!<br>LOBBY OPEN<br>!JOIN & !BET NOW", "pop-bet");
+				setTimeout(() => {
+					playSfx('deal'); // Optional: Add a sound when the alert pops
+					spawnGlobalAlert("⚠️ PLACE YOUR BETS! ⚠️<br><br>♠️♥️ LOBBY OPEN ♦️♣️<br><br>💎 !JOIN & !BET NOW 💎", "pop-bet");
+				}, 2000);
 		
 				// 1. HARD RESET
 				clearInterval(State.timers.turn);
