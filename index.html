@@ -697,6 +697,19 @@
 			transition: all 0.3s ease-out !important;
 			pointer-events: none;
 		}
+		
+		.chip-icon {
+			display: inline-block;
+			width: 1.1em; /* Scales with text size */
+			height: 1.1em;
+			background-image: url('img/chip.png'); 
+			background-size: contain;
+			background-repeat: no-repeat;
+			background-position: center;
+			vertical-align: middle;
+			margin-right: 4px;
+			filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+		}
         
         /* Login Box Styles from original */
         input[disabled] { background: #3e0000; }
@@ -745,7 +758,7 @@
 
     <div id="arena">
         <div id="dealer-spot">
-            <div id="house-bank" class="house-bank">🪙100</div>
+            <div id="house-bank" class="house-bank"><span class="chip-icon"></span>100</div>
             <div class="dealer-label">DEALER</div>
             <div id="dealer-score"></div>
             <div id="dealer-hand" class="hand-wrapper" style="margin-top:0;"></div>
@@ -1278,7 +1291,7 @@
 
             const el = document.createElement('div');
             el.className = `action-popup ${type==='HIT'?'pop-hit':(type==='STAND'?'pop-stand':(type==='DOUBLE-DOWN'?'pop-dd':(type==='SPLIT'?'pop-split':(type==='BOUGHT'?'pop-bought':(type==='❌'?'pop-no':'pop-bet')))))}`;
-            el.innerText = type;
+            el.innerHTML = type.replace('🪙', '<span class="chip-icon"></span>');
             player.dom.appendChild(el);
             setTimeout(() => el.remove(), 1500);
         }
@@ -1597,7 +1610,7 @@
         <div class="lb-item ${i===0?'lb-top-1':(i===1?'lb-top-2':(i===2?'lb-top-3':''))}">
             <div class="lb-rank">#${i+1}</div>
             <div class="lb-name">${p.name.toUpperCase()} ${flairHTML}</div>
-            <div class="lb-chips">🪙${p.chips}</div>
+            <div class="lb-chips"><span class="chip-icon"></span>${p.chips}</div>
         </div>`
     }).join('');
 
@@ -2142,7 +2155,7 @@ function nextTurn() {
         }
 
         function updateUI() {
-    document.getElementById('house-bank').innerText = `🪙${State.house}`;
+    document.getElementById('house-bank').innerHTML = `<span class="chip-icon"></span>${State.house}`;
     const isPlayingPhase = (State.phase === 'PLAYING');
     
     const dScore = document.getElementById('dealer-score');
@@ -2167,7 +2180,7 @@ function nextTurn() {
         dScore.classList.add('bust'); 
     } else { 
         dContainer.classList.remove('bust'); 
-        dScore.classList.remove('vocals'); 
+        //dScore.classList.remove('vocals'); 
         dScore.classList.remove('bust'); 
     }
 
@@ -2176,10 +2189,10 @@ function nextTurn() {
         p.dom.classList.toggle('active', isActive);
         p.dom.classList.toggle('bust', p.hands.every(h => h.status === 'bust'));
         
-        p.dom.querySelector('.chip-display').innerText = `🪙${p.chips}`;
+        p.dom.querySelector('.chip-display').innerHTML = `<span class="chip-icon"></span>${p.chips}`;
         
         const displayBet = (State.phase === 'LOBBY') ? p.currentBet : p.hands.reduce((sum, h) => sum + h.bet, 0);
-        p.dom.querySelector('.bet-display').innerText = displayBet > 0 ? `BET ${displayBet}` : '';
+        p.dom.querySelector('.bet-display').innerHTML = displayBet > 0 ? `BET <span class="chip-icon"></span>${displayBet}` : '';
 
         const fc = p.dom.querySelector('.flair-container');
         if (fc) {
@@ -2237,7 +2250,7 @@ function nextTurn() {
 			div.className = 'store-item';
 			const displayHTML = isImage ? `<img src="${visualContent}" class="store-emoji" style="width:90px; height:90px; object-fit:contain;">` : `<div class="store-emoji">${visualContent}</div>`;
 		
-			div.innerHTML = `<div class="store-label">!BUY</div>${displayHTML}<div class="store-label">🪙${price}</div>`;
+			div.innerHTML = `<div class="store-label">!BUY</div>${displayHTML}<div class="store-label"><span class="chip-icon"></span>${price}</div>`;
 			document.getElementById('arena').appendChild(div);
 		
 			const item = { el: div, content: visualContent, isImage: isImage, price: price, x: -150, y: 200 + Math.random() * (window.innerHeight - 400), vx: 1.1 + Math.random() * 1.1, vy: (Math.random() - 0.5) * 2, startTime: Date.now() };
